@@ -102,6 +102,7 @@ typedef char* ose_bundle;
 #endif
 
 typedef char ose_bool;
+typedef void (*ose_fn)(ose_bundle);
 
 #define OSE_BUNDLE_ID "#bundle\0"
 #define OSE_BUNDLE_ID_LEN 8

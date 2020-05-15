@@ -196,13 +196,17 @@ int32_t ose_writeTimetag(ose_bundle bundle,
  * @returns The offset of the last element in bytes.
  */
 int32_t ose_getLastBundleElemOffset(ose_constbundle bundle);
-int32_t ose_getBundleElemAddressOffset(ose_constbundle bundle, int32_t elemoffset);
+int32_t ose_getBundleElemAddressOffset(ose_constbundle bundle,
+				       int32_t elemoffset);
 int32_t ose_getBundleElemTTOffset(ose_constbundle bundle, int32_t elemoffset);
-int32_t ose_getBundleElemPayloadOffset(ose_constbundle bundle, int32_t elemoffset);
+int32_t ose_getBundleElemPayloadOffset(ose_constbundle bundle,
+				       int32_t elemoffset);
 
 // not implemented or tested yet:
-// int32_t ose_getFirstOffsetForMatch(ose_constbundle bundle, char *addr);
-// int32_t ose_getFirstOffsetForPMatch(ose_constbundle bundle, char *addr);
+int32_t ose_getFirstOffsetForMatch(ose_constbundle bundle,
+				   const char * const addr);
+int32_t ose_getFirstOffsetForPMatch(ose_constbundle bundle,
+				    const char * const addr);
 
 /**
  * @brief Calculate the size of a typed OSC datum.

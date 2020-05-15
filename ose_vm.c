@@ -21,6 +21,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <setjmp.h>
 
 #include "ose_conf.h"
@@ -225,8 +226,37 @@ static void applyControl(ose_bundle osevm, char *address)
 		lookupStackItemInEnv(vm_s, vm_e, vm_d);
 	}else if(!strncmp(address, "/!", 2)){
 		if(!strncmp(address, "/!/", 3)){
-			void (*f)(ose_bundle) =
-				ose_symtab_lookup(address + 2);
+			// void (*f)(ose_bundle) =
+			// 	ose_symtab_lookup(address + 2);
+			void (*f)(ose_bundle) = NULL;
+			f = ose_symtab_lookup(address + 2);
+			if(!f){
+				int32_t o = ose_getFirstOffsetForMatch(vm_e,
+								       address + 2);
+				if(o){
+					// assert stuff about o
+				        int32_t to, ntt, lto, po, lpo;
+					ose_getNthPayloadItem(vm_e,
+							      1,
+							      o,
+							      &to,
+							      &ntt,
+							      &lto,
+							      &po,
+							      &lpo);
+					if(ose_readByte(vm_e, to + 1)
+					   == OSETT_BLOB){
+						char *p = ose_readBlobPayload(vm_e,
+									    po);
+						while((uintptr_t)p % sizeof(intptr_t)){
+							p++;
+						}
+						intptr_t i = 0;
+						i = *((intptr_t *)p);
+						f = ((void (*)(ose_bundle))i);
+					}
+				}
+			}
 			if(f){
 				f(osevm);
 			}else{

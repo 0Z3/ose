@@ -31,6 +31,7 @@ SOFTWARE.
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <editline/readline.h>
+
 #include "ose.h"
 #include "ose_context.h"
 #include "ose_util.h"
@@ -40,6 +41,7 @@ SOFTWARE.
 #include "ose_parse.h"
 #include "ose_symtab.h"
 #include "ose_print.h"
+#include "ose_import.h"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -131,7 +133,7 @@ char *completion_generator(const char *text, int state)
 	}
 }
 
-char** completer(const char* text, int start, int end)
+char **completer(const char *text, int start, int end)
 {
 	// Don't do filename completion even if our generator finds no matches.
 	rl_attempted_completion_over = 1;
@@ -142,7 +144,7 @@ char** completer(const char* text, int start, int end)
 
 }
 
-void rl_cb(char* line)
+void rl_cb(char *line)
 {
 	if(!line){
 		quit = 1;
@@ -227,8 +229,10 @@ int main(int ac, char **av)
 	udpsock_env = setupUDP(&sockaddr_env, PORT_ENV);
 	fd_set rset;
 	FD_ZERO(&rset);
-	int maxfdp1 = (udpsock_env > udpsock_input ? udpsock_env : udpsock_input) + 1;
-
+	int maxfdp1 = (udpsock_env > udpsock_input
+		       ? udpsock_env
+		       : udpsock_input) + 1;
+	
 	while(1){
 		FD_SET(udpsock_input, &rset);
 		FD_SET(udpsock_env, &rset);
@@ -364,7 +368,20 @@ void serve(void)
 	if(!strncmp((addy = ose_peekAddress(vm_i)), "/!/repl", 7)){
 		if(!strcmp(addy + 7, "/step")){
 			fprintf(stderr, "steping enabled\n");
+		}else if(!strcmp(addy + 7, "/import")){
+			const char * const path = ose_peekString(vm_s);
+			ose_try{
+				ose_import(vm_e, path);
+			}ose_catch(1){
+				fprintf(stderr, "couldn't open %s\n",
+					path);
+			}ose_end_try;
+			ose_drop(vm_s);
+		}else{
+			fprintf(stderr, "command %s not understood\n",
+				addy);
 		}
+		ose_drop(vm_i);
 	}
 }
 

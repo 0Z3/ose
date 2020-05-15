@@ -19,6 +19,8 @@ ALLTYPES=-DOSE_CONF_PROVIDE_TYPE_SYMBOL \
 
 MIN_CFILES=ose.c ose_util.c ose_stackops.c ose_context.c ose_match.c ose_assert.c
 MIN_HFILES=ose.h ose_conf.h ose_util.h ose_stackops.h ose_context.h ose_match.h ose_assert.h
+SYS_CFILES=ose_import.c
+SYS_HFILES=ose_import.h
 VM_CFILES=ose_symtab.c ose_builtins.c ose_vm.c
 VM_HFILES=ose_symtab.h ose_builtins.h ose_vm.h
 LANG_CFILES=ose_lex.c ose_parse.c ose_print.c
@@ -27,14 +29,14 @@ TEST_CFILES=ut_ose_util.c ut_ose_stackops.c
 TEST_HFILES=ut_ose_util.h ut_ose_stackops.h
 
 
-CFLAGS_RELEASE=-O3
-CFLAGS_DEBUG=-DOSE_CONF_DEBUG -O0 -glldb -fsanitize=undefined
+CFLAGS_RELEASE=-O3 -rdynamic
+CFLAGS_DEBUG=-DOSE_CONF_DEBUG -O0 -glldb -fsanitize=undefined -rdynamic
 
 ose_symtab.c: ose_symtab.gperf
 	gperf ose_symtab.gperf > ose_symtab.c
 
-REPL_CFILES=$(MIN_CFILES) $(VM_CFILES) $(LANG_CFILES)
-REPL_HFILES=$(MIN_HFILES) $(VM_HFILES) $(LANG_HFILES)
+REPL_CFILES=$(MIN_CFILES) $(SYS_CFILES) $(VM_CFILES) $(LANG_CFILES)
+REPL_HFILES=$(MIN_HFILES) $(SYS_HFILES) $(VM_HFILES) $(LANG_HFILES)
 
 ose: CFLAGS=$(CFLAGS_RELEASE)
 ose: $(REPL_CFILES) $(REPL_HFILES) ose_repl.c
