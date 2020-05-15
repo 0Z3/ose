@@ -49,7 +49,8 @@ extern "C" {
 
 #define ose_rassert(t, e) ose_assert(t)
 #define ose_try do {} while(0);
-#define ose_catch(x) do {} while(0);
+//#define ose_catch(x) do {} while(0);
+#define ose_catch(x) while(0)
 #define ose_finally do {} while(0);
 #define ose_end_try do {} while(0);
 
@@ -77,7 +78,7 @@ extern "C" {
 #define ose_finally				\
 	break; }				\
 	default: {
-#define ose_end_try break; } } } while(0);
+#define ose_end_try break; } } ose_setjmp_called = 0; } while(0);
 	
 #endif
 
