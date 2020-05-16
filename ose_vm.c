@@ -492,6 +492,7 @@ void osevm_run(ose_bundle osevm)
 	ose_bundle vm_e = OSEVM_ENV(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
         ose_bundle vm_d = OSEVM_DUMP(osevm);
+	int32_t n = ose_getBundleElemCount(vm_d);
 	while(1){
 		static int x1;
 		while(1){
@@ -516,7 +517,8 @@ void osevm_run(ose_bundle osevm)
 			}
 			x2++;
 		}
-		if(ose_bundleIsEmpty(vm_d) == OSETT_FALSE){
+		if(ose_bundleIsEmpty(vm_d) == OSETT_FALSE
+		   && ose_getBundleElemCount(vm_d) > n){
 			restoreDump(osevm);
 		}else{
 			break;

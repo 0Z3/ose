@@ -77,6 +77,8 @@ ose_bundle bundle, osevm, vm_i, vm_s, vm_e, vm_c, vm_d, vm_o;
 
 int quit = 0;
 
+int step = 0;
+
 char *completion_generator(const char *text, int state)
 {
 	int symtablen = ose_symtab_len();
@@ -165,26 +167,60 @@ void rl_cb(char *line)
 		switch(*linep){
 		case '?':
 			printf("better ask someone else\n");
-			break;
+			return;
+		case 'i':
+			printStack(vm_i, "INPUT");
+			return;
 		case 's':
 			printStack(vm_s, "STACK");
-			break;
+			return;
 		case 'e':
 			printStack(vm_e, "ENV");
+			return;
+		case 'c':
+			printStack(vm_c, "CONTROL");
+			return;
+		case 't':
+			if(step){
+				step = 0;
+			}else{
+				return;
+			}
+			break;
+		case 'n':
+			if(!step){
+				return;
+			}
 			break;
 		}
-		return;
+		run();
+		sendStacksUDP(udpsock_input,
+			      &sockaddr_send);
+		printStack(vm_s, "STACK");
+		free(line);
+	}else{
+		if(ose_bundleIsEmpty(vm_i) == OSETT_FALSE
+		   || ose_bundleIsEmpty(vm_c) == OSETT_FALSE){
+			ose_bundleAll(vm_i);
+			ose_moveBundleElemToDest(vm_i, vm_d);
+			ose_bundleAll(vm_s);
+			ose_moveBundleElemToDest(vm_s, vm_d);
+			ose_bundleAll(vm_e);
+			ose_moveBundleElemToDest(vm_e, vm_d);
+			ose_bundleAll(vm_c);
+			ose_moveBundleElemToDest(vm_c, vm_d);
+		}
+		add_history(line);
+		ose_parse(line, osevm);
+		ose_bundleAll(vm_o);
+		ose_moveBundleElemToDest(vm_o, vm_i);
+		ose_popAllDrop(vm_i);
+		run();
+		sendStacksUDP(udpsock_input,
+			      &sockaddr_send);
+		printStack(vm_s, "STACK");
+		free(line);
 	}
-	add_history(line);
-	ose_parse(line, osevm);
-	ose_bundleAll(vm_o);
-	ose_moveBundleElemToDest(vm_o, vm_i);
-	ose_popAllDrop(vm_i);
-	run();
-	sendStacksUDP(udpsock_input,
-		      &sockaddr_send);
-	printStack(vm_s, "STACK");
-	free(line);
 }
 
 char *ose_reader_prompt = "# ";
@@ -194,6 +230,25 @@ void sig_handler(int signo)
 	if(signo == SIGINT){
 		quit = 1;
 	}
+}
+
+void repl_import(ose_bundle bundle)
+{
+	const char * const path = ose_peekString(vm_s);
+	ose_try{
+		ose_import(vm_e, path);
+	}ose_catch(1){
+		fprintf(stderr, "couldn't open %s\n",
+			path);
+	}ose_end_try;
+	fprintf(stdout, "---loaded %s successfully---\n", path);
+	ose_drop(vm_s);
+}
+
+void repl_step(ose_bundle bundle)
+{
+	step = 1;
+	fprintf(stdout, "---stepping enabled---\n");
 }
 
 int main(int ac, char **av)
@@ -232,6 +287,9 @@ int main(int ac, char **av)
 	int maxfdp1 = (udpsock_env > udpsock_input
 		       ? udpsock_env
 		       : udpsock_input) + 1;
+
+	ose_bindcfn(vm_e, "/repl/import", strlen("/repl/import"), repl_import);
+	ose_bindcfn(vm_e, "/repl/step", strlen("/repl/step"), repl_step);
 	
 	while(1){
 		FD_SET(udpsock_input, &rset);
@@ -362,33 +420,12 @@ void sendStacksUDP(int sock, struct sockaddr_in *addr)
 		addr);
 }
 
-void serve(void)
-{
-	char *addy = NULL;
-	if(!strncmp((addy = ose_peekAddress(vm_i)), "/!/repl", 7)){
-		if(!strcmp(addy + 7, "/step")){
-			fprintf(stderr, "steping enabled\n");
-		}else if(!strcmp(addy + 7, "/import")){
-			const char * const path = ose_peekString(vm_s);
-			ose_try{
-				ose_import(vm_e, path);
-			}ose_catch(1){
-				fprintf(stderr, "couldn't open %s\n",
-					path);
-			}ose_end_try;
-			ose_drop(vm_s);
-		}else{
-			fprintf(stderr, "command %s not understood\n",
-				addy);
-		}
-		ose_drop(vm_i);
-	}
-}
-
 void run(void)
 {
-	serve();
 	while(osevm_step(osevm) == OSETT_TRUE){
-		serve();
+		if(step){
+			fprintf(stdout, "con(t)inue, (n)ext\n");
+			break;
+		}
 	}
 }
