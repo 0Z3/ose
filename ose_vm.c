@@ -430,16 +430,16 @@ static void restoreDump(ose_bundle osevm)
 	ose_unpackDrop(vm_c);
 			
 	// restore env
-	ose_clear(vm_e);
-	ose_moveBundleElemToDest(vm_d, vm_e);
-	ose_unpackDrop(vm_e);
+	// ose_clear(vm_e);
+	// ose_moveBundleElemToDest(vm_d, vm_e);
+	// ose_unpackDrop(vm_e);
 
 	// restore stack
 	ose_bundleAll(vm_s);
 	ose_moveBundleElemToDest(vm_d, vm_s);
 	ose_unpackDrop(vm_s);
 	ose_rollBottom(vm_s);
-	ose_unpackDrop(vm_s);
+	//ose_unpackDrop(vm_s);
 
 	// restore input
 	ose_moveBundleElemToDest(vm_d, vm_i);
@@ -494,9 +494,7 @@ void osevm_run(ose_bundle osevm)
         ose_bundle vm_d = OSEVM_DUMP(osevm);
 	int32_t n = ose_getBundleElemCount(vm_d);
 	while(1){
-		static int x1;
 		while(1){
-			static int x2;
 			if(ose_bundleIsEmpty(vm_c) == OSETT_TRUE){
 				if(ose_bundleIsEmpty(vm_i) == OSETT_TRUE){
 					break;
@@ -505,7 +503,6 @@ void osevm_run(ose_bundle osevm)
 				popAllControl(osevm);
 			}
 			while(1){
-				static int x3;
 				if(ose_bundleIsEmpty(vm_c) == OSETT_TRUE){
 					break;
 				}
@@ -513,9 +510,7 @@ void osevm_run(ose_bundle osevm)
 				// check status and drop into
 				// debugger if necessary
 				ose_drop(vm_c);
-				x3++;
 			}
-			x2++;
 		}
 		if(ose_bundleIsEmpty(vm_d) == OSETT_FALSE
 		   && ose_getBundleElemCount(vm_d) > n){
@@ -523,6 +518,5 @@ void osevm_run(ose_bundle osevm)
 		}else{
 			break;
 		}
-		x1++;
 	}
 }

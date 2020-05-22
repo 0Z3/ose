@@ -158,6 +158,7 @@ void ose_addToSize(ose_bundle bundle, int32_t amt)
 
 void ose_copyBundleElemToDest(ose_bundle src, ose_bundle dest)
 {
+	ose_assert(ose_bundleHasAtLeastNElems(src, 1) == OSETT_TRUE);
 	//ose_bundle src = bundle;
 	char *srcp = ose_getBundlePtr(src);
 	int32_t src_offset = ose_getLastBundleElemOffset(src);

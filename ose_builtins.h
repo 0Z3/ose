@@ -144,6 +144,7 @@ void ose_builtin_quote(ose_bundle osevm);
 void ose_builtin_end_quote(ose_bundle osevm);
 void ose_builtin_clearEnv(ose_bundle osevm);
 void ose_builtin_copyEnv(ose_bundle osevm);
+void ose_builtin_parse(ose_bundle osevm);
 
 #ifdef __cplusplus
 }

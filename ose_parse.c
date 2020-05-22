@@ -40,17 +40,23 @@ void ose_parse(const char *str, ose_bundle osevm)
 		if(!str){
 			break;
 		}
-		str = ose_lex(&state, str, vm_i); // address
+		//str = ose_lex(&state, str, vm_i); // address
+		str = ose_lex(&state, str, vm_s);
+		//e(vm_s);
 		if(!str){
 			break;
 		}
-		str = ose_lex(&state, str, vm_i); // string
+		//str = ose_lex(&state, str, vm_i); // string
+		str = ose_lex(&state, str, vm_s);
+		//e(vm_s);
+		
 		// swap the order of the input bundle
 		// that lex created
-		ose_bundleAll(vm_i);
-		ose_popAllDrop(vm_i);
-		osevm_run(osevm);
+		// ose_bundleAll(vm_i);
+		// ose_popAllDrop(vm_i);
+		// osevm_run(osevm);
 		ose_swap(vm_s);
+		//e(vm_s);
 		char *a = ose_peekString(vm_s);
 		char a0 = a[0];
 		char a1 = a[1];

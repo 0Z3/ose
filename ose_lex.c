@@ -27,6 +27,13 @@ n  Copyright (c) 2019-20 John MacCallum
 #include "ose_stackops.h"
 #include "ose_assert.h"
 
+#define INIT 0
+#define ADDRESS 1
+#define END_ADDRESS 2
+#define STRING 3
+#define STRING_WS 4
+#define END_STRING 5
+
 static const char * const char2address(unsigned char c)
 {
 	static const char * const char2address_tab[128] =
@@ -67,12 +74,6 @@ static const char * const char2address(unsigned char c)
 	return char2address_tab[c];
 }
 
-#define INIT 0
-#define ADDRESS 1
-#define END_ADDRESS 2
-#define STRING 3
-#define STRING_WS 4
-#define END_STRING 5
 static int processchar(char c, int state)
 {
 	switch(state){
@@ -137,122 +138,178 @@ static int processchar(char c, int state)
 	}
 }
 
-static void pushbyte(ose_bundle bundle, char b)
-{
-	ose_pushMessage(bundle, char2address(b), 7, 0);
-	ose_pushMessage(bundle, "/!/swap/bytes/4", strlen("/!/swap/bytes/4"), 0);
-	ose_pushMessage(bundle, "/!/item/toblob", strlen("/!/item/toblob"), 0);
-	ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_LEN,
-			1, OSETT_INT32, 3);
-	ose_pushMessage(bundle, "/!/decat/blob", strlen("/!/decat/blob"), 0);
-	ose_pushMessage(bundle, "/!/pop", strlen("/!/pop"), 0);
-	ose_pushMessage(bundle, "/!/drop", strlen("/!/drop"), 0);
-	ose_pushMessage(bundle, "/!/push", strlen("/!/push"), 0);
-	ose_pushMessage(bundle, "/!/concat/blobs", strlen("/!/concat/blobs"), 0);
-}
+// static void pushbyte(ose_bundle bundle, char b)
+// {
+// 	ose_pushMessage(bundle, char2address(b), 7, 0);
+// 	ose_pushMessage(bundle, "/!/swap/bytes/4", strlen("/!/swap/bytes/4"), 0);
+// 	ose_pushMessage(bundle, "/!/item/toblob", strlen("/!/item/toblob"), 0);
+// 	ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_LEN,
+// 			1, OSETT_INT32, 3);
+// 	ose_pushMessage(bundle, "/!/decat/blob", strlen("/!/decat/blob"), 0);
+// 	ose_pushMessage(bundle, "/!/pop", strlen("/!/pop"), 0);
+// 	ose_pushMessage(bundle, "/!/drop", strlen("/!/drop"), 0);
+// 	ose_pushMessage(bundle, "/!/push", strlen("/!/push"), 0);
+// 	ose_pushMessage(bundle, "/!/concat/blobs", strlen("/!/concat/blobs"), 0);
+// }
 
-static void lenchk(ose_bundle bundle)
-{
-	ose_pushMessage(bundle, "/!/length/item", strlen("/!/length/item"), 0);
-	ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_LEN,
-			1, OSETT_INT32, 4);
-	ose_pushMessage(bundle, "/!/swap", strlen("/!/swap"), 0);
-	ose_pushMessage(bundle, "/!/mod", strlen("/!/mod"), 0);
-	ose_pushMessage(bundle, "/!/if", strlen("/!/if"), 0);
-	ose_pushMessage(bundle, "/!/length/item", strlen("/!/length/item"), 0);
-	ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_LEN,
-			1, OSETT_INT32, 4);
-	ose_pushMessage(bundle, "/!/swap", strlen("/!/swap"), 0);
-	ose_pushMessage(bundle, "/!/mod", strlen("/!/mod"), 0);
-	ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_LEN,
-			1, OSETT_INT32, 4);
-	ose_pushMessage(bundle, "/!/sub", strlen("/!/sub"), 0);
-	ose_pushMessage(bundle, "/!/else", strlen("/!/else"), 0);
-	ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_LEN,
-			1, OSETT_INT32, 4);
-	ose_pushMessage(bundle, "/!/end/if", strlen("/!/end/if"), 0);
-	ose_pushMessage(bundle, "/!/push/blob", strlen("/!/push/blob"), 0);
-	ose_pushMessage(bundle, "/!/push", strlen("/!/push"), 0);
-	ose_pushMessage(bundle, "/!/concat/blobs", strlen("/!/concat/blobs"), 0);
-}
+// static void lenchk(ose_bundle bundle)
+// {
+// 	ose_pushMessage(bundle, "/!/length/item", strlen("/!/length/item"), 0);
+// 	ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_LEN,
+// 			1, OSETT_INT32, 4);
+// 	ose_pushMessage(bundle, "/!/swap", strlen("/!/swap"), 0);
+// 	ose_pushMessage(bundle, "/!/mod", strlen("/!/mod"), 0);
+// 	ose_pushMessage(bundle, "/!/if", strlen("/!/if"), 0);
+// 	ose_pushMessage(bundle, "/!/length/item", strlen("/!/length/item"), 0);
+// 	ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_LEN,
+// 			1, OSETT_INT32, 4);
+// 	ose_pushMessage(bundle, "/!/swap", strlen("/!/swap"), 0);
+// 	ose_pushMessage(bundle, "/!/mod", strlen("/!/mod"), 0);
+// 	ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_LEN,
+// 			1, OSETT_INT32, 4);
+// 	ose_pushMessage(bundle, "/!/sub", strlen("/!/sub"), 0);
+// 	ose_pushMessage(bundle, "/!/else", strlen("/!/else"), 0);
+// 	ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_LEN,
+// 			1, OSETT_INT32, 4);
+// 	ose_pushMessage(bundle, "/!/end/if", strlen("/!/end/if"), 0);
+// 	ose_pushMessage(bundle, "/!/push/blob", strlen("/!/push/blob"), 0);
+// 	ose_pushMessage(bundle, "/!/push", strlen("/!/push"), 0);
+// 	ose_pushMessage(bundle, "/!/concat/blobs", strlen("/!/concat/blobs"), 0);
+// }
+
+// const char * const ose_lex(int *state_,
+// 			   const char *str,
+// 			   ose_bundle bundle)
+// {
+// 	int state = *state_;
+// 	ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_LEN,
+// 			1, OSETT_BLOB, 0, NULL);
+// 	while(*str != 0){
+// 		int newstate = processchar(*str, state);
+// 		*state_ = newstate;
+// 		switch(newstate){
+// 		case INIT:
+// 			break;
+// 		case ADDRESS:
+// 			pushbyte(bundle, *str);
+// 			break;
+// 		case END_ADDRESS:
+// 			lenchk(bundle);
+			
+// 			ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL,
+// 					OSE_ADDRESS_ANONVAL_LEN,
+// 					1, OSETT_INT32, OSETT_STRING);
+// 			ose_pushMessage(bundle, "/!/blob/totype",
+// 					strlen("/!/blob/totype"), 0);
+// 			if(*str == ' ' || *str == '\t' || *str == '\n'){
+// 				*state_ = STRING_WS;
+// 			}
+// 			return str;
+// 		case STRING:
+// 			pushbyte(bundle, *str);
+// 			break;
+// 		case STRING_WS:
+// 			pushbyte(bundle, *str);
+// 			break;
+// 		case END_STRING:
+// 			{
+// 				lenchk(bundle);
+			
+// 				ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL,
+// 						OSE_ADDRESS_ANONVAL_LEN, 1,
+// 						OSETT_INT32, OSETT_STRING);
+// 				ose_pushMessage(bundle,
+// 						"/!/blob/totype",
+// 						strlen("/!/blob/totype"), 0);
+// 			}
+// 			return str;
+// 		}
+// 		state = newstate;
+// 		str++;
+// 	}
+// 	switch(state){
+// 	case INIT:
+// 		break;
+// 	case ADDRESS:
+// 		lenchk(bundle);
+// 		ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL,
+// 				OSE_ADDRESS_ANONVAL_LEN, 1,
+// 				OSETT_INT32, OSETT_STRING);
+// 		ose_pushMessage(bundle, "/!/blob/totype",
+// 				strlen("/!/blob/totype"), 0);
+// 		*state_ = END_ADDRESS;
+// 		return str;
+// 	case END_ADDRESS:
+// 	case STRING:
+// 	case STRING_WS:
+// 	case END_STRING:
+// 		{
+// 			lenchk(bundle);
+// 			ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL,
+// 					OSE_ADDRESS_ANONVAL_LEN, 1,
+// 					OSETT_INT32, OSETT_STRING);
+// 			ose_pushMessage(bundle,
+// 					"/!/blob/totype",
+// 					strlen("/!/blob/totype"), 0);
+// 		}
+// 		*state_ = END_STRING;
+// 		return str;
+// 	}
+// 	return NULL; // can't get here
+// }
 
 const char * const ose_lex(int *state_,
-			   const char *str,
+			   const char * const str,
 			   ose_bundle bundle)
 {
 	int state = *state_;
-	ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_LEN,
-			1, OSETT_BLOB, 0, NULL);
-	while(*str != 0){
-		int newstate = processchar(*str, state);
+	char *p1 = (char *)str;
+	char *p2 = (char *)str;
+	char c;
+	while(*p2 != 0){
+		int newstate = processchar(*p2, state);
 		*state_ = newstate;
 		switch(newstate){
 		case INIT:
-			break;
 		case ADDRESS:
-			pushbyte(bundle, *str);
+		case STRING:
+		case STRING_WS:
 			break;
 		case END_ADDRESS:
-			lenchk(bundle);
-			
-			ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL,
-					OSE_ADDRESS_ANONVAL_LEN,
-					1, OSETT_INT32, OSETT_STRING);
-			ose_pushMessage(bundle, "/!/blob/totype",
-					strlen("/!/blob/totype"), 0);
-			if(*str == ' ' || *str == '\t' || *str == '\n'){
-				*state_ = STRING_WS;
-			}
-			return str;
-		case STRING:
-			pushbyte(bundle, *str);
-			break;
-		case STRING_WS:
-			pushbyte(bundle, *str);
-			break;
 		case END_STRING:
 			{
-				lenchk(bundle);
-			
-				ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL,
-						OSE_ADDRESS_ANONVAL_LEN, 1,
-						OSETT_INT32, OSETT_STRING);
-				ose_pushMessage(bundle,
-						"/!/blob/totype",
-						strlen("/!/blob/totype"), 0);
+				c = *p2;	
+				*p2 = 0;
+				ose_pushString(bundle, p1);
+				*p2 = c;
+				if(newstate == END_ADDRESS
+				   && (*p2 == ' '
+				       || *p2 == '\t'
+				       || *p2 == '\n')){
+					*state_ = STRING_WS;
+				}
 			}
-			return str;
+			return p2;
 		}
 		state = newstate;
-		str++;
+		p2++;
 	}
+	c = *p2;
+	*p2 = 0;
+	ose_pushString(bundle, p1);
+	*p2 = c;
 	switch(state){
 	case INIT:
 		break;
 	case ADDRESS:
-		lenchk(bundle);
-		ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL,
-				OSE_ADDRESS_ANONVAL_LEN, 1,
-				OSETT_INT32, OSETT_STRING);
-		ose_pushMessage(bundle, "/!/blob/totype",
-				strlen("/!/blob/totype"), 0);
 		*state_ = END_ADDRESS;
-		return str;
+		return p2;
 	case END_ADDRESS:
 	case STRING:
 	case STRING_WS:
 	case END_STRING:
-		{
-			lenchk(bundle);
-			ose_pushMessage(bundle, OSE_ADDRESS_ANONVAL,
-					OSE_ADDRESS_ANONVAL_LEN, 1,
-					OSETT_INT32, OSETT_STRING);
-			ose_pushMessage(bundle,
-					"/!/blob/totype",
-					strlen("/!/blob/totype"), 0);
-		}
 		*state_ = END_STRING;
-		return str;
+		return p2;
 	}
 	return NULL; // can't get here
 }

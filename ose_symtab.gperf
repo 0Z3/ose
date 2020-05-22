@@ -162,6 +162,7 @@ struct _ose_symtab_rec { char *name; void (*f)(ose_bundle);};
 /end/quote, ose_builtin_end_quote
 /clear/env, ose_builtin_clearEnv
 /copy/env, ose_builtin_copyEnv
+/parse, ose_builtin_parse
 ###
 %%
 
