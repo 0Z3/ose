@@ -153,7 +153,7 @@ void ose_addToSize(ose_bundle bundle, int32_t amt)
 	ose_writeInt32(bundle, -4, ns1);
 	ose_writeInt32(bundle, ns1, ns2);
 	ose_assert(ose_readInt32(bundle, -4) >= OSE_BUNDLE_HEADER_LEN);
-	ose_assert(ose_readInt32(bundle, ose_readInt32(bundle, -4)) > 0);
+	ose_assert(ose_readInt32(bundle, ose_readInt32(bundle, -4)) >= 0);
 }
 
 void ose_copyBundleElemToDest(ose_bundle src, ose_bundle dest)
