@@ -303,6 +303,11 @@ void ose_pushInfinitum(ose_bundle bundle);
 
 
 
+void ose_pushCFn(ose_bundle bundle, const ose_fn fn);
+
+
+
+
 
 /**
  * @brief see #ose_writeMessage.

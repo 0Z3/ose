@@ -36,6 +36,14 @@ SOFTWARE.
 extern "C" {
 #endif
 
+/**
+ * The Arduino IDE doesn't let you predefine with a -D switch, so
+ * we require and include a header for Arduino projects.
+ */
+#if defined(ARDUINO) && !defined(OSE_CONF_IGNORE_ARDUINO)
+#include "ose_defs.h"
+#endif
+
 #ifdef __DOXYGEN__
 /** 
  * @brief Debug mode: enables assertions, and enforces the type of 

@@ -19,54 +19,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "ose_conf.h"
+#ifndef OSE_LOADLIB
+#define OSE_LOADLIB
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <dlfcn.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "ose.h"
-#include "ose_context.h"
-#include "ose_util.h"
-#include "ose_stackops.h"
-#include "ose_assert.h"
-#include "ose_vm.h"
-#include "ose_parse.h"
-#include "ose_symtab.h"
-#include "ose_print.h"
-#include "ose_import.h"
+void ose_loadLib(ose_bundle bundle, const char * const name);
+void ose_readFile(ose_bundle bundle, const char * const name);
 
-void ose_import(ose_bundle bundle, const char * const name)
-{
-	void *h = dlopen(name, RTLD_LAZY);
-	ose_rassert(h != NULL, 1);
-	void (*ose_main)(ose_bundle) = NULL;
-	*(void**)(&ose_main) = dlsym(h, "ose_main");
-	ose_rassert(ose_main != NULL, 1);
-	ose_main(bundle);
+#ifdef __cplusplus
 }
+#endif
 
-void ose_bindcfn(ose_bundle bundle,
-		 const char * const address,
-		 int32_t addresslen,
-		 ose_fn fn)
-{
-	const int32_t bufsize = sizeof(intptr_t) * 2;
-	char buf[bufsize];
-	memset(buf, 0, bufsize);
-	ose_pushMessage(bundle,
-			address,
-			addresslen,
-			1,
-			OSETT_BLOB,
-			bufsize,
-			buf);
-
-	char *p = ose_peekBlob(bundle);
-	p += 4;
-	while((uintptr_t)p % sizeof(intptr_t)){
-		p++;
-	}
-	*((intptr_t *)p) = (intptr_t)fn;
-}
+#endif

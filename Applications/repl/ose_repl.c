@@ -41,7 +41,7 @@ SOFTWARE.
 #include "ose_parse.h"
 #include "ose_symtab.h"
 #include "ose_print.h"
-#include "ose_import.h"
+#include "sys/ose_load.h"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -181,7 +181,10 @@ void rl_cb(char *line)
 			printStack(vm_c, "CONTROL");
 			return;
 		case 'd':
-			printStack(vm_c, "DUMP");
+			printStack(vm_d, "DUMP");
+			return;
+		case 'o':
+			printStack(vm_o, "OUTPUT");
 			return;
 		case 't':
 			if(step){
@@ -242,80 +245,42 @@ void repl_import(ose_bundle bundle)
 	const char * const path = ose_peekString(vm_s);
 	const int32_t pathlen = strlen(path);
 	if(!strcmp(path + (pathlen - 4), ".ose")){
-		FILE *fp = fopen(path, "rb");
-		if(!fp){
-			fprintf(stderr, "couldn't open %s\n", path);
-			return;
-		}
-		fseek(fp , 0L , SEEK_END);
-		const int32_t n = ftell(fp);
-		rewind(fp);
-		if(n > MAX_INPUT_LEN){
-			fprintf(stderr, "%s is too big (limit %d chars)\n",
-				path, MAX_INPUT_LEN);
-			fclose(fp);
-			return;
-		}
-		char buf[MAX_INPUT_LEN];
-		memset(buf, 0, MAX_INPUT_LEN);
-		if(fread(buf, n, 1, fp) != 1){
-			fprintf(stderr, "couldn't read %s\n", path);
-			fclose(fp);
-			return;
-		}
-		fclose(fp);
-
-		ose_drop(vm_s);
-		ose_pushString(vm_s, buf);
-
+		// FILE *fp = fopen(path, "rb");
+		// if(!fp){
+		// 	fprintf(stderr, "couldn't open %s\n", path);
+		// 	return;
+		// }
+		// fseek(fp , 0L , SEEK_END);
+		// const int32_t n = ftell(fp);
+		// rewind(fp);
+		// if(n > MAX_INPUT_LEN){
+		// 	fprintf(stderr, "%s is too big (limit %d chars)\n",
+		// 		path, MAX_INPUT_LEN);
+		// 	fclose(fp);
+		// 	return;
+		// }
+		// char buf[MAX_INPUT_LEN];
+		// memset(buf, 0, MAX_INPUT_LEN);
+		// if(fread(buf, n, 1, fp) != 1){
+		// 	fprintf(stderr, "couldn't read %s\n", path);
+		// 	fclose(fp);
+		// 	return;
+		// }
+		// fclose(fp);
+		
+		// ose_drop(vm_s);
+		
+		//ose_pushString(vm_s, buf);
+		
+		ose_readFile(vm_s, path);
+		ose_nip(vm_s);
 		ose_pushMessage(vm_i,
 				"/!/eval", strlen("/!/eval"), 0);
 		ose_pushMessage(vm_i,
 				"/!/parse", strlen("/!/parse"), 0);
-				
-		// {
-		// 	ose_bundleAll(vm_i);
-		// 	ose_moveBundleElemToDest(vm_i, vm_d);
-		// 	ose_bundleAll(vm_s);
-		// 	ose_moveBundleElemToDest(vm_s, vm_d);
-		// 	ose_bundleAll(vm_e);
-		// 	ose_moveBundleElemToDest(vm_e, vm_d);
-		// 	ose_bundleAll(vm_c);
-		// 	ose_moveBundleElemToDest(vm_c, vm_d);
-		// 	ose_bundleAll(vm_o);
-		// 	ose_moveBundleElemToDest(vm_o, vm_d);
-		// }
-		// ose_parse(buf, osevm);
-		// ose_bundleAll(vm_o);
-		// ose_moveBundleElemToDest(vm_o, vm_i);
-		// ose_popAllDrop(vm_i);
-		// {
-		// 	ose_moveBundleElemToDest(vm_d, vm_o);
-		// 	ose_unpackDrop(vm_o);
-			
-		// 	ose_moveBundleElemToDest(vm_d, vm_c);
-		// 	ose_unpackDrop(vm_c);
-
-		// 	ose_clear(vm_e);
-		// 	ose_moveBundleElemToDest(vm_d, vm_e);
-		// 	ose_unpackDrop(vm_e);
-
-		// 	ose_bundleAll(vm_s);
-		// 	ose_moveBundleElemToDest(vm_d, vm_s);
-		// 	ose_unpackDrop(vm_s);
-		// 	ose_rollBottom(vm_s);
-		// 	ose_unpackDrop(vm_s);
-
-		// 	ose_moveBundleElemToDest(vm_d, vm_i);
-		// 	ose_unpackDrop(vm_i);
-		// }
-		// sendStacksUDP(udpsock_input,
-		// 	      &sockaddr_send);
-		// printStack(vm_s, "STACK");
-
 	}else{
 		ose_try{
-			ose_import(vm_e, path);
+			ose_loadLib(vm_e, path);
 		}ose_catch(1){
 			fprintf(stderr, "couldn't open %s\n",
 				path);
@@ -368,8 +333,10 @@ int main(int ac, char **av)
 		       ? udpsock_env
 		       : udpsock_input) + 1;
 
-	ose_bindcfn(vm_e, "/repl/import", strlen("/repl/import"), repl_import);
-	ose_bindcfn(vm_e, "/repl/step", strlen("/repl/step"), repl_step);
+	ose_pushMessage(vm_e, "/repl/import", strlen("/repl/import"),
+			1, OSETT_CFUNCTION, repl_import);
+	ose_pushMessage(vm_e, "/repl/step", strlen("/repl/step"),
+			1, OSETT_CFUNCTION, repl_step);
 	
 	while(1){
 		FD_SET(udpsock_input, &rset);

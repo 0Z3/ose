@@ -41,12 +41,19 @@ extern "C" {
 #include <Winsock.h>
 #else
 
+#ifndef htonl
+#define OSE_NEED_HTONL
+int32_t htonl(int32_t x);
 #define OSE_BYTE_SWAP32(x) \
 	((((x) & 0xff000000) >> 24) | \
 	 (((x) & 0x00ff0000) >> 8) | \
 	 (((x) & 0x0000ff00) << 8) | \
 	 (((x) & 0x000000ff) << 24))
+#endif
 
+#ifndef ntohl
+#define OSE_NEED_NTOHL
+int32_t ntohl(int32_t x);
 #define OSE_BYTE_SWAP64(x) \
 	((((x) & 0xff00000000000000LL) >> 56) | \
 	 (((x) & 0x00ff000000000000LL) >> 40) | \
@@ -56,12 +63,7 @@ extern "C" {
 	 (((x) & 0x0000000000ff0000LL) << 24) | \
 	 (((x) & 0x000000000000ff00LL) << 40) | \
 	 (((x) & 0x00000000000000ffLL) << 56))
-
-#define OSE_NEED_HTONL
-int32_t htonl(int32_t x);
-#define OSE_NEED_NTOHL
-int32_t ntohl(int32_t x);
-
+#endif
 #endif
 
 
@@ -103,6 +105,7 @@ typedef char* ose_bundle;
 
 typedef char ose_bool;
 typedef void (*ose_fn)(ose_bundle);
+#define OSE_INTPTR2 128
 
 #define OSE_BUNDLE_ID "#bundle\0"
 #define OSE_BUNDLE_ID_LEN 8
@@ -169,8 +172,13 @@ struct ose_timetag
 #ifdef OSE_PROVIDE_TYPE_INFINITUM
 #define OSETT_INFINITUM 'I'
 #endif
+#ifdef OSE_PROVIDE_TYPE_CFUNCTION
+#define OSETT_CFUNCTION 'l'
+#endif
 
 // non-osc data types
+// these are never written into a bundle
+// (unless they are defined above)
 #ifndef OSETT_TRUE
 #define OSETT_TRUE 'T'
 #endif
@@ -180,6 +188,9 @@ struct ose_timetag
 #define OSETT_NOTYPETAG 0
 #define OSETT_BUNDLE '|'
 #define OSETT_MESSAGE '-'
+#ifndef OSETT_CFUNCTION
+#define OSETT_CFUNCTION 'l'
+#endif
 
 #ifndef OSE_USER_ADDRESS_ANONVAL
 #define OSE_ADDRESS_ANONVAL "\0\0\0\0"
@@ -191,6 +202,7 @@ struct ose_timetag
 #define OSE_ADDRESS_MIN_PLEN 4
 
 #ifdef OSE_DEBUG
+#include <stdio.h>
 void p(ose_bundle bundle);
 void e(ose_bundle bundle);
 #endif

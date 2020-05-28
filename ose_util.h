@@ -182,6 +182,11 @@ int32_t ose_writeTimetag(ose_bundle bundle,
 			 uint32_t sec,
 			 uint32_t fsec);
 #endif
+ose_fn ose_readCFn(ose_constbundle bundle, int32_t offset);
+int32_t ose_writeCFn(ose_bundle bundle,
+		     const int32_t offset,
+		     const ose_fn fn);
+
 
 /**
  * @brief Get the offset in bytes of the last bundle element (i.e.

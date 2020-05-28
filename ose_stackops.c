@@ -374,6 +374,15 @@ void ose_pushInfinitum(ose_bundle bundle)
 }
 #endif
 
+void ose_pushCFn(ose_bundle bundle, const ose_fn fn)
+{
+	ose_pushBlob(bundle, OSE_INTPTR2, NULL);
+	int32_t o = ose_readInt32(bundle, -4);
+	o -= OSE_INTPTR2;
+	ose_assert(o > OSE_BUNDLE_HEADER_LEN);
+	ose_writeCFn(bundle, o, fn);
+}
+
 void ose_pushMessage(ose_bundle bundle,
 		     const char * const address,
 		     int32_t addresslen,

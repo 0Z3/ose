@@ -310,6 +310,19 @@ void ose_builtin_copyElemToDest(ose_bundle osevm)
 	ose_drop(vm_s);
 }
 
+void ose_builtin_replaceElemInDest(ose_bundle osevm)
+{
+	ose_bundle vm_s = OSEVM_STACK(osevm);
+	ose_bundle dest = ose_enter(osevm, ose_peekString(vm_s));
+	ose_push(vm_s);
+	char *a = ose_peekString(vm_s);
+	ose_replaceBundleElemInDestAddr(vm_s, a);
+	ose_pop(dest);
+	ose_drop(dest);
+	ose_pop(vm_s);
+	ose_drop(vm_s);
+}
+
 void ose_builtin_quote(ose_bundle osevm)
 {
 	ose_bundle vm_i = OSEVM_INPUT(osevm);

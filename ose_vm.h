@@ -103,6 +103,20 @@ extern "C" {
 
 #endif
 
+void ose_assignStackToEnv(ose_bundle osevm);
+#ifndef OSEVM_ASSIGN
+#define OSEVM_ASSIGN ose_assignStackToEnv
+#else
+extern void OSEVM_ASSIGN (ose_bundle osevm);
+#endif
+
+void ose_lookupStackItemInEnv(ose_bundle osevm);
+#ifndef OSEVM_LOOKUP
+#define OSEVM_LOOKUP ose_lookupStackItemInEnv
+#else
+extern void OSEVM_LOOKUP (ose_bundle osevm);
+#endif
+
 ose_bundle osevm_init(ose_bundle bundle);
 void osevm_run(ose_bundle bundle);
 char osevm_step(ose_bundle osevm);

@@ -53,8 +53,18 @@ static void popStackToEnv(ose_bundle vm_s,
 	//ose_unpackDrop(vm_e);
 }
 
-static void doAssignment(ose_bundle vm_s, ose_bundle vm_e)
+void ose_assignStackToEnv(ose_bundle osevm)
 {
+	ose_bundle vm_s = OSEVM_STACK(osevm);
+	ose_bundle vm_e = OSEVM_ENV(osevm);
+	ose_bundle vm_c = OSEVM_CONTROL(osevm);
+	const char * const address = ose_peekAddress(vm_c);
+	if(!strncmp(address, "/@/", 3)){
+		ose_pushString(vm_s, address + 2);
+	}
+	if(ose_bundleIsEmpty(vm_s) == OSETT_TRUE){
+		return;
+	}
 	ose_countElems(vm_s);
 	int32_t n = ose_popInt32(vm_s);
 	switch(n){
@@ -86,10 +96,19 @@ static void doAssignment(ose_bundle vm_s, ose_bundle vm_e)
 	}
 }
 
-static void lookupStackItemInEnv(ose_bundle vm_s,
-				 ose_bundle vm_e,
-				 ose_bundle vm_d)
+void ose_lookupStackItemInEnv(ose_bundle osevm)
 {
+	ose_bundle vm_s = OSEVM_STACK(osevm);
+	ose_bundle vm_e = OSEVM_ENV(osevm);
+	ose_bundle vm_c = OSEVM_CONTROL(osevm);
+        ose_bundle vm_d = OSEVM_DUMP(osevm);
+	const char * const address = ose_peekAddress(vm_c);
+	if(!strncmp(address, "/$/", 3)){
+		ose_pushString(vm_e,
+			       address + 2);
+	}else{
+		popStackToEnv(vm_s, vm_e);
+	}
 	ose_countElems(vm_e);
 	ose_moveBundleElemToDest(vm_e, vm_d);
 	ose_pickMatch(vm_e);
@@ -137,6 +156,9 @@ ose_bundle osevm_init(ose_bundle bundle)
 		ose_pushContextMessage(bundle,
 				       cachesize,
 				       "/co");
+		while((s / 6) % 4){
+			s--;
+		}
 		s /= 6;
 #endif		
 
@@ -210,26 +232,25 @@ static void applyControl(ose_bundle osevm, char *address)
 	int32_t addresslen = strlen(address);
 
 	if(!strncmp(address, "/@", 2)){
-		if(!strncmp(address, "/@/", 3)){
-			ose_pushString(vm_s, address + 2);
-		}
-		if(ose_bundleIsEmpty(vm_s) == OSETT_FALSE){
-			doAssignment(vm_s, vm_e);
-		}
+		// if(!strncmp(address, "/@/", 3)){
+		// 	ose_pushString(vm_s, address + 2);
+		// }
+		// if(ose_bundleIsEmpty(vm_s) == OSETT_FALSE){
+			// OSEVM_ASSIGN(osevm);
+		// }
+		OSEVM_ASSIGN(osevm);
 	}else if(!strncmp(address, "/$", 2)){
-		if(!strncmp(address, "/$/", 3)){
-			ose_pushString(vm_e,
-				       address + 2);
-		}else{
-			popStackToEnv(vm_s, vm_e);
-		}
-		lookupStackItemInEnv(vm_s, vm_e, vm_d);
+		// if(!strncmp(address, "/$/", 3)){
+		// 	ose_pushString(vm_e,
+		// 		       address + 2);
+		// }else{
+		// 	popStackToEnv(vm_s, vm_e);
+		// }
+		//lookupStackItemInEnv(vm_s, vm_e, vm_d);
+		OSEVM_LOOKUP(osevm);
 	}else if(!strncmp(address, "/!", 2)){
 		if(!strncmp(address, "/!/", 3)){
-			// void (*f)(ose_bundle) =
-			// 	ose_symtab_lookup(address + 2);
-			void (*f)(ose_bundle) = NULL;
-			f = ose_symtab_lookup(address + 2);
+			ose_fn f = ose_symtab_lookup(address + 2);
 			if(!f){
 				int32_t o = ose_getFirstOffsetForMatch(vm_e,
 								       address + 2);
@@ -246,14 +267,7 @@ static void applyControl(ose_bundle osevm, char *address)
 							      &lpo);
 					if(ose_readByte(vm_e, to + 1)
 					   == OSETT_BLOB){
-						char *p = ose_readBlobPayload(vm_e,
-									    po);
-						while((uintptr_t)p % sizeof(intptr_t)){
-							p++;
-						}
-						intptr_t i = 0;
-						i = *((intptr_t *)p);
-						f = ((void (*)(ose_bundle))i);
+						f = ose_readCFn(vm_e, po + 4);
 					}
 				}
 			}
@@ -387,7 +401,6 @@ static void popAllControl(ose_bundle osevm)
 		ose_pop(vm_c);
 		if(ose_isStringType(ose_peekMessageArgType(vm_c))
 		   == OSETT_TRUE){
-			char *b = ose_getBundlePtr(vm_c);
 			char *str = ose_peekString(vm_c);
 			if(!strcmp(str, "/@")
 			   || !strncmp(str, "/@/", 3)

@@ -581,6 +581,33 @@ int32_t ose_writeTimetag(ose_bundle bundle,
 }
 #endif
 
+ose_fn ose_readCFn(ose_constbundle bundle, const int32_t offset)
+{
+	const char * b = ose_getBundlePtr(bundle) + offset;
+	while((uintptr_t)b % sizeof(intptr_t)){
+		b++;
+	}
+	intptr_t i = 0;
+	i = *((intptr_t *)b);
+	ose_fn f = (ose_fn)i;
+	return f;
+}
+
+int32_t ose_writeCFn(ose_bundle bundle,
+		     const int32_t offset,
+		     const ose_fn fn)
+{
+	char *b = ose_getBundlePtr(bundle);
+	ose_assert(b);
+	b += offset;
+	memset(b, 0, OSE_INTPTR2);
+	while((uintptr_t)b % sizeof(intptr_t)){
+		b++;
+	}
+	*((intptr_t *)b) = (intptr_t)fn;
+	return OSE_INTPTR2;
+}
+
 int32_t ose_getLastBundleElemOffset(ose_constbundle bundle)
 {
 	ose_assert(ose_isBundle(bundle) == OSETT_TRUE);
@@ -889,7 +916,9 @@ int32_t ose_vwriteMessage(ose_bundle bundle,
 
 	int32_t s;
 	if(!n){
-		goto cleanup;
+		s = plo - o;
+		ose_writeInt32(bundle, o, s - 4);
+		return s;
 	}
 	
 	char tt = va_arg(ap, int);
@@ -1020,10 +1049,21 @@ int32_t ose_vwriteMessage(ose_bundle bundle,
 			break;
 		}
 #endif
+		case OSETT_CFUNCTION: {
+			const ose_fn fn = va_arg(ap, ose_fn);
+#ifdef OSE_PROVIDE_TYPE_CFUNCTION
+			ose_writeByte(bundle, tto++, OSETT_CFUNCTION);
+#else
+			ose_writeByte(bundle, tto++, OSETT_BLOB);
+#endif
+			plo += ose_writeInt32(bundle, plo, OSE_INTPTR2);
+			plo += ose_writeCFn(bundle, plo, fn);
+			break;
+		}
 		}
 		tt = va_arg(ap, int);
 	}
- cleanup:
+
 	s = plo - o;
 	ose_writeInt32(bundle, o, s - 4);
 	return s;

@@ -17,10 +17,10 @@ ALLTYPES=-DOSE_CONF_PROVIDE_TYPE_SYMBOL \
 -DOSE_CONF_PROVIDE_TYPE_NULL \
 -DOSE_CONF_PROVIDE_TYPE_INFINITUM
 
-MIN_CFILES=ose.c ose_util.c ose_stackops.c ose_context.c ose_match.c ose_assert.c
-MIN_HFILES=ose.h ose_conf.h ose_util.h ose_stackops.h ose_context.h ose_match.h ose_assert.h
-SYS_CFILES=ose_import.c
-SYS_HFILES=ose_import.h
+CORE_CFILES=ose.c ose_util.c ose_stackops.c ose_context.c ose_match.c ose_assert.c
+CORE_HFILES=ose.h ose_conf.h ose_util.h ose_stackops.h ose_context.h ose_match.h ose_assert.h
+SYS_CFILES=sys/ose_load.c
+SYS_HFILES=sys/ose_load.h
 VM_CFILES=ose_symtab.c ose_builtins.c ose_vm.c
 VM_HFILES=ose_symtab.h ose_builtins.h ose_vm.h
 LANG_CFILES=ose_lex.c ose_parse.c ose_print.c
@@ -29,38 +29,53 @@ TEST_CFILES=ut_ose_util.c ut_ose_stackops.c
 TEST_HFILES=ut_ose_util.h ut_ose_stackops.h
 
 
-CFLAGS_RELEASE=-O3 -rdynamic
-CFLAGS_DEBUG=-DOSE_CONF_DEBUG -O0 -glldb -fsanitize=undefined -rdynamic
+CFLAGS_RELEASE=-I. -O3 -rdynamic
+CFLAGS_DEBUG=-I. -DOSE_CONF_DEBUG -O0 -glldb -fsanitize=undefined -rdynamic
 
 ose_symtab.c: ose_symtab.gperf
 	gperf ose_symtab.gperf > ose_symtab.c
 
-REPL_CFILES=$(MIN_CFILES) $(SYS_CFILES) $(VM_CFILES) $(LANG_CFILES)
-REPL_HFILES=$(MIN_HFILES) $(SYS_HFILES) $(VM_HFILES) $(LANG_HFILES)
-
+REPL_CFILES=$(CORE_CFILES) $(SYS_CFILES) $(VM_CFILES) $(LANG_CFILES)\
+Applications/repl/ose_repl.c
+REPL_HFILES=$(CORE_HFILES) $(SYS_HFILES) $(VM_HFILES) $(LANG_HFILES)
+ose: CC=clang
 ose: CFLAGS=$(CFLAGS_RELEASE)
-ose: $(REPL_CFILES) $(REPL_HFILES) ose_repl.c
-	clang $(CFLAGS) -o ose \
+ose: $(REPL_CFILES) $(REPL_HFILES) 
+	$(CC) $(CFLAGS) -o ose \
 	-DOSE_CONF_VM_SIZE=1000000 \
-	$(REPL_CFILES) ose_repl.c -ledit
+	$(REPL_CFILES) -ledit -ldl
 
+debug: CC=clang
 debug: CFLAGS=$(CFLAGS_DEBUG)
-debug: $(REPL_CFILES) $(REPL_HFILES) ose_repl.c
-	clang $(CFLAGS) -o ose \
+debug: $(REPL_CFILES) $(REPL_HFILES)
+	$(CC) $(CFLAGS) -o ose \
 	-DOSE_CONF_VM_SIZE=1000000 \
-	$(REPL_CFILES) ose_repl.c -ledit
+	$(REPL_CFILES) -ledit -ldl
 
-min:
-	echo "not implemented yet"
+JS_CFILES=$(CORE_CFILES) $(VM_CFILES) $(LANG_CFILES) js/ose_js.c
+JS_HFILES=$(CORE_HFILES) $(VM_HFILES) $(LANG_HFILES)
+ose.js: CC=emcc
+ose.js: CFLAGS=-I. -O3 -s MALLOC="emmalloc" -s LINKABLE=1 -s EXPORT_ALL=1 -g0
+ose.js: $(JS_CFILES) $(JS_HFILES)
+	$(CC) $(CFLAGS) -o ose.js \
+	-DOSE_CONF_VM_SIZE=1000000 \
+	$(JS_CFILES)
+
+ose.html: CC=emcc
+ose.html: CFLAGS=-I. -O3 -s MALLOC="emmalloc" -s LINKABLE=1 -s EXPORT_ALL=1 -g0
+ose.html: $(JS_CFILES) $(JS_HFILES)
+	$(CC) $(CFLAGS) -o ose.html \
+	-DOSE_CONF_VM_SIZE=1000000 \
+	$(JS_CFILES)
 
 $(TESTDIR)/%: CFLAGS=$(CFLAGS_DEBUG)
-$(TESTDIR)/%: $(MIN_CFILES) $(MIN_HFILES) $(TESTDIR)/%.c $(TESTDIR)/common.h
+$(TESTDIR)/%: $(CORE_CFILES) $(CORE_HFILES) $(TESTDIR)/%.c $(TESTDIR)/common.h
 	clang $(CFLAGS) $(ALLTYPES) -o $@ \
-	$(MIN_CFILES) ose_print.c $@.c
+	$(CORE_CFILES) ose_print.c $@.c
 
 .PHONY: test
 test: $(TESTS)
 
 .PHONY: clean
 clean:
-	rm -rf ose *.dSYM $(TESTDIR)/*.dSYM $(TESTS) docs
+	rm -rf ose *.dSYM $(TESTDIR)/*.dSYM $(TESTS) docs ose.js ose.wasm
