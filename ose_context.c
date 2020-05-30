@@ -106,11 +106,9 @@ int32_t ose_spaceAvailable(ose_bundle bundle)
 	return ose_readInt32(bundle, -8) - ose_readInt32(bundle, -4);
 }
 
-ose_bundle ose_enter(ose_bundle bundle, char *address)
+ose_bundle ose_enter(ose_bundle bundle, const char * const address)
 {
-	// static int ctr;
-	// ctr++;
-	// fprintf(stderr, "%s: %d\n", __func__, ctr);
+	ose_assert(address);
 	char *b = ose_getBundlePtr(bundle);
 	int32_t s = ose_readInt32(bundle, -4);
 	int32_t o = OSE_BUNDLE_HEADER_LEN;
@@ -248,7 +246,15 @@ void ose_replaceBundleElemInDestAddr(ose_bundle src, char *dest_addr)
 ose_bundle ose_newBundleFromCBytes(int32_t nbytes, char *bytes)
 {
 	char *p = bytes;
+	ose_assert(p);
 	ose_assert(nbytes >= OSE_BUNDLE_HEADER_LEN + sizeof(int32_t));
+	while((uintptr_t)p % 4){
+		p++;
+		nbytes--;
+	}
+	while(nbytes % 4){
+		nbytes--;
+	}
 	memset(p, 0, nbytes);
 	*((int32_t *)p) = ose_htonl(OSE_BUNDLE_HEADER_LEN);
 	p += sizeof(int32_t);

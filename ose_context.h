@@ -168,7 +168,7 @@ int32_t ose_spaceAvailable(ose_bundle bundle);
  *        the bundle to enter.
  * @returns The requested bundle.
  */
-ose_bundle ose_enter(ose_bundle bundle, char *address);
+ose_bundle ose_enter(ose_bundle bundle, const char * const address);
 
 
 
