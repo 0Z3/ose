@@ -1,5 +1,6 @@
 '[
 "_main",
+
 "_ose_pushInt32",
 "_ose_pushFloat",
 "_ose_pushString",
@@ -107,5 +108,10 @@
 "_ose_and",
 "_ose_or",
 
+"_ose_spaceAvailable",
+"_ose_enter",
+"_ose_exit",
+
+"_osevm_init",
 "_osevm_run"
 ]'

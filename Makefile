@@ -57,10 +57,10 @@ JS_HFILES=$(CORE_HFILES) $(VM_HFILES) $(LANG_HFILES)
 EMSCRIPTEN_EXPORTED_FUNCTIONS=$(shell cat js/osejs_export.mk)
 js/ose.js: CC=emcc
 js/ose.js: CFLAGS=-I. -O3 -s MALLOC="emmalloc" -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTED_FUNCTIONS) -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' -g0 --post-js "js/ose_wrapper.js"
-js/ose.js: $(JS_CFILES) $(JS_HFILES) js/osejs_export.mk js/ose_wrapper.js
+js/ose.js: $(JS_CFILES) $(JS_HFILES) js/osejs_export.mk js/ose_wrapper.js js/osevm_wrapper.js
 	$(CC) $(CFLAGS) -o js/ose.js \
-	-DOSE_CONF_VM_SIZE=1000000 \
 	$(JS_CFILES)
+#	-DOSE_CONF_VM_SIZE=1000000 \
 
 $(TESTDIR)/%: CFLAGS=$(CFLAGS_DEBUG)
 $(TESTDIR)/%: $(CORE_CFILES) $(CORE_HFILES) $(TESTDIR)/%.c $(TESTDIR)/common.h
