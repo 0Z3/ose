@@ -19,31 +19,31 @@
   SOFTWARE.
 */
 
-var osevm = {
-    'init' : Module.cwrap('osevm_init', 'number', ['number']),
-    'run' : Module.cwrap('osevm_run', null, ['number']),
-    'input' : (vm)=>{
+(function(exports){
+    exports['init'] = Module.cwrap('osevm_init', 'number', ['number']);
+    exports['run'] = Module.cwrap('osevm_run', null, ['number']);
+    exports['input'] = (vm)=>{
 	return Module.ccall('ose_enter', 'number', ['number', 'string'],
-			    [vm, "/ii"]);
-    },
-    'stack' : (vm)=>{
+ 			    [vm, "/ii"]);
+    };
+    exports['stack'] = (vm)=>{
 	return Module.ccall('ose_enter', 'number', ['number', 'string'],
-			    [vm, "/ss"]);
-    },
-    'env' : (vm)=>{
+ 			    [vm, "/ss"]);
+    };
+    exports['env'] = (vm)=>{
 	return Module.ccall('ose_enter', 'number', ['number', 'string'],
-			    [vm, "/ee"]);
-    },
-    'control' : (vm)=>{
+ 			    [vm, "/ee"]);
+    };
+    exports['control'] = (vm)=>{
 	return Module.ccall('ose_enter', 'number', ['number', 'string'],
-			    [vm, "/cc"]);
-    },
-    'dump' : (vm)=>{
+ 			    [vm, "/cc"]);
+    };
+    exports['dump'] = (vm)=>{
 	return Module.ccall('ose_enter', 'number', ['number', 'string'],
-			    [vm, "/dd"]);
-    },
-    'output' : (vm)=>{
+ 			    [vm, "/dd"]);
+    };
+    exports['output'] = (vm)=>{
 	return Module.ccall('ose_enter', 'number', ['number', 'string'],
-			    [vm, "/oo"]);
-    },
-};
+ 			    [vm, "/oo"]);
+    };
+})(typeof exports === 'undefined' ? this['osevm'] = {} : exports);
