@@ -19,31 +19,32 @@
   SOFTWARE.
 */
 
-(function(exports){
-    exports['init'] = Module.cwrap('osevm_init', 'number', ['number']);
-    exports['run'] = Module.cwrap('osevm_run', null, ['number']);
-    exports['input'] = (vm)=>{
-	return Module.ccall('ose_enter', 'number', ['number', 'string'],
+(function(__module = typeof libose === 'undefined' ? Module : libose,
+	  __exports = typeof exports === 'undefined' ? this['osevm'] = {} : exports){
+    __exports['init'] = __module.cwrap('osevm_init', 'number', ['number']);
+    __exports['run'] = __module.cwrap('osevm_run', null, ['number']);
+    __exports['input'] = (vm)=>{
+	return __module.ccall('ose_enter', 'number', ['number', 'string'],
  			    [vm, "/ii"]);
     };
-    exports['stack'] = (vm)=>{
-	return Module.ccall('ose_enter', 'number', ['number', 'string'],
+    __exports['stack'] = (vm)=>{
+	return __module.ccall('ose_enter', 'number', ['number', 'string'],
  			    [vm, "/ss"]);
     };
-    exports['env'] = (vm)=>{
-	return Module.ccall('ose_enter', 'number', ['number', 'string'],
+    __exports['env'] = (vm)=>{
+	return __module.ccall('ose_enter', 'number', ['number', 'string'],
  			    [vm, "/ee"]);
     };
-    exports['control'] = (vm)=>{
-	return Module.ccall('ose_enter', 'number', ['number', 'string'],
+    __exports['control'] = (vm)=>{
+	return __module.ccall('ose_enter', 'number', ['number', 'string'],
  			    [vm, "/cc"]);
     };
-    exports['dump'] = (vm)=>{
-	return Module.ccall('ose_enter', 'number', ['number', 'string'],
+    __exports['dump'] = (vm)=>{
+	return __module.ccall('ose_enter', 'number', ['number', 'string'],
  			    [vm, "/dd"]);
     };
-    exports['output'] = (vm)=>{
-	return Module.ccall('ose_enter', 'number', ['number', 'string'],
+    __exports['output'] = (vm)=>{
+	return __module.ccall('ose_enter', 'number', ['number', 'string'],
  			    [vm, "/oo"]);
     };
-})(typeof exports === 'undefined' ? this['osevm'] = {} : exports);
+})();

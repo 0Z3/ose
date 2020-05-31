@@ -1,0 +1,29 @@
+{
+   "name": "osejs",
+   "version": "0.1.1",
+   "description": "An Open Sound Control implementation and runtime server environment",
+   "main": "libose.js",
+   "files": [
+      "libose.js",
+      "libose.wasm",
+      "ose.js",
+      "osevm.js"
+   ],
+   "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+   },
+   "repository": {
+      "type": "git",
+      "url": "git+https://github.com/0Z3/ose.git"
+   },
+   "keywords": [
+      "OpenSoundControl",
+      "OSC"
+   ],
+   "author": "John MacCallum",
+   "license": "MIT",
+   "bugs": {
+      "url": "https://github.com/0Z3/ose/issues"
+   },
+   "homepage": "https://0Z3.github.io/"
+}
