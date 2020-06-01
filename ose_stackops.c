@@ -36,27 +36,27 @@
 #include "ose_assert.h"
 #include "ose_match.h"
 
-static void drop(ose_bundle bundle, int32_t o, int32_t s);
-static void dup(ose_bundle bundle, int32_t o, int32_t s);
-static void swap(ose_bundle bundle,
-		 int32_t offset_nm1,
-		 int32_t size_nm1,
-		 int32_t offset_n,
-		 int32_t size_n);
-static void rot(ose_bundle bundle,
-		int32_t onm2,
-		int32_t snm2,
-		int32_t onm1,
-		int32_t snm1,
-		int32_t on,
-		int32_t sn);
-static void notrot(ose_bundle bundle,
-		   int32_t onm2,
-		   int32_t snm2,
-		   int32_t onm1,
-		   int32_t snm1,
-		   int32_t on,
-		   int32_t sn);
+static void ose_drop_impl(ose_bundle bundle, int32_t o, int32_t s);
+static void ose_dup_impl(ose_bundle bundle, int32_t o, int32_t s);
+static void ose_swap_impl(ose_bundle bundle,
+			  int32_t offset_nm1,
+			  int32_t size_nm1,
+			  int32_t offset_n,
+			  int32_t size_n);
+static void ose_rot_impl(ose_bundle bundle,
+			 int32_t onm2,
+			 int32_t snm2,
+			 int32_t onm1,
+			 int32_t snm1,
+			 int32_t on,
+			 int32_t sn);
+static void ose_notrot_impl(ose_bundle bundle,
+			    int32_t onm2,
+			    int32_t snm2,
+			    int32_t onm1,
+			    int32_t snm1,
+			    int32_t on,
+			    int32_t sn);
 static void over(ose_bundle bundle,
 		 int32_t onm1,
 		 int32_t snm1,
@@ -85,7 +85,6 @@ static void be4(ose_bundle bundle,
 		int32_t *snm1,
 		int32_t *on,
 		int32_t *sn);
-static void dropArg(ose_bundle bundle);
 
 /**************************************************
  * C API
@@ -688,7 +687,7 @@ void ose_2swap(ose_bundle bundle)
 	memset(b + on + sn + 4, 0, snm3 + snm2 + 8);
 }
 
-static void drop(ose_bundle bundle, int32_t o, int32_t s)
+static void ose_drop_impl(ose_bundle bundle, int32_t o, int32_t s)
 {
 	char *b = ose_getBundlePtr(bundle);
 	memset(b + o, 0, s + 4);
@@ -701,10 +700,10 @@ void ose_drop(ose_bundle bundle)
 	int32_t o = 0;
 	int32_t s = 0;
 	be1(bundle, &o, &s);
-	drop(bundle, o, s);
+	ose_drop_impl(bundle, o, s);
 }
 
-static void dup(ose_bundle bundle, int32_t o, int32_t s)
+static void ose_dup_impl(ose_bundle bundle, int32_t o, int32_t s)
 {
 	char *b = ose_getBundlePtr(bundle);
 	memcpy(b + o + s + 4, b + o, s + 4);
@@ -716,7 +715,7 @@ void ose_dup(ose_bundle bundle)
 	int32_t o = 0;
 	int32_t s = 0;
 	be1(bundle, &o, &s);
-	dup(bundle, o, s);
+	ose_dup_impl(bundle, o, s);
 }
 
 void ose_nip(ose_bundle bundle)
@@ -726,11 +725,11 @@ void ose_nip(ose_bundle bundle)
 	int32_t on = 0;
 	int32_t sn = 0;
 	be2(bundle, &onm1, &snm1, &on, &sn);
-	swap(bundle, onm1, snm1, on, sn);
-	drop(bundle, onm1 + sn + 4, snm1);
+	ose_swap_impl(bundle, onm1, snm1, on, sn);
+	ose_drop_impl(bundle, onm1 + sn + 4, snm1);
 }
 
-static void notrot(ose_bundle bundle,
+static void ose_notrot_impl(ose_bundle bundle,
 		   int32_t onm2,
 		   int32_t snm2,
 		   int32_t onm1,
@@ -754,7 +753,7 @@ void ose_notrot(ose_bundle bundle)
 	int32_t on = 0;
 	int32_t sn = 0;
 	be3(bundle, &onm2, &snm2, &onm1, &snm1, &on, &sn);
-	notrot(bundle, onm2, snm2, onm1, snm1, on, sn);
+	ose_notrot_impl(bundle, onm2, snm2, onm1, snm1, on, sn);
 }
 
 static void over(ose_bundle bundle,
@@ -865,7 +864,7 @@ void ose_rollMatch(ose_bundle bundle)
 
 }
 
-static void rot(ose_bundle bundle,
+static void ose_rot_impl(ose_bundle bundle,
 		int32_t onm2,
 		int32_t snm2,
 		int32_t onm1,
@@ -889,10 +888,10 @@ void ose_rot(ose_bundle bundle)
 	int32_t on = 0;
 	int32_t sn = 0;
 	be3(bundle, &onm2, &snm2, &onm1, &snm1, &on, &sn);
-	rot(bundle, onm2, snm2, onm1, snm1, on, sn);
+	ose_rot_impl(bundle, onm2, snm2, onm1, snm1, on, sn);
 }
 
-static void swap(ose_bundle bundle,
+static void ose_swap_impl(ose_bundle bundle,
 		 int32_t offset_nm1,
 		 int32_t size_nm1,
 		 int32_t offset_n,
@@ -912,7 +911,7 @@ void ose_swap(ose_bundle bundle)
 	int32_t on = 0;
 	int32_t sn = 0;
 	be2(bundle, &onm1, &snm1, &on, &sn);
-	swap(bundle, onm1, snm1, on, sn);
+	ose_swap_impl(bundle, onm1, snm1, on, sn);
 }
 
 void ose_tuck(ose_bundle bundle)
@@ -922,7 +921,7 @@ void ose_tuck(ose_bundle bundle)
 	int32_t on = 0;
 	int32_t sn = 0;
 	be2(bundle, &onm1, &snm1, &on, &sn);
-	swap(bundle, onm1, snm1, on, sn);
+	ose_swap_impl(bundle, onm1, snm1, on, sn);
 	over(bundle, onm1, sn, onm1 + sn + 4, snm1);
 }
 
