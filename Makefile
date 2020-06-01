@@ -71,7 +71,7 @@ $(TESTDIR)/%: $(CORE_CFILES) $(CORE_HFILES) $(TESTDIR)/%.c $(TESTDIR)/common.h
 	$(CORE_CFILES) ose_print.c $@.c
 
 .PHONY: test
-test: $(TESTS)
+test: $(TESTS) test/common.h test/ut_common.h
 
 .PHONY: clean
 clean:

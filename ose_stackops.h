@@ -334,6 +334,7 @@ char *ose_peekAddress(const ose_bundle bundle);
 
 /**
  * @brief Get the type of the topmost item of the topmost element.
+ * @note This function returns #OSETT_NOTYPETAG if the message has no arguments
  * @f$\textrm{PEEKMESSARGTYPE}(S(E_1(I^\tau_{1_1}))) \Rightarrow t@f$
  */
 char ose_peekMessageArgType(const ose_bundle bundle);

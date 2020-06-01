@@ -182,6 +182,7 @@ void ose_pushBlob(ose_bundle bundle,
 		+ padded_blobsize;
 	ose_addToSize(bundle, n);
 	char *ptr = b + o;
+	memset(ptr, 0, n);
 	*((int32_t *)ptr) = ose_htonl(n - 4);
 	ptr += 4;
 	memcpy(ptr, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_SIZE);
@@ -199,8 +200,9 @@ void ose_pushBlob(ose_bundle bundle,
 		}else{
 			memset(ptr, 0, blobsize);
 		}
+		ptr += padded_blobsize;
 	}
-	ose_assert(ptr - (b + o) < n);
+	ose_assert(ptr - (b + o) == n);
 }
 
 #ifdef OSE_PROVIDE_TYPE_SYMBOL
@@ -305,19 +307,6 @@ void ose_pushTimetag(ose_bundle bundle, uint32_t sec, uint32_t fsec)
 }
 #endif
 
-// static int32_t write0ByteMessage(char *ptr, char typetag)
-// {
-// 	*((int32_t *)ptr) = ose_htonl(OSE_ADDRESS_ANONVAL_SIZE + 4);
-// 	ptr += 4;
-// 	memcpy(ptr, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_LEN);
-// 	ptr += OSE_ADDRESS_ANONVAL_SIZE;
-// 	*ptr++ = ',';
-// 	*ptr++ = typetag;
-// 	*ptr++ = '\0';
-// 	*ptr++ = '\0';
-// 	return 8 + OSE_ADDRESS_ANONVAL_SIZE;
-// }
-
 #if defined(OSE_PROVIDE_TYPE_TRUE)		\
 	|| defined(OSE_PROVIDE_TYPE_FALSE)	\
 	|| defined(OSE_PROVIDE_TYPE_NULL)	\
@@ -404,24 +393,24 @@ void ose_pushMessage(ose_bundle bundle,
 
 char *ose_peekAddress(const ose_bundle bundle)
 {
+	assert(ose_bundleIsEmpty(bundle) == OSETT_FALSE);
 	const int32_t o = ose_getLastBundleElemOffset(bundle);
-	// this assertion may be too aggressive. it's possible that
-	// the caller expects a NULL pointer and will be perfectly
-	// happy with that, but it's more likely that this is a bug.
-	const int32_t s = ose_readInt32(bundle, o);
-	ose_assert(s > 0);
 	return ose_getBundlePtr(bundle) + o + 4;
 }
 
 char ose_peekMessageArgType(const ose_bundle bundle)
 {
+	assert(ose_bundleIsEmpty(bundle) == OSETT_FALSE);
 	const int32_t o = ose_getLastBundleElemOffset(bundle);
 	const int32_t s = ose_readInt32(bundle, o);
 	ose_assert(s >= 0);
 	if(s <= 8){
 		return OSETT_NOTYPETAG;
 	}else{
-		const int32_t tto = o + 4 + ose_getPaddedStringLen(bundle, o + 4);
+		ose_assert(strcmp(ose_readString(bundle, o + 4),
+				  OSE_BUNDLE_ID));
+		const int32_t tto = o + 4 + ose_getPaddedStringLen(bundle,
+								   o + 4);
 		const char *ptr = ose_getBundlePtr(bundle);
 		ose_assert(tto - o < s);
 		const int32_t len = strlen(ptr + tto);
@@ -432,12 +421,14 @@ char ose_peekMessageArgType(const ose_bundle bundle)
 
 char ose_peekType(const ose_bundle bundle)
 {
+	assert(ose_bundleIsEmpty(bundle) == OSETT_FALSE);
 	const int32_t o = ose_getLastBundleElemOffset(bundle);
 	return ose_getBundleElemType(bundle, o);
 }
 
 static char *peek(const ose_bundle bundle, char typetag)
 {
+	assert(ose_bundleIsEmpty(bundle) == OSETT_FALSE);
 	int32_t o = ose_getLastBundleElemOffset(bundle);
 	int32_t to, ntt, lto, po, lpo;
 	ose_getNthPayloadItem(bundle, 1, o, &to, &ntt, &lto, &po, &lpo);
