@@ -150,7 +150,11 @@
     __exports['and'] = __module.cwrap('ose_and', null, ['number']);
     __exports['or'] = __module.cwrap('ose_or', null, ['number']);
     
-    __exports['pprintBundle'] = __module.cwrap('osejs_pprintBundle', null, ['number']);
+    __exports['withPPrintedBundle'] = function(b, fn){
+	let st = __module.ccall('osejs_pprintBundle', 'string', ['number'], [b]);
+	fn(st);
+	__module._free(st);
+    };
     
     __exports['spaceAvailable'] = __module.cwrap('ose_spaceAvailable', 'number', ['number']);
     

@@ -62,6 +62,9 @@ js/libose.js: $(JS_CFILES) $(JS_HFILES) js/osejs_export.mk js/ose.js js/osevm.js
 	$(JS_CFILES)
 #	-DOSE_CONF_VM_SIZE=1000000 \
 
+.PHONY: js
+js: js/libose.js
+
 $(TESTDIR)/%: CFLAGS=$(CFLAGS_DEBUG)
 $(TESTDIR)/%: $(CORE_CFILES) $(CORE_HFILES) $(TESTDIR)/%.c $(TESTDIR)/common.h
 	clang $(CFLAGS) $(ALLTYPES) -o $@ \

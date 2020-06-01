@@ -1,5 +1,7 @@
 '[
 "_main",
+"_malloc",
+"_free",
 
 "_ose_pushInt32",
 "_ose_pushFloat",

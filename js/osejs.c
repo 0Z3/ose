@@ -62,12 +62,12 @@ char* osejs_popBlob(ose_bundle bundle)
 }
 
 EMSCRIPTEN_KEEPALIVE
-void osejs_pprintBundle(ose_bundle bundle)
+char *osejs_pprintBundle(ose_bundle bundle)
 {
-	char buf[8192];
-	memset(buf, 0, 8192);
-	ose_pprintBundle(bundle, buf, 8192);
-	printf("%s\n", buf);
+	int32_t len = ose_pprintBundle(bundle, NULL, 0);
+	char *buf = (char *)malloc(len + 1);
+	ose_pprintBundle(bundle, buf, len + 1);
+	return buf;
 }
 
 EMSCRIPTEN_KEEPALIVE
