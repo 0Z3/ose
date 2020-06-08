@@ -354,19 +354,17 @@ static void applyControl(ose_bundle osevm, char *address)
 		ose_moveBundleElemToDest(vm_d, vm_s);
 		ose_unpackDrop(vm_s);
 		ose_rollBottom(vm_s);
-	}else if(!strncmp(address, "/&", 2)
-		 ||!strncmp(address, "/i", 2)){
+	}else if(!strncmp(address, "/i", 2)){
 		if(address[2] == '/'){
-			long l = strtol(address + 3,
-					NULL, 10);
+			const int32_t l = strtol(address + 3, NULL, 10);
 			ose_pushInt32(vm_s, l);
 		}else{
 			popControlToStack(vm_c, vm_s);
 		}
 	}else if(!strncmp(address, "/f", 2)){
 		if(address[2] == '/'){
-			float f = strtof(address + 3,
-					NULL);
+			const float f = strtof(address + 3,
+					       NULL);
 			ose_pushFloat(vm_s, f);
 		}else{
 			popControlToStack(vm_c, vm_s);
@@ -375,10 +373,132 @@ static void applyControl(ose_bundle osevm, char *address)
 		if(address[2] == '/'){
 			ose_pushString(vm_s,
 				       address + 3);
-			ose_swap(vm_s);
-			ose_push(vm_s);
-			ose_concatenateStrings(vm_s);
+			// ose_swap(vm_s);
+			// ose_push(vm_s);
+			// ose_concatenateStrings(vm_s);
 		}else{
+		}
+	}else if(!strncmp(address, "/&", 2)){
+		const char SLIP_END = 0300;
+		const char SLIP_ESC = 0333;
+		const char SLIP_ESC_END = 0334;
+		const char SLIP_ESC_ESC = 0335;
+		char c = 0;
+		if(address[2] == '/'){
+			c = (char)strtol(address + 3, NULL, 10);
+		}else{
+			
+		}
+		const int32_t n = ose_getBundleElemCount(vm_s);
+		if(n == 0){
+			ose_pushMessage(vm_s,
+					OSE_ADDRESS_ANONVAL,
+					OSE_ADDRESS_ANONVAL_LEN,
+					2,
+					OSETT_BLOB, 0, NULL,
+					OSETT_INT32, 1);
+		}else{
+			const char elemtype = ose_peekType(vm_s);
+			if(elemtype == OSETT_BUNDLE){
+				ose_pushMessage(vm_s,
+						OSE_ADDRESS_ANONVAL,
+						OSE_ADDRESS_ANONVAL_LEN,
+						2,
+						OSETT_BLOB, 0, NULL,
+						OSETT_INT32, 1);
+			}else if(elemtype == OSETT_MESSAGE){
+				if(ose_peekMessageArgType(vm_s) == OSETT_INT32){
+					ose_pop(vm_s);
+					int32_t state = ose_popInt32(vm_s);
+					if(ose_peekMessageArgType(vm_s)
+					   == OSETT_BLOB){
+						switch(state){
+						case 0:
+							ose_pushInt32(vm_s, 1);
+							ose_push(vm_s);
+							break;
+						case 1:
+							switch(c){
+							case SLIP_END:
+								// done
+								break;
+							case SLIP_ESC:
+								ose_pushInt32(vm_s, 2);
+								ose_push(vm_s);
+								break;
+							default:
+								ose_pushBlob(vm_s,
+									     1,
+									     &c);
+								ose_push(vm_s);
+								ose_concatenateBlobs(vm_s);
+								ose_pushInt32(vm_s, 1);
+								ose_push(vm_s);
+								break;
+							}
+							break;
+						case 2:
+							switch(c){
+							case SLIP_ESC_END: {
+								const char cc = SLIP_END;	
+								ose_pushBlob(vm_s,
+									     1,
+									     &cc);
+								ose_push(vm_s);
+								ose_concatenateBlobs(vm_s);
+								ose_pushInt32(vm_s, 1);
+								ose_push(vm_s);
+							}
+								break;
+							case SLIP_ESC_ESC: {
+								const char cc = SLIP_ESC;	
+								ose_pushBlob(vm_s,
+									     1,
+									     &cc);
+								ose_push(vm_s);
+								ose_concatenateBlobs(vm_s);
+								ose_pushInt32(vm_s, 1);
+								ose_push(vm_s);
+							}
+								break;
+							default:
+								ose_assert(0
+									   && "SLIP ESC not followed by ESC_END or ESC_ESC.");
+							}
+							break;
+						default:
+							ose_pushInt32(vm_s, state);
+							ose_push(vm_s);
+							ose_pushMessage(vm_s,
+									OSE_ADDRESS_ANONVAL,
+									OSE_ADDRESS_ANONVAL_LEN,
+									2,
+									OSETT_BLOB, 0, NULL,
+									OSETT_INT32, 1);
+							break;
+						}
+					}else{
+						ose_pushInt32(vm_s, state);
+						ose_push(vm_s);
+						ose_pushMessage(vm_s,
+							OSE_ADDRESS_ANONVAL,
+							OSE_ADDRESS_ANONVAL_LEN,
+							2,
+							OSETT_BLOB, 0, NULL,
+							OSETT_INT32, 1);
+					}
+				}else{
+					ose_pushMessage(vm_s,
+							OSE_ADDRESS_ANONVAL,
+							OSE_ADDRESS_ANONVAL_LEN,
+							2,
+							OSETT_BLOB, 0, NULL,
+							OSETT_INT32, 1);
+				}
+			}else{
+				ose_assert(0 && "found something other than "
+					   "a bundle or message");
+			}		
 		}
 	}else{
 		popControlToStack(vm_c, vm_s);

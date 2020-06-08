@@ -23,8 +23,8 @@ SYS_CFILES=sys/ose_load.c
 SYS_HFILES=sys/ose_load.h
 VM_CFILES=ose_symtab.c ose_builtins.c ose_vm.c
 VM_HFILES=ose_symtab.h ose_builtins.h ose_vm.h
-LANG_CFILES=ose_lex.c ose_parse.c ose_print.c
-LANG_HFILES=ose_lex.h ose_parse.h ose_print.h
+LANG_CFILES=ose_print.c
+LANG_HFILES=ose_print.h
 TEST_CFILES=ut_ose_util.c ut_ose_stackops.c
 TEST_HFILES=ut_ose_util.h ut_ose_stackops.h
 

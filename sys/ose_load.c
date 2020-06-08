@@ -32,7 +32,6 @@ SOFTWARE.
 #include "ose_stackops.h"
 #include "ose_assert.h"
 #include "ose_vm.h"
-#include "ose_parse.h"
 #include "ose_symtab.h"
 #include "ose_print.h"
 #include "ose_load.h"

@@ -38,7 +38,6 @@ SOFTWARE.
 #include "ose_stackops.h"
 #include "ose_assert.h"
 #include "ose_vm.h"
-#include "ose_parse.h"
 #include "ose_symtab.h"
 #include "ose_print.h"
 #include "sys/ose_load.h"
@@ -158,11 +157,13 @@ void rl_cb(char *line)
 	}
 	int len = strlen(line);
 	const char *linep = line;
+	// eat leading whitespace
 	while(linep - line < len
 	      && (*linep  == ' '
 		  || *linep == '\t')){
 		linep++;
 	}
+			
 	if(*linep != '/'){
 		switch(*linep){
 		case '?':
@@ -219,10 +220,11 @@ void rl_cb(char *line)
 			ose_moveBundleElemToDest(vm_c, vm_d);
 		}
 		add_history(line);
-		ose_parse(line, osevm);
-		ose_bundleAll(vm_o);
-		ose_moveBundleElemToDest(vm_o, vm_i);
-		ose_popAllDrop(vm_i);
+		//ose_parseString(line, osevm);
+		//ose_bundleAll(vm_o);
+		//ose_moveBundleElemToDest(vm_o, vm_i);
+		//ose_popAllDrop(vm_i);
+		ose_pushMessage(vm_i, line, strlen(line), 0);
 		run();
 		sendStacksUDP(udpsock_input,
 			      &sockaddr_send);

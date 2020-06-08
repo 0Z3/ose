@@ -28,7 +28,6 @@ SOFTWARE.
 #include "ose_stackops.h"
 #include "ose_assert.h"
 #include "ose_vm.h"
-#include "ose_parse.h"
 
 #define OSE_BUILTIN_DEFN(name)				\
 	void ose_builtin_##name(ose_bundle bundle)	\
@@ -351,14 +350,4 @@ void ose_builtin_copyEnv(ose_bundle osevm)
 	memcpy(ose_getBundlePtr(vm_s) + ss,
 	       ose_getBundlePtr(vm_e) - 4,
 	       es + 4);
-}
-
-void ose_builtin_parse(ose_bundle osevm)
-{
-	ose_bundle vm_s = OSEVM_STACK(osevm);
-	ose_bundle vm_o = OSEVM_OUTPUT(osevm);
-	ose_parse(ose_peekString(vm_s), osevm);
-	ose_drop(vm_s);
-	ose_bundleAll(vm_o);
-	ose_moveBundleElemToDest(vm_o, vm_s);
 }

@@ -59,12 +59,12 @@ SOFTWARE.
 #line 34 "ose_symtab.gperf"
 struct _ose_symtab_rec { char *name; void (*f)(ose_bundle);};
 
-#define TOTAL_KEYWORDS 107
+#define TOTAL_KEYWORDS 106
 #define MIN_WORD_LENGTH 3
 #define MAX_WORD_LENGTH 23
 #define MIN_HASH_VALUE 3
-#define MAX_HASH_VALUE 217
-/* maximum key range = 215, duplicates = 0 */
+#define MAX_HASH_VALUE 222
+/* maximum key range = 220, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
@@ -78,32 +78,32 @@ _ose_symtab_hash (register const char *str, register size_t len)
 {
   static const unsigned char asso_values[] =
     {
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218,   0,   5, 218, 218,
-      218,  50,  10, 218, 218, 218,   0, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218,  30,  15,  80,
-        5,   5,  25,  90, 105,   0,  85,   5,   5,   0,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223,   0,   5, 223, 223,
+      223,  50,  10, 223, 223, 223,   0, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223,  40,  15,  75,
+        5,   5,  25,  95, 105,   0,  85,   5,   5,   0,
        50,  20,  30,  30,  45,   0,   0,  70,  90,   0,
-      218,   0, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218, 218, 218, 218,
-      218, 218, 218, 218, 218, 218, 218
+      223,   0, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
+      223, 223, 223, 223, 223, 223, 223
     };
   register unsigned int hval = len;
 
@@ -199,9 +199,7 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {""},
 #line 160 "ose_symtab.gperf"
     {"/copy/elem/todest", ose_builtin_copyElemToDest},
-#line 87 "ose_symtab.gperf"
-    {"/size/payload", ose_builtin_sizePayload},
-    {""},
+    {""}, {""},
 #line 46 "ose_symtab.gperf"
     {"/-rot", ose_builtin_notrot},
 #line 102 "ose_symtab.gperf"
@@ -217,7 +215,8 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {"/split/string/fromend", ose_builtin_splitStringFromEnd},
 #line 100 "ose_symtab.gperf"
     {"/string/toaddress/swap", ose_builtin_swapStringToAddress},
-    {""},
+#line 87 "ose_symtab.gperf"
+    {"/size/payload", ose_builtin_sizePayload},
 #line 64 "ose_symtab.gperf"
     {"/clear/payload", ose_builtin_clearPayload},
     {""},
@@ -237,10 +236,7 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {"/pop/all", ose_builtin_popAll},
 #line 109 "ose_symtab.gperf"
     {"/split/blob/fromend", ose_builtin_splitBlobFromEnd},
-    {""},
-#line 166 "ose_symtab.gperf"
-    {"/parse", ose_builtin_parse},
-    {""},
+    {""}, {""}, {""},
 #line 101 "ose_symtab.gperf"
     {"/tt", ose_builtin_copyTTToBlob},
 #line 137 "ose_symtab.gperf"
@@ -250,8 +246,7 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {""},
 #line 104 "ose_symtab.gperf"
     {"/elem/toblob", ose_builtin_elemToBlob},
-#line 99 "ose_symtab.gperf"
-    {"/payload", ose_builtin_copyPayloadToBlob},
+    {""},
 #line 132 "ose_symtab.gperf"
     {"/mod", ose_builtin_mod},
 #line 69 "ose_symtab.gperf"
@@ -265,7 +260,8 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {"/2swap", ose_builtin_2swap},
 #line 158 "ose_symtab.gperf"
     {"/end/dotimes", ose_builtin_end_dotimes},
-    {""},
+#line 99 "ose_symtab.gperf"
+    {"/payload", ose_builtin_copyPayloadToBlob},
 #line 129 "ose_symtab.gperf"
     {"/sub", ose_builtin_sub},
 #line 40 "ose_symtab.gperf"
@@ -295,26 +291,25 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {"/dup", ose_builtin_dup},
 #line 163 "ose_symtab.gperf"
     {"/end/quote", ose_builtin_end_quote},
-    {""}, {""},
-#line 103 "ose_symtab.gperf"
-    {"/decat/string", ose_builtin_decatenateString},
-    {""},
-#line 164 "ose_symtab.gperf"
-    {"/clear/env", ose_builtin_clearEnv},
     {""},
 #line 94 "ose_symtab.gperf"
     {"/blob/toelem", ose_builtin_blobToElem},
+    {""}, {""},
+#line 164 "ose_symtab.gperf"
+    {"/clear/env", ose_builtin_clearEnv},
     {""},
-#line 133 "ose_symtab.gperf"
-    {"/neg", ose_builtin_neg},
-    {""},
-#line 41 "ose_symtab.gperf"
-    {"/2over", ose_builtin_2over},
 #line 95 "ose_symtab.gperf"
     {"/blob/totype", ose_builtin_blobToType},
+#line 103 "ose_symtab.gperf"
+    {"/decat/string", ose_builtin_decatenateString},
+    {""}, {""},
+#line 41 "ose_symtab.gperf"
+    {"/2over", ose_builtin_2over},
+    {""},
 #line 138 "ose_symtab.gperf"
     {"/or", ose_builtin_or},
-    {""},
+#line 133 "ose_symtab.gperf"
+    {"/neg", ose_builtin_neg},
 #line 153 "ose_symtab.gperf"
     {"/eval", ose_builtin_eval},
 #line 162 "ose_symtab.gperf"
@@ -354,45 +349,47 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
 #line 73 "ose_symtab.gperf"
     {"/unpack/bundle", ose_builtin_unpackBundle},
     {""},
-#line 53 "ose_symtab.gperf"
-    {"/roll/match", ose_builtin_rollMatch},
-#line 123 "ose_symtab.gperf"
-    {"/make/bundle", ose_builtin_pushBundle},
-    {""},
-#line 74 "ose_symtab.gperf"
-    {"/unpack/drop/bundle", ose_builtin_unpackDropBundle},
-#line 47 "ose_symtab.gperf"
-    {"/over", ose_builtin_over},
 #line 60 "ose_symtab.gperf"
     {"/bundle/all", ose_builtin_bundleAll},
     {""},
 #line 61 "ose_symtab.gperf"
     {"/bundle/frombottom", ose_builtin_bundleFromBottom},
+#line 74 "ose_symtab.gperf"
+    {"/unpack/drop/bundle", ose_builtin_unpackDropBundle},
+#line 47 "ose_symtab.gperf"
+    {"/over", ose_builtin_over},
+    {""}, {""}, {""},
 #line 165 "ose_symtab.gperf"
     {"/copy/env", ose_builtin_copyEnv},
     {""},
-#line 50 "ose_symtab.gperf"
-    {"/pick/match", ose_builtin_pickMatch},
-    {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+#line 53 "ose_symtab.gperf"
+    {"/roll/match", ose_builtin_rollMatch},
+#line 123 "ose_symtab.gperf"
+    {"/make/bundle", ose_builtin_pushBundle},
+    {""}, {""}, {""},
 #line 147 "ose_symtab.gperf"
     {"/is/type/numeric", ose_builtin_isNumericType},
+    {""}, {""}, {""}, {""},
+#line 50 "ose_symtab.gperf"
+    {"/pick/match", ose_builtin_pickMatch},
 #line 72 "ose_symtab.gperf"
     {"/unpack/drop", ose_builtin_unpackDrop},
     {""}, {""},
 #line 142 "ose_symtab.gperf"
     {"/is/addresschar", ose_builtin_isAddressChar},
-#line 118 "ose_symtab.gperf"
-    {"/match", ose_builtin_match},
-    {""}, {""}, {""},
-#line 144 "ose_symtab.gperf"
-    {"/is/type/string", ose_builtin_isStringType},
     {""}, {""}, {""}, {""},
 #line 62 "ose_symtab.gperf"
     {"/bundle/fromtop", ose_builtin_bundleFromTop},
-    {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+    {""}, {""}, {""}, {""},
+#line 144 "ose_symtab.gperf"
+    {"/is/type/string", ose_builtin_isStringType},
+#line 118 "ose_symtab.gperf"
+    {"/match", ose_builtin_match},
+    {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
 #line 70 "ose_symtab.gperf"
     {"/push", ose_builtin_push},
-    {""}, {""}, {""}, {""}, {""}, {""},
+    {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+    {""}, {""},
 #line 117 "ose_symtab.gperf"
     {"/trim/string", ose_builtin_trimString}
   };
@@ -414,7 +411,7 @@ _ose_symtab_lookup (register const char *str, register size_t len)
     }
   return 0;
 }
-#line 168 "ose_symtab.gperf"
+#line 167 "ose_symtab.gperf"
 
 
 void (*ose_symtab_lookup(char *str))(ose_bundle)
