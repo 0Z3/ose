@@ -63,37 +63,19 @@ void ose_assignStackToEnv(ose_bundle osevm)
 		ose_pushString(vm_s, address + 2);
 	}
 	if(ose_bundleIsEmpty(vm_s) == OSETT_TRUE){
+		ose_rassert(0 && "assignment requires at least one argument", 1);
 		return;
 	}
-	ose_countElems(vm_s);
-	int32_t n = ose_popInt32(vm_s);
-	switch(n){
-	case 0:
-		return;
-	case 1:
-		ose_moveStringToAddress(vm_s);
-		return;
-	default:
-		ose_moveStringToAddress(vm_s);
-		
-		if(ose_peekAddress(vm_s)[1] == ';'){
-			return;
+	ose_moveStringToAddress(vm_s);
+	while(1){
+		int32_t n = ose_getBundleElemCount(vm_s);
+		if(n == 1){
+			break;
 		}
-		ose_moveBundleElemToDest(vm_s, vm_e);
-		for(int i = 0; i < n - 2; i++){
-			ose_swap(vm_s);
-			if(ose_peekAddress(vm_s)[1] == ';'){
-				ose_drop(vm_s);
-				break;
-			}
-			ose_swap(vm_s);
-			ose_push(vm_s);
-		}
-		ose_moveBundleElemToDest(vm_e, vm_s);
 		ose_swap(vm_s);
 		ose_push(vm_s);
-		ose_replaceBundleElemInDest(vm_s, vm_e);
 	}
+	ose_replaceBundleElemInDest(vm_s, vm_e);
 }
 
 void ose_lookupStackItemInEnv(ose_bundle osevm)
@@ -232,22 +214,23 @@ static void applyControl(ose_bundle osevm, char *address)
 	int32_t addresslen = strlen(address);
 
 	if(!strncmp(address, "/@", 2)){
-		// if(!strncmp(address, "/@/", 3)){
-		// 	ose_pushString(vm_s, address + 2);
-		// }
-		// if(ose_bundleIsEmpty(vm_s) == OSETT_FALSE){
-			// OSEVM_ASSIGN(osevm);
-		// }
-		OSEVM_ASSIGN(osevm);
+		ose_try{
+			OSEVM_ASSIGN(osevm);
+		}ose_catch(1){
+			;
+			// debug
+		}ose_finally{
+			;
+		}ose_end_try;
 	}else if(!strncmp(address, "/$", 2)){
-		// if(!strncmp(address, "/$/", 3)){
-		// 	ose_pushString(vm_e,
-		// 		       address + 2);
-		// }else{
-		// 	popStackToEnv(vm_s, vm_e);
-		// }
-		//lookupStackItemInEnv(vm_s, vm_e, vm_d);
-		OSEVM_LOOKUP(osevm);
+		ose_try{
+			OSEVM_LOOKUP(osevm);
+		}ose_catch(1){
+			;
+			// debug
+		}ose_finally{
+			;
+		}ose_end_try;
 	}else if(!strncmp(address, "/!", 2)){
 		if(!strncmp(address, "/!/", 3)){
 			ose_fn f = ose_symtab_lookup(address + 2);
@@ -524,7 +507,6 @@ static void popAllControl(ose_bundle osevm)
 			char *str = ose_peekString(vm_c);
 			if(!strcmp(str, "/@")
 			   || !strncmp(str, "/@/", 3)
-			   || !strcmp(str, "/;")
 			   || !strcmp(str, "/!")
 			   || !strncmp(str, "/!/", 3)
 			   || !strcmp(str, "/$")
