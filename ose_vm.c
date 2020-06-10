@@ -222,6 +222,8 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
+	}else if(!strncmp(address, "/'/", 3)){
+		ose_pushMessage(vm_s, address + 2, strlen(address + 2), 0);
 	}else if(!strncmp(address, "/$", 2)){
 		ose_try{
 			OSEVM_LOOKUP(osevm);
@@ -507,6 +509,7 @@ static void popAllControl(ose_bundle osevm)
 			char *str = ose_peekString(vm_c);
 			if(!strcmp(str, "/@")
 			   || !strncmp(str, "/@/", 3)
+			   || !strncmp(str, "/'/", 3)
 			   || !strcmp(str, "/!")
 			   || !strncmp(str, "/!/", 3)
 			   || !strcmp(str, "/$")
