@@ -47,8 +47,10 @@ ose: $(REPL_CFILES) $(REPL_HFILES)
 
 debug: CC=clang
 debug: CFLAGS=$(CFLAGS_DEBUG)
+debug: HOOKS=-DOSEVM_PREINPUT=ose_repl_preInput -DOSEVM_POSTINPUT=ose_repl_postInput -DOSEVM_PRECONTROL=ose_repl_preControl -DOSEVM_POSTCONTROL=ose_repl_postControl
 debug: $(REPL_CFILES) $(REPL_HFILES)
 	$(CC) $(CFLAGS) -o ose \
+	$(HOOKS) \
 	-DOSE_CONF_VM_SIZE=1000000 \
 	$(REPL_CFILES) -ledit -ldl
 

@@ -78,6 +78,22 @@ int quit = 0;
 
 int step = 0;
 
+void ose_repl_preInput(ose_bundle osevm)
+{
+}
+
+void ose_repl_postInput(ose_bundle osevm)
+{
+}
+
+void ose_repl_preControl(ose_bundle osevm)
+{
+}
+
+void ose_repl_postControl(ose_bundle osevm)
+{
+}
+
 char *completion_generator(const char *text, int state)
 {
 	int symtablen = ose_symtab_len();
@@ -471,10 +487,11 @@ void sendStacksUDP(int sock, struct sockaddr_in *addr)
 
 void run(void)
 {
-	while(osevm_step(osevm) == OSETT_TRUE){
-		if(step){
-			fprintf(stdout, "con(t)inue, (n)ext\n");
-			break;
-		}
-	}
+	// while(osevm_step(osevm) == OSETT_TRUE){
+	// 	if(step){
+	// 		fprintf(stdout, "con(t)inue, (n)ext\n");
+	// 		break;
+	// 	}
+	// }
+	osevm_run(osevm);
 }

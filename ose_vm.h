@@ -117,6 +117,34 @@ void ose_lookupStackItemInEnv(ose_bundle osevm);
 extern void OSEVM_LOOKUP (ose_bundle osevm);
 #endif
 
+void ose_preInput(ose_bundle osevm);
+#ifndef OSEVM_PREINPUT
+#define OSEVM_PREINPUT ose_preInput
+#else
+extern void OSEVM_PREINPUT (ose_bundle osevm);
+#endif
+
+void ose_postInput(ose_bundle osevm);
+#ifndef OSEVM_POSTINPUT
+#define OSEVM_POSTINPUT ose_postInput
+#else
+extern void OSEVM_POSTINPUT (ose_bundle osevm);
+#endif
+
+void ose_preControl(ose_bundle osevm);
+#ifndef OSEVM_PRECONTROL
+#define OSEVM_PRECONTROL ose_preControl
+#else
+extern void OSEVM_PRECONTROL (ose_bundle osevm);
+#endif
+
+void ose_postControl(ose_bundle osevm);
+#ifndef OSEVM_POSTCONTROL
+#define OSEVM_POSTCONTROL ose_postControl
+#else
+extern void OSEVM_POSTCONTROL (ose_bundle osevm);
+#endif
+
 ose_bundle osevm_init(ose_bundle bundle);
 void osevm_run(ose_bundle bundle);
 char osevm_step(ose_bundle osevm);

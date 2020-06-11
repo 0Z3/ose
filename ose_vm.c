@@ -570,6 +570,22 @@ static void restoreDump(ose_bundle osevm)
 	// ose_unpackDrop(vm_o);
 }
 
+void ose_preInput(ose_bundle osevm)
+{
+}
+
+void ose_postInput(ose_bundle osevm)
+{
+}
+
+void ose_preControl(ose_bundle osevm)
+{
+}
+
+void ose_postControl(ose_bundle osevm)
+{
+}
+
 char osevm_step(ose_bundle osevm)
 {
 	ose_bundle vm_i = OSEVM_INPUT(osevm);
@@ -611,6 +627,7 @@ void osevm_run(ose_bundle osevm)
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
         ose_bundle vm_d = OSEVM_DUMP(osevm);
 	int32_t n = ose_getBundleElemCount(vm_d);
+	OSEVM_PREINPUT(osevm);
 	while(1){
 		while(1){
 			if(ose_bundleIsEmpty(vm_c) == OSETT_TRUE){
@@ -620,6 +637,7 @@ void osevm_run(ose_bundle osevm)
 				popInputToControl(vm_i, vm_c);
 				popAllControl(osevm);
 			}
+			OSEVM_PRECONTROL(osevm);
 			while(1){
 				if(ose_bundleIsEmpty(vm_c) == OSETT_TRUE){
 					break;
@@ -629,6 +647,7 @@ void osevm_run(ose_bundle osevm)
 				// debugger if necessary
 				ose_drop(vm_c);
 			}
+			OSEVM_POSTCONTROL(osevm);
 		}
 		if(ose_bundleIsEmpty(vm_d) == OSETT_FALSE
 		   && ose_getBundleElemCount(vm_d) > n){
@@ -637,4 +656,5 @@ void osevm_run(ose_bundle osevm)
 			break;
 		}
 	}
+	OSEVM_POSTINPUT(osevm);
 }
