@@ -263,39 +263,14 @@ void repl_import(ose_bundle bundle)
 	const char * const path = ose_peekString(vm_s);
 	const int32_t pathlen = strlen(path);
 	if(!strcmp(path + (pathlen - 4), ".ose")){
-		// FILE *fp = fopen(path, "rb");
-		// if(!fp){
-		// 	fprintf(stderr, "couldn't open %s\n", path);
-		// 	return;
-		// }
-		// fseek(fp , 0L , SEEK_END);
-		// const int32_t n = ftell(fp);
-		// rewind(fp);
-		// if(n > MAX_INPUT_LEN){
-		// 	fprintf(stderr, "%s is too big (limit %d chars)\n",
-		// 		path, MAX_INPUT_LEN);
-		// 	fclose(fp);
-		// 	return;
-		// }
-		// char buf[MAX_INPUT_LEN];
-		// memset(buf, 0, MAX_INPUT_LEN);
-		// if(fread(buf, n, 1, fp) != 1){
-		// 	fprintf(stderr, "couldn't read %s\n", path);
-		// 	fclose(fp);
-		// 	return;
-		// }
-		// fclose(fp);
-		
-		// ose_drop(vm_s);
-		
-		//ose_pushString(vm_s, buf);
-		
 		ose_readFile(vm_s, path);
-		ose_nip(vm_s);
+		ose_rollBottom(vm_s);
+		ose_drop(vm_s);
+		ose_bundleAll(vm_s);
+		ose_pushMessage(vm_i,
+				"/!/unpack/drop", strlen("/!/unpack/drop"), 0);
 		ose_pushMessage(vm_i,
 				"/!/eval", strlen("/!/eval"), 0);
-		ose_pushMessage(vm_i,
-				"/!/parse", strlen("/!/parse"), 0);
 	}else{
 		ose_try{
 			ose_loadLib(vm_e, path);
@@ -306,6 +281,11 @@ void repl_import(ose_bundle bundle)
 		fprintf(stdout, "---loaded %s successfully---\n", path);
 		ose_drop(vm_s);
 	}
+}
+
+void repl_send(ose_bundle osevm)
+{
+
 }
 
 void repl_step(ose_bundle bundle)
@@ -354,8 +334,10 @@ int main(int ac, char **av)
 
 	ose_pushMessage(vm_e, "/repl/import", strlen("/repl/import"),
 			1, OSETT_CFUNCTION, repl_import);
-	ose_pushMessage(vm_e, "/repl/step", strlen("/repl/step"),
-			1, OSETT_CFUNCTION, repl_step);
+	ose_pushMessage(vm_e, "/repl/send", strlen("/repl/send"),
+			1, OSETT_CFUNCTION, repl_send);
+	// ose_pushMessage(vm_e, "/repl/step", strlen("/repl/step"),
+	// 		1, OSETT_CFUNCTION, repl_step);
 	
 	while(1){
 		FD_SET(udpsock_input, &rset);

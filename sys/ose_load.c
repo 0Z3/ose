@@ -52,21 +52,31 @@ void ose_readFile(ose_bundle bundle, const char * const name)
 	ose_assert(b);
 	FILE *fp = fopen(name, "rb");
 	ose_rassert(fp, 1);
-	fseek(fp, 0L, SEEK_END);
-	const int32_t n = ftell(fp);
-	rewind(fp);
-	ose_pushBlob(bundle, n - 4, NULL);
-	int32_t o = ose_readInt32(bundle, -4);
-	o -= ose_pnbytes(n);
-	ose_assert(o > OSE_BUNDLE_HEADER_LEN);
-	b += o;
-	size_t r = fread(b, n, 1, fp);
-	fclose(fp);
-	ose_rassert(r == 1, 1);
-	o--;
-	while(ose_readByte(bundle, o) != OSETT_BLOB
-	      && o > OSE_BUNDLE_HEADER_LEN){
-		o--;
+	const int maxlen = 256;
+	char buf[maxlen];
+	while(fgets(buf, maxlen, fp)){
+		int len = strlen(buf);
+		if(buf[len - 1] == '\n'){
+			buf[len - 1] = 0;
+		}
+		ose_pushString(bundle, buf);
 	}
-	ose_writeByte(bundle, o, OSETT_STRING);
+	fclose(fp);
+	// fseek(fp, 0L, SEEK_END);
+	// const int32_t n = ftell(fp);
+	// rewind(fp);
+	// ose_pushBlob(bundle, n - 4, NULL);
+	// int32_t o = ose_readInt32(bundle, -4);
+	// o -= ose_pnbytes(n);
+	// ose_assert(o > OSE_BUNDLE_HEADER_LEN);
+	// b += o;
+	// size_t r = fread(b, n, 1, fp);
+	// fclose(fp);
+	// ose_rassert(r == 1, 1);
+	// o--;
+	// while(ose_readByte(bundle, o) != OSETT_BLOB
+	//       && o > OSE_BUNDLE_HEADER_LEN){
+	// 	o--;
+	// }
+	// ose_writeByte(bundle, o, OSETT_STRING);
 }
