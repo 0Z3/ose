@@ -338,6 +338,7 @@ int main(int ac, char **av)
 	rl_callback_handler_install(ose_reader_prompt, rl_cb);
 	rl_attempted_completion_function = completer;
 	rl_basic_word_break_characters = " \t\n\"\\'`@><=;|&{(";
+	rl_completion_append_character = 0;
 
 	sockaddr_input = sockaddr_init("127.0.0.1", PORT_INPUT);
 	sockaddr_env = sockaddr_init("127.0.0.1", PORT_ENV);
