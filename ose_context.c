@@ -248,11 +248,11 @@ ose_bundle ose_newBundleFromCBytes(int32_t nbytes, char *bytes)
 	char *p = bytes;
 	ose_assert(p);
 	ose_assert(nbytes >= OSE_BUNDLE_HEADER_LEN + sizeof(int32_t));
-	while((uintptr_t)p % 4){
+	while((uintptr_t)p % OSE_CONTEXT_ALIGNMENT){
 		p++;
 		nbytes--;
 	}
-	while(nbytes % 4){
+	while(nbytes % OSE_CONTEXT_ALIGNMENT){
 		nbytes--;
 	}
 	memset(p, 0, nbytes);
@@ -261,12 +261,14 @@ ose_bundle ose_newBundleFromCBytes(int32_t nbytes, char *bytes)
 	memcpy(p, OSE_BUNDLE_HEADER, OSE_BUNDLE_HEADER_LEN);
 	ose_bundle bundle = ose_makeBundle(p);
 	int32_t n = ose_init(bundle,
-			     OSE_CONTEXT_MESSAGE_OVERHEAD + 16,
+			     OSE_CONTEXT_MESSAGE_OVERHEAD
+			     + OSE_CONTEXT_STATUS_MESSAGE_SIZE,
 			     "/sx");
 	n = ose_init(bundle,
-			     nbytes - (4 + OSE_BUNDLE_HEADER_LEN
-				       + OSE_CONTEXT_MESSAGE_OVERHEAD + 16),
-			     "/cx");
+		     nbytes - (4 + OSE_BUNDLE_HEADER_LEN
+			       + OSE_CONTEXT_MESSAGE_OVERHEAD
+			       + OSE_CONTEXT_STATUS_MESSAGE_SIZE),
+		     "/cx");
 	ose_bundle bb = ose_enter(bundle, "/cx");
 	return bb;
 }

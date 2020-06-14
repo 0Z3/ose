@@ -87,6 +87,15 @@ extern "C" {
 #include "ose.h"
 
 /**
+ * @brief Bytes passed to #ose_newBundleFromCBytes will be aligned to a boundary
+ * that is a multiple of this number of bytes.
+ */
+#define OSE_CONTEXT_ALIGNMENT 4
+
+
+
+
+/**
  * @brief The number of bytes between the beginning of a context message
  * 	  and the bundle (blob).
  */
@@ -103,7 +112,7 @@ extern "C" {
 
 
 /** 
- * @brief compute the overhead in bytes of a context message.
+ * @brief The overhead in bytes of a context message.
  */
 #define OSE_CONTEXT_MESSAGE_OVERHEAD			\
 	OSE_CONTEXT_BUNDLE_OFFSET			\
@@ -111,6 +120,25 @@ extern "C" {
 	+ 4			/* blob size */
 
 
+
+
+/**
+ * @brief The size of the status message.
+ */
+#define OSE_CONTEXT_STATUS_MESSAGE_SIZE 16
+
+
+
+
+/**
+ * @brief Maximum overhead used by the system.
+ */
+#define OSE_CONTEXT_MAX_OVERHEAD					\
+	OSE_CONTEXT_ALIGNMENT						\
+	* 4								\
+	+ OSE_BUNDLE_HEADER_LEN						\
+	+ OSE_CONTEXT_MESSAGE_OVERHEAD + OSE_CONTEXT_STATUS_MESSAGE_SIZE \
+	+ OSE_CONTEXT_MESSAGE_OVERHEAD
 
 
 
