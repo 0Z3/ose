@@ -285,7 +285,29 @@ void repl_import(ose_bundle bundle)
 
 void repl_send(ose_bundle osevm)
 {
-
+	char *addr = NULL;
+	short port = 0;
+	if(ose_peekMessageArgType(vm_s) == OSETT_STRING){
+		int32_t addrlen = strlen(ose_peekString(vm_s));
+		addr = (char *)calloc(addrlen + 1, 1);
+		ose_popString(vm_s, addr);
+	}else{
+		ose_rassert(0 && "send arg 1 must be a string", 1);
+	}
+	if(ose_peekMessageArgType(vm_s) == OSETT_INT32){
+		port = ose_popInt32(vm_s);
+	}else{
+		ose_rassert(0 && "send arg 2 must be a port num (int)", 1);
+	}
+	struct sockaddr_in sockaddr = sockaddr_init(addr, port);
+	int udpsock = socket(AF_INET, SOCK_DGRAM, 0);
+	bind(udpsock, (struct sockaddr *)&sockaddr, sizeof(struct sockaddr_in));
+	int r = sendto(udpsock,
+		       ose_getBundlePtr(vm_o),
+		       ose_readInt32(vm_o, -4),
+		       0,
+		       (struct sockaddr *)&sockaddr,
+		       sizeof(struct sockaddr_in));
 }
 
 void repl_step(ose_bundle bundle)
