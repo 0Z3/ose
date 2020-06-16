@@ -53,7 +53,7 @@ static void popStackToEnv(ose_bundle vm_s,
 	//ose_unpackDrop(vm_e);
 }
 
-void ose_assignStackToEnv(ose_bundle osevm)
+void osevm_assign(ose_bundle osevm)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_e = OSEVM_ENV(osevm);
@@ -78,7 +78,7 @@ void ose_assignStackToEnv(ose_bundle osevm)
 	ose_replaceBundleElemInDest(vm_s, vm_e);
 }
 
-void ose_lookupStackItemInEnv(ose_bundle osevm)
+void osevm_lookup(ose_bundle osevm)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_e = OSEVM_ENV(osevm);
@@ -110,6 +110,179 @@ void ose_lookupStackItemInEnv(ose_bundle osevm)
 		ose_concatenateStrings(vm_e);
 	}
 	ose_moveBundleElemToDest(vm_e, vm_s);
+}
+
+void osevm_toInt32(ose_bundle osevm)
+{
+	ose_bundle vm_s = OSEVM_STACK(osevm);
+	ose_bundle vm_c = OSEVM_CONTROL(osevm);
+	const char * const address = ose_peekAddress(vm_c);
+	if(address[2] == '/'){
+		const int32_t l = strtol(address + 3, NULL, 10);
+		ose_pushInt32(vm_s, l);
+	}else{
+		const char t = ose_peekMessageArgType(vm_s);
+		switch(t){
+		case OSETT_INT32: {
+			;
+		}
+			break;
+		case OSETT_FLOAT: {
+			const float f = ose_popFloat(vm_s);
+			ose_pushInt32(vm_s, (int32_t)f);
+		}
+			break;
+		case OSETT_STRING: {
+			const char * const s = ose_peekString(vm_s);
+			int32_t l;
+			if(*s == '/'){
+				l = strtol(s + 1, NULL, 10);
+			}else{
+				l = strtol(s, NULL, 10);
+			}
+			ose_drop(vm_s);
+			ose_pushInt32(vm_s, l);
+		}
+			break;
+		case OSETT_BLOB: {
+			const char * const b = ose_peekBlob(vm_s);
+			if(ose_ntohl(*((int32_t *)b)) == 4){
+				int32_t i = ose_ntohl(*((int32_t *)(b + 4)));
+				ose_drop(vm_s);
+				ose_pushInt32(vm_s, i);
+			}else{
+				popControlToStack(vm_c, vm_s);
+			}
+		}
+			break;
+		default:
+			popControlToStack(vm_c, vm_s);
+		}
+	}
+}
+
+void osevm_toFloat(ose_bundle osevm)
+{
+	ose_bundle vm_s = OSEVM_STACK(osevm);
+	ose_bundle vm_c = OSEVM_CONTROL(osevm);
+	const char * const address = ose_peekAddress(vm_c);
+	if(address[2] == '/'){
+		const float f = strtof(address + 3, NULL);
+		ose_pushFloat(vm_s, f);
+	}else{
+		const char t = ose_peekMessageArgType(vm_s);
+		switch(t){
+		case OSETT_INT32: {
+			const int32_t i = ose_popInt32(vm_s);
+			ose_pushFloat(vm_s, (float)i);
+		}
+			break;
+		case OSETT_FLOAT: {
+			;
+		}
+			break;
+		case OSETT_STRING: {
+			const char * const s = ose_peekString(vm_s);
+			float f;
+			if(*s == '/'){
+				f = strtof(s + 1, NULL);
+			}else{
+				f = strtof(s, NULL);
+			}
+			ose_drop(vm_s);
+			ose_pushFloat(vm_s, f);
+		}
+			break;
+		case OSETT_BLOB: {
+			const char * const b = ose_peekBlob(vm_s);
+			if(ose_ntohl(*((int32_t *)b)) == 4){
+				int32_t i = ose_ntohl(*((int32_t *)(b + 4)));
+				float f = *((float *)&i);
+				ose_drop(vm_s);
+				ose_pushFloat(vm_s, f);
+			}else{
+				popControlToStack(vm_c, vm_s);
+			}
+		}
+			break;
+		default:
+			popControlToStack(vm_c, vm_s);
+		}
+	}
+}
+
+void osevm_toString(ose_bundle osevm)
+{
+	ose_bundle vm_s = OSEVM_STACK(osevm);
+	ose_bundle vm_c = OSEVM_CONTROL(osevm);
+	const char * const address = ose_peekAddress(vm_c);
+	if(address[2] == '/'){
+		ose_pushString(vm_s, address + 3);
+	}else{
+		const char t = ose_peekMessageArgType(vm_s);
+		switch(t){
+		case OSETT_INT32: {
+			const int32_t i = ose_popInt32(vm_s);
+			const int32_t n = snprintf(NULL, 0, "%d", i);
+			ose_pushBlob(vm_s, n - 3 >= 0 ? n - 3 : 0, NULL);
+			char *p = ose_peekBlob(vm_s);
+			snprintf(p, n + 1, "%d", i);
+			p--;
+			while(*p != OSETT_BLOB){
+				p--;
+			}
+			*p = OSETT_STRING;
+		}
+			break;
+		case OSETT_FLOAT: {
+			const float f = ose_popFloat(vm_s);
+			const int32_t n = snprintf(NULL, 0, "%f", f);
+			ose_pushBlob(vm_s, n - 3 >= 0 ? n - 3 : 0, NULL);
+			char *p = ose_peekBlob(vm_s);
+			snprintf(p, n + 1, "%f", f);
+			p--;
+			while(*p != OSETT_BLOB){
+				p--;
+			}
+			*p = OSETT_STRING;
+		}
+			break;
+		case OSETT_STRING: {
+			;
+		}
+			break;
+		case OSETT_BLOB: {
+			ose_pushInt32(vm_s, OSETT_STRING);
+			ose_blobToType(vm_s);
+		}
+			break;
+		default:
+			popControlToStack(vm_c, vm_s);
+		}
+	}
+}
+
+void osevm_toBlob(ose_bundle osevm)
+{
+	ose_bundle vm_s = OSEVM_STACK(osevm);
+	ose_bundle vm_c = OSEVM_CONTROL(osevm);
+	char *address = ose_peekAddress(vm_c);
+	if(address[2] == '/'){
+		char *p = address + 3;
+		const int32_t n = strlen(p);
+		ose_assert(n % 2 == 0);
+		ose_pushBlob(vm_s, n / 2, NULL);
+		char *bp = ose_peekBlob(vm_s);
+		bp += 4;
+		while(*p){
+			char buf[2] = {*p, *(p + 1)};
+			char c = (char)strtol(buf, NULL, 16);
+			*bp++ = c;
+			p += 2;
+		}
+	}else{
+		ose_itemToBlob(vm_s);
+	}
 }
 
 ose_bundle osevm_init(ose_bundle bundle)
@@ -340,29 +513,13 @@ static void applyControl(ose_bundle osevm, char *address)
 		ose_unpackDrop(vm_s);
 		ose_rollBottom(vm_s);
 	}else if(!strncmp(address, "/i", 2)){
-		if(address[2] == '/'){
-			const int32_t l = strtol(address + 3, NULL, 10);
-			ose_pushInt32(vm_s, l);
-		}else{
-			popControlToStack(vm_c, vm_s);
-		}
+		OSEVM_TOINT32(osevm);
 	}else if(!strncmp(address, "/f", 2)){
-		if(address[2] == '/'){
-			const float f = strtof(address + 3,
-					       NULL);
-			ose_pushFloat(vm_s, f);
-		}else{
-			popControlToStack(vm_c, vm_s);
-		}
+		OSEVM_TOFLOAT(osevm);
 	}else if(!strncmp(address, "/s", 2)){
-		if(address[2] == '/'){
-			ose_pushString(vm_s,
-				       address + 3);
-			// ose_swap(vm_s);
-			// ose_push(vm_s);
-			// ose_concatenateStrings(vm_s);
-		}else{
-		}
+		OSEVM_TOSTRING(osevm);
+	}else if(!strncmp(address, "/b", 2)){
+		OSEVM_TOBLOB(osevm);
 	}else if(!strncmp(address, "/&", 2)){
 		const char SLIP_END = 0300;
 		const char SLIP_ESC = 0333;
@@ -519,9 +676,13 @@ static void popAllControl(ose_bundle osevm)
 			   || !strcmp(str, "/&")
 			   || !strncmp(str, "/&/", 3)
 			   || !strncmp(str, "/i/", 3)
+			   || !strcmp(str, "/i")
 			   || !strncmp(str, "/f/", 3)
+			   || !strcmp(str, "/f")
 			   || !strncmp(str, "/s/", 3)
-			   || !strncmp(str, "/b/", 3)){
+			   || !strcmp(str, "/s")
+			   || !strncmp(str, "/b/", 3)
+			   || !strcmp(str, "/b")){
 				ose_moveStringToAddress(vm_c);
 			}
 		}
@@ -570,19 +731,19 @@ static void restoreDump(ose_bundle osevm)
 	// ose_unpackDrop(vm_o);
 }
 
-void ose_preInput(ose_bundle osevm)
+void osevm_preInput(ose_bundle osevm)
 {
 }
 
-void ose_postInput(ose_bundle osevm)
+void osevm_postInput(ose_bundle osevm)
 {
 }
 
-void ose_preControl(ose_bundle osevm)
+void osevm_preControl(ose_bundle osevm)
 {
 }
 
-void ose_postControl(ose_bundle osevm)
+void osevm_postControl(ose_bundle osevm)
 {
 }
 

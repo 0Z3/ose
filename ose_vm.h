@@ -103,44 +103,72 @@ extern "C" {
 
 #endif
 
-void ose_assignStackToEnv(ose_bundle osevm);
+void osevm_assign(ose_bundle osevm);
 #ifndef OSEVM_ASSIGN
-#define OSEVM_ASSIGN ose_assignStackToEnv
+#define OSEVM_ASSIGN osevm_assign
 #else
 extern void OSEVM_ASSIGN (ose_bundle osevm);
 #endif
 
-void ose_lookupStackItemInEnv(ose_bundle osevm);
+void osevm_lookup(ose_bundle osevm);
 #ifndef OSEVM_LOOKUP
-#define OSEVM_LOOKUP ose_lookupStackItemInEnv
+#define OSEVM_LOOKUP osevm_lookup
 #else
 extern void OSEVM_LOOKUP (ose_bundle osevm);
 #endif
 
-void ose_preInput(ose_bundle osevm);
+void osevm_toInt32(ose_bundle osevm);
+#ifndef OSEVM_TOINT32
+#define OSEVM_TOINT32 osevm_toInt32
+#else
+extern void OSEVM_TOINT32 (ose_bundle osevm);
+#endif
+
+void osevm_toFloat(ose_bundle osevm);
+#ifndef OSEVM_TOFLOAT
+#define OSEVM_TOFLOAT osevm_toFloat
+#else
+extern void OSEVM_TOFLOAT (ose_bundle osevm);
+#endif
+
+void osevm_toString(ose_bundle osevm);
+#ifndef OSEVM_TOSTRING
+#define OSEVM_TOSTRING osevm_toString
+#else
+extern void OSEVM_TOSTRING (ose_bundle osevm);
+#endif
+
+void osevm_toBlob(ose_bundle osevm);
+#ifndef OSEVM_TOBLOB
+#define OSEVM_TOBLOB osevm_toBlob
+#else
+extern void OSEVM_TOBLOB (ose_bundle osevm);
+#endif
+
+void osevm_preInput(ose_bundle osevm);
 #ifndef OSEVM_PREINPUT
-#define OSEVM_PREINPUT ose_preInput
+#define OSEVM_PREINPUT osevm_preInput
 #else
 extern void OSEVM_PREINPUT (ose_bundle osevm);
 #endif
 
-void ose_postInput(ose_bundle osevm);
+void osevm_postInput(ose_bundle osevm);
 #ifndef OSEVM_POSTINPUT
-#define OSEVM_POSTINPUT ose_postInput
+#define OSEVM_POSTINPUT osevm_postInput
 #else
 extern void OSEVM_POSTINPUT (ose_bundle osevm);
 #endif
 
-void ose_preControl(ose_bundle osevm);
+void osevm_preControl(ose_bundle osevm);
 #ifndef OSEVM_PRECONTROL
-#define OSEVM_PRECONTROL ose_preControl
+#define OSEVM_PRECONTROL osevm_preControl
 #else
 extern void OSEVM_PRECONTROL (ose_bundle osevm);
 #endif
 
-void ose_postControl(ose_bundle osevm);
+void osevm_postControl(ose_bundle osevm);
 #ifndef OSEVM_POSTCONTROL
-#define OSEVM_POSTCONTROL ose_postControl
+#define OSEVM_POSTCONTROL osevm_postControl
 #else
 extern void OSEVM_POSTCONTROL (ose_bundle osevm);
 #endif
