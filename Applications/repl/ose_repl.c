@@ -76,6 +76,8 @@ ose_bundle bundle, osevm, vm_i, vm_s, vm_e, vm_c, vm_d, vm_o;
 
 int quit = 0;
 
+// options
+int verbose = 0;
 int step = 0;
 
 void ose_repl_preInput(ose_bundle osevm)
@@ -318,15 +320,20 @@ void repl_step(ose_bundle bundle)
 
 int main(int ac, char **av)
 {
-	if(signal(SIGINT, sig_handler) == SIG_ERR){
-		fprintf(stderr, "can't catch SIGINT\n");
-		return 0;
+	// process args
+	for(int i = 1; i < ac; i++){
+		if(!strcmp(av[i], "--verbose")){
+			verbose = 1;
+		}
 	}
+
+	// history
 	const char *homedir = getenv("HOME");
 	char histfile[strlen(homedir) + 6];
 	sprintf(histfile, "%s/.ose", homedir);
-	
 	read_history(histfile);
+
+	// set up ose environment and vm
 	bytes = (char *)calloc(1, MAX_BUNDLE_LEN);
 	bundle = ose_newBundleFromCBytes(MAX_BUNDLE_LEN, bytes);
 	osevm = osevm_init(bundle);
@@ -336,16 +343,17 @@ int main(int ac, char **av)
 	vm_c = OSEVM_CONTROL(osevm);
         vm_d = OSEVM_DUMP(osevm);
 	vm_o = OSEVM_OUTPUT(osevm);
-	
+
+	// libedit
 	rl_callback_handler_install(ose_reader_prompt, rl_cb);
 	rl_attempted_completion_function = completer;
 	rl_basic_word_break_characters = " \t\n\"\\'`@><=;|&{(";
 	rl_completion_append_character = 0;
 
+	// set up udp sockets and select
 	sockaddr_input = sockaddr_init("127.0.0.1", PORT_INPUT);
 	sockaddr_env = sockaddr_init("127.0.0.1", PORT_ENV);
 	sockaddr_send = sockaddr_init("127.0.0.1", PORT_SEND);
-	
 	udpsock_input = setupUDP(&sockaddr_input, PORT_INPUT);
 	udpsock_env = setupUDP(&sockaddr_env, PORT_ENV);
 	fd_set rset;
@@ -354,6 +362,13 @@ int main(int ac, char **av)
 		       ? udpsock_env
 		       : udpsock_input) + 1;
 
+	// install signal handler
+	if(signal(SIGINT, sig_handler) == SIG_ERR){
+		fprintf(stderr, "can't catch SIGINT\n");
+		return 0;
+	}
+
+	// repl lib functions. move this somewhere else
 	ose_pushMessage(vm_e, "/repl/import", strlen("/repl/import"),
 			1, OSETT_CFUNCTION, repl_import);
 	ose_pushMessage(vm_e, "/repl/send", strlen("/repl/send"),
@@ -433,14 +448,18 @@ void printStack(ose_bundle bundle, char *name)
 	ose_pprintBundle(bundle,
 			 buf,
 			 len + 1);
-	int32_t s = ose_readInt32(bundle, -4);
-	printf(ANSI_COLOR_GREEN
-	       "%s (%d bytes used of %d (%d%%)):\n",
-	       name,
-	       s,
-	       s + ose_spaceAvailable(bundle),
-	       (int)(s / (s + ose_spaceAvailable(bundle))));
-	printf("%s\n\n" ANSI_COLOR_RESET, buf);
+	if(verbose){
+		int32_t s = ose_readInt32(bundle, -4);
+		printf(ANSI_COLOR_GREEN
+		       "%s (%d bytes used of %d (%d%%)):\n",
+		       name,
+		       s,
+		       s + ose_spaceAvailable(bundle),
+		       (int)(s / (s + ose_spaceAvailable(bundle))));
+	}else{
+		printf(ANSI_COLOR_GREEN "%s:\n", name);
+	}
+	printf("%s\n" ANSI_COLOR_RESET, buf);
 }
 
 struct sockaddr_in sockaddr_init(char *addr, short port)
