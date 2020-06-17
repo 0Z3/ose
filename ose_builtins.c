@@ -209,6 +209,10 @@ void ose_builtin_if(ose_bundle osevm)
 	}else{
 		while(1){
 			char *address = ose_peekAddress(vm_i);
+			if(strlen(address) == 0
+			   && ose_peekMessageArgType(vm_i) == OSETT_STRING){
+				address = ose_peekString(vm_i);
+			}
 			if(!strcmp(address, "/!/else")){
 				ose_drop(vm_i);
 				break;
@@ -223,6 +227,10 @@ void ose_builtin_else(ose_bundle osevm)
 	ose_bundle vm_i = OSEVM_INPUT(osevm);
 	while(1){
 		char *address = ose_peekAddress(vm_i);
+		if(strlen(address) == 0
+		   && ose_peekMessageArgType(vm_i) == OSETT_STRING){
+			address = ose_peekString(vm_i);
+		}
 		if(!strcmp(address, "/!/end/if")){
 			ose_drop(vm_i);
 			break;
