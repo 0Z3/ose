@@ -87,11 +87,38 @@ int32_t ose_pprintMessageArg(ose_bundle bundle,
 				ose_readString(bundle, plo));
 	case OSETT_BLOB: {
 		int32_t blobsize = ose_readInt32(bundle, plo);
-		return snprintf(buf, buflen,
-				"[b:<%d:%s>]",
-				//blobsize > 1 ? "s" : "",
-				blobsize,
-				ose_readString(bundle, plo + 4));
+		int32_t n =  snprintf(buf, buflen,
+				      "[b:<%d:",
+				      blobsize);
+		int32_t nn = n;
+		INCP(buf, n);
+		INCL(buf, buflen, n);
+		char *p = ose_readString(bundle, plo + 4);
+		for(int i = 0; i < (blobsize > 4 ? 4 : blobsize); i++){
+			n = snprintf(buf, buflen, "%02X", p[i]);
+			nn += n;
+			INCP(buf, n);
+			INCL(buf, buflen, n);
+		}
+		if(blobsize >= 8){
+			n = snprintf(buf, buflen, "..");
+			nn += n;
+			INCP(buf, n);
+			INCL(buf, buflen, n);
+			for(int i = blobsize - 4; i < blobsize; i++){
+				n = snprintf(buf, buflen, "%02X", p[i]);
+				nn += n;
+				INCP(buf, n);
+				INCL(buf, buflen, n);
+			}
+		}
+		
+
+		n = snprintf(buf, buflen, ">]");
+		nn += n;
+		INCP(buf, n);
+		INCL(buf, buflen, n);
+		return nn;
 	}
 	default: {
 		return snprintf(buf, buflen, "[%c%c<>]", tt, sep);
