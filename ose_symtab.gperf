@@ -130,6 +130,7 @@ struct _ose_symtab_rec { char *name; void (*f)(ose_bundle);};
 /mul, ose_builtin_mul
 /div, ose_builtin_div
 /mod, ose_builtin_mod
+/pow, ose_builtin_pow
 /neg, ose_builtin_neg
 /eql, ose_builtin_eql
 /lte, ose_builtin_lte

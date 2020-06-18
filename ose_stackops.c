@@ -27,6 +27,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <setjmp.h>
+#include <math.h>
 
 #include "ose_conf.h"
 #include "ose.h"
@@ -2402,6 +2403,64 @@ void ose_mod(ose_bundle bundle)
 		int32_t v2 = ose_popInt32(bundle);
 		int32_t v1 = ose_popInt32(bundle);
 		ose_pushInt32(bundle, v1 % v2);
+	}
+		break;
+	case OSETT_FLOAT: {
+
+	}
+		break;
+#ifdef OSE_PROVIDE_TYPE_DOUBLE
+	case OSETT_DOUBLE: {
+
+	}
+		break;
+#endif
+#ifdef OSE_PROVIDE_TYPE_INT8
+	case OSETT_INT8: {
+
+	}
+		break;
+#endif
+#ifdef OSE_PROVIDE_TYPE_UINT8
+	case OSETT_UINT8: {
+
+	}
+		break;
+#endif
+#ifdef OSE_PROVIDE_TYPE_UINT32
+	case OSETT_UINT32: {
+
+	}
+		break;
+#endif
+#ifdef OSE_PROVIDE_TYPE_INT64
+	case OSETT_INT64: {
+
+	}
+		break;
+#endif
+#ifdef OSE_PROVIDE_TYPE_UINT64
+	case OSETT_UINT64: {
+
+	}
+		break;
+#endif
+	}
+}
+
+void ose_pow(ose_bundle bundle)
+{
+	char t1 = ose_peekMessageArgType(bundle);
+	ose_assert(ose_isNumericType(t1) == OSETT_TRUE);
+	ose_swap(bundle);
+	char t2 = ose_peekMessageArgType(bundle);
+	ose_assert(ose_isNumericType(t2) == OSETT_TRUE);
+	ose_assert(t1 == t2);
+	switch(t1){
+	case OSETT_INT32: {
+		int32_t v2 = ose_popInt32(bundle);
+		int32_t v1 = ose_popInt32(bundle);
+		ose_pushInt32(bundle, (int32_t)pow(v1, v2));
 	}
 		break;
 	case OSETT_FLOAT: {

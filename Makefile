@@ -29,8 +29,8 @@ TEST_CFILES=ut_ose_util.c ut_ose_stackops.c
 TEST_HFILES=ut_ose_util.h ut_ose_stackops.h
 
 
-CFLAGS_RELEASE=-I. -O3 -rdynamic
-CFLAGS_DEBUG=-I. -DOSE_CONF_DEBUG -O0 -glldb -fsanitize=undefined -rdynamic
+CFLAGS_RELEASE=-I. -O3 -rdynamic -lm
+CFLAGS_DEBUG=-I. -DOSE_CONF_DEBUG -O0 -glldb -fsanitize=undefined -rdynamic -lm
 
 ose_symtab.c: ose_symtab.gperf
 	gperf ose_symtab.gperf > ose_symtab.c
