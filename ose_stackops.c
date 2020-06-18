@@ -2174,7 +2174,9 @@ void ose_add(ose_bundle bundle)
 	}
 		break;
 	case OSETT_FLOAT: {
-
+		float v2 = ose_popFloat(bundle);
+		float v1 = ose_popFloat(bundle);
+		ose_pushFloat(bundle, v1 + v2);
 	}
 		break;
 #ifdef OSE_PROVIDE_TYPE_DOUBLE
@@ -2232,7 +2234,9 @@ void ose_sub(ose_bundle bundle)
 	}
 		break;
 	case OSETT_FLOAT: {
-
+		float v2 = ose_popFloat(bundle);
+		float v1 = ose_popFloat(bundle);
+		ose_pushFloat(bundle, v1 - v2);
 	}
 		break;
 #ifdef OSE_PROVIDE_TYPE_DOUBLE
@@ -2290,7 +2294,9 @@ void ose_mul(ose_bundle bundle)
 	}
 		break;
 	case OSETT_FLOAT: {
-
+		float v2 = ose_popFloat(bundle);
+		float v1 = ose_popFloat(bundle);
+		ose_pushFloat(bundle, v1 * v2);
 	}
 		break;
 #ifdef OSE_PROVIDE_TYPE_DOUBLE
@@ -2348,7 +2354,9 @@ void ose_div(ose_bundle bundle)
 	}
 		break;
 	case OSETT_FLOAT: {
-
+		float v2 = ose_popFloat(bundle);
+		float v1 = ose_popFloat(bundle);
+		ose_pushFloat(bundle, v1 / v2);
 	}
 		break;
 #ifdef OSE_PROVIDE_TYPE_DOUBLE
@@ -2406,7 +2414,9 @@ void ose_mod(ose_bundle bundle)
 	}
 		break;
 	case OSETT_FLOAT: {
-
+		float v2 = ose_popFloat(bundle);
+		float v1 = ose_popFloat(bundle);
+		ose_pushFloat(bundle, fmodf(v1, v2));
 	}
 		break;
 #ifdef OSE_PROVIDE_TYPE_DOUBLE
@@ -2464,7 +2474,9 @@ void ose_pow(ose_bundle bundle)
 	}
 		break;
 	case OSETT_FLOAT: {
-
+		float v2 = ose_popFloat(bundle);
+		float v1 = ose_popFloat(bundle);
+		ose_pushFloat(bundle, powf(v1, v2));
 	}
 		break;
 #ifdef OSE_PROVIDE_TYPE_DOUBLE
@@ -2517,7 +2529,8 @@ void ose_neg(ose_bundle bundle)
 	}
 		break;
 	case OSETT_FLOAT: {
-
+		float v1 = ose_popFloat(bundle);
+		ose_pushFloat(bundle, -v1);
 	}
 		break;
 #ifdef OSE_PROVIDE_TYPE_DOUBLE
