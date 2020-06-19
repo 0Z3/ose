@@ -259,8 +259,12 @@ void ose_builtin_dotimes(ose_bundle osevm)
 		ose_push(vm_i);
 		ose_swap(vm_i);
 		while(1){
-			if(!strcmp(ose_peekAddress(vm_i),
-				   "/!/end/dotimes")){
+			char *address = ose_peekAddress(vm_i);
+			if(strlen(address) == 0
+			   && ose_peekMessageArgType(vm_i) == OSETT_STRING){
+				address = ose_peekString(vm_i);
+			}
+			if(!strcmp(address, "/!/end/dotimes")){
 				ose_push(vm_i);
 				ose_copyBundleElemToDest(vm_i, vm_d);
 				ose_popAllDrop(vm_i);
@@ -274,8 +278,12 @@ void ose_builtin_dotimes(ose_bundle osevm)
 		}
 	}else{
 		while(1){
-			if(!strcmp(ose_peekAddress(vm_i),
-				   "/!/end/dotimes")){
+			char *address = ose_peekAddress(vm_i);
+			if(strlen(address) == 0
+			   && ose_peekMessageArgType(vm_i) == OSETT_STRING){
+				address = ose_peekString(vm_i);
+			}
+			if(!strcmp(address, "/!/end/dotimes")){
 				ose_drop(vm_i);
 				break;
 			}else{
