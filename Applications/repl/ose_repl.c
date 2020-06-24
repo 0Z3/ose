@@ -1,22 +1,22 @@
 /*
-Copyright (c) 2019-20 John MacCallum
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+  Copyright (c) 2019-20 John MacCallum
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
 */
 
 #include "ose_conf.h"
@@ -25,6 +25,7 @@ SOFTWARE.
 #include <string.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <setjmp.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -74,11 +75,12 @@ void run(void);
 char *bytes;
 ose_bundle bundle, osevm, vm_i, vm_s, vm_e, vm_c, vm_d, vm_o;
 
-int quit = 0;
-
 // options
 int verbose = 0;
 int step = 0;
+
+jmp_buf repl_jmp_buf;
+volatile sig_atomic_t repl_assertion_failed = 0;
 
 void ose_repl_preInput(ose_bundle osevm)
 {
@@ -166,7 +168,6 @@ char **completer(const char *text, int start, int end)
 void rl_cb(char *line)
 {
 	if(!line){
-		quit = 1;
 		return;
 	}
 
@@ -220,11 +221,11 @@ void rl_cb(char *line)
 		default:
 			return;
 		}
+		free(line);
 		run();
 		sendStacksUDP(udpsock_input,
 			      &sockaddr_send);
 		printStack(vm_s, "STACK");
-		free(line);
 	}else{
 		if(ose_bundleIsEmpty(vm_i) == OSETT_FALSE
 		   || ose_bundleIsEmpty(vm_c) == OSETT_FALSE){
@@ -243,11 +244,11 @@ void rl_cb(char *line)
 		//ose_moveBundleElemToDest(vm_o, vm_i);
 		//ose_popAllDrop(vm_i);
 		ose_pushMessage(vm_i, line, strlen(line), 0);
+		free(line);
 		run();
 		sendStacksUDP(udpsock_input,
 			      &sockaddr_send);
 		printStack(vm_s, "STACK");
-		free(line);
 	}
 }
 
@@ -255,8 +256,14 @@ char *ose_reader_prompt = "# ";
 
 void sig_handler(int signo)
 {
-	if(signo == SIGINT){
-		quit = 1;
+	switch(signo){
+	case SIGINT:
+		exit(0);
+#ifndef OSE_DEBUG
+	case SIGABRT:
+		repl_assertion_failed = 1;
+		longjmp(repl_jmp_buf, 1);
+#endif
 	}
 }
 
@@ -318,6 +325,27 @@ void repl_step(ose_bundle bundle)
 	fprintf(stdout, "---stepping enabled---\n");
 }
 
+void repl_init(void)
+{
+	memset(bytes, 0, MAX_BUNDLE_LEN);
+	bundle = ose_newBundleFromCBytes(MAX_BUNDLE_LEN, bytes);
+	osevm = osevm_init(bundle);
+	vm_i = OSEVM_INPUT(osevm);
+	vm_s = OSEVM_STACK(osevm);
+	vm_e = OSEVM_ENV(osevm);
+	vm_c = OSEVM_CONTROL(osevm);
+        vm_d = OSEVM_DUMP(osevm);
+	vm_o = OSEVM_OUTPUT(osevm);
+	
+	// repl lib functions
+	ose_pushMessage(vm_e, "/repl/import", strlen("/repl/import"),
+			1, OSETT_CFUNCTION, repl_import);
+	ose_pushMessage(vm_e, "/repl/send", strlen("/repl/send"),
+			1, OSETT_CFUNCTION, repl_send);
+	// ose_pushMessage(vm_e, "/repl/step", strlen("/repl/step"),
+	// 		1, OSETT_CFUNCTION, repl_step);
+}
+
 int main(int ac, char **av)
 {
 	// process args
@@ -327,6 +355,20 @@ int main(int ac, char **av)
 		}
 	}
 
+	// install signal handler
+	if(signal(SIGINT, sig_handler) == SIG_ERR){
+		fprintf(stderr,
+			"error installing signal handler to catch SIGINT\n");
+		return 0;
+	}
+#ifndef OSE_DEBUG
+	if(signal(SIGABRT, sig_handler) == SIG_ERR){
+		fprintf(stderr,
+			"error installing signal handler to catch SIGABRT\n");
+		return 0;
+	}
+#endif
+
 	// history
 	const char *homedir = getenv("HOME");
 	char histfile[strlen(homedir) + 6];
@@ -334,15 +376,8 @@ int main(int ac, char **av)
 	read_history(histfile);
 
 	// set up ose environment and vm
-	bytes = (char *)calloc(1, MAX_BUNDLE_LEN);
-	bundle = ose_newBundleFromCBytes(MAX_BUNDLE_LEN, bytes);
-	osevm = osevm_init(bundle);
-	vm_i = OSEVM_INPUT(osevm);
-	vm_s = OSEVM_STACK(osevm);
-	vm_e = OSEVM_ENV(osevm);
-	vm_c = OSEVM_CONTROL(osevm);
-        vm_d = OSEVM_DUMP(osevm);
-	vm_o = OSEVM_OUTPUT(osevm);
+	bytes = (char *)malloc(MAX_BUNDLE_LEN);
+	repl_init();
 
 	// libedit
 	rl_callback_handler_install(ose_reader_prompt, rl_cb);
@@ -361,29 +396,23 @@ int main(int ac, char **av)
 	int maxfdp1 = (udpsock_env > udpsock_input
 		       ? udpsock_env
 		       : udpsock_input) + 1;
-
-	// install signal handler
-	if(signal(SIGINT, sig_handler) == SIG_ERR){
-		fprintf(stderr, "can't catch SIGINT\n");
-		return 0;
-	}
-
-	// repl lib functions. move this somewhere else
-	ose_pushMessage(vm_e, "/repl/import", strlen("/repl/import"),
-			1, OSETT_CFUNCTION, repl_import);
-	ose_pushMessage(vm_e, "/repl/send", strlen("/repl/send"),
-			1, OSETT_CFUNCTION, repl_send);
-	// ose_pushMessage(vm_e, "/repl/step", strlen("/repl/step"),
-	// 		1, OSETT_CFUNCTION, repl_step);
 	
 	while(1){
+#ifndef OSE_DEBUG
+		switch(setjmp(repl_jmp_buf)){
+		case 1: {
+			if(repl_assertion_failed){
+				repl_assertion_failed = 0;
+				repl_init();
+				rl_callback_read_char();
+			}
+		}
+		}
+#endif
 		FD_SET(udpsock_input, &rset);
 		FD_SET(udpsock_env, &rset);
 		FD_SET(STDIN_FILENO, &rset);
 		int nselect = select(maxfdp1, &rset, NULL, NULL, NULL);
-		if(quit){
-			break;
-		}
 		if(nselect <= 0){
 			continue;
 		}

@@ -90,13 +90,14 @@ extern "C" {
 #define OSE_CONF_PROVIDE_TYPE_NULL
 /** @brief Provide support for the OSC infinitum extended type. */
 #define OSE_CONF_PROVIDE_TYPE_INFINITUM
-#else
+
+#else // __DOXYGEN__
 
 #ifdef OSE_CONF_DEBUG
 #define OSE_DEBUG
 #define OSE_SAFE_BUNDLE
 #else
-#define NDEBUG
+//#define NDEBUG
 #endif
 
 #if !defined(OSE_CONF_RASSERT_FAIL) && !defined(OSE_CONF_RASSERT_THROW)
