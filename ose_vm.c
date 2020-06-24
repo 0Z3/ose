@@ -275,7 +275,7 @@ void osevm_toBlob(ose_bundle osevm)
 		char *bp = ose_peekBlob(vm_s);
 		bp += 4;
 		while(*p){
-			char buf[2] = {*p, *(p + 1)};
+			char buf[3] = {*p, *(p + 1), 0};
 			char c = (char)strtol(buf, NULL, 16);
 			*bp++ = c;
 			p += 2;
