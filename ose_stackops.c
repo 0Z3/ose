@@ -1804,10 +1804,8 @@ void ose_copyTTToBlob(ose_bundle bundle)
 
 }
 
-void ose_decatenateBlob(ose_bundle bundle)
+static void decatenateBlobFromEnd(ose_bundle bundle, int32_t n)
 {
-	char buf[1024];
-	int32_t n = ose_popInt32(bundle);
 	ose_assert(n >= 0);
 	int32_t o = ose_getLastBundleElemOffset(bundle);
 	int32_t to, ntt, lto, po, lpo;
@@ -1837,9 +1835,29 @@ void ose_decatenateBlob(ose_bundle bundle)
 	ose_nip(bundle);
 }
 
-void ose_decatenateString(ose_bundle bundle)
+void ose_decatenateBlobFromEnd(ose_bundle bundle)
 {
+	ose_rassert(ose_peekType(bundle) == OSETT_MESSAGE, 1);
+	ose_rassert(ose_peekMessageArgType(bundle) == OSETT_INT32, 1);
 	int32_t n = ose_popInt32(bundle);
+	ose_rassert(ose_peekMessageArgType(bundle) == OSETT_BLOB, 1);
+	decatenateBlobFromEnd(bundle, n);
+}
+
+void ose_decatenateBlobFromStart(ose_bundle bundle)
+{
+	ose_rassert(ose_peekType(bundle) == OSETT_MESSAGE, 1);
+	ose_rassert(ose_peekMessageArgType(bundle) == OSETT_INT32, 1);
+	int32_t n = ose_popInt32(bundle);
+	ose_rassert(ose_peekMessageArgType(bundle) == OSETT_BLOB, 1);
+	int32_t bloblen = ose_ntohl(*((int32_t *)ose_peekBlob(bundle)));
+	n = bloblen - n;
+	decatenateBlobFromEnd(bundle, n);
+}
+
+static void decatenateStringFromEnd(ose_bundle bundle, int32_t n)
+{
+	ose_assert(n >= 0);
 	ose_pushString(bundle, "");
 	ose_push(bundle);
 	int32_t o = ose_getLastBundleElemOffset(bundle);
@@ -1857,6 +1875,26 @@ void ose_decatenateString(ose_bundle bundle)
 	int32_t d = (ose_pnbytes(len - n) + ose_pnbytes(n)) - (plen + 4);
 	ose_addToInt32(bundle, o, d);
 	ose_addToSize(bundle, d);
+}
+
+void ose_decatenateStringFromEnd(ose_bundle bundle)
+{
+	ose_rassert(ose_peekType(bundle) == OSETT_MESSAGE, 1);
+	ose_rassert(ose_peekMessageArgType(bundle) == OSETT_INT32, 1);
+	int32_t n = ose_popInt32(bundle);
+	ose_rassert(ose_isStringType(ose_peekMessageArgType(bundle)) == OSETT_TRUE, 1);
+	decatenateStringFromEnd(bundle, n);
+}
+
+void ose_decatenateStringFromStart(ose_bundle bundle)
+{
+	ose_rassert(ose_peekType(bundle) == OSETT_MESSAGE, 1);
+	ose_rassert(ose_peekMessageArgType(bundle) == OSETT_INT32, 1);
+	int32_t n = ose_popInt32(bundle);
+	ose_rassert(ose_isStringType(ose_peekMessageArgType(bundle)) == OSETT_TRUE, 1);
+	int32_t stringlen = strlen(ose_peekString(bundle));
+	n = stringlen - n;
+	decatenateStringFromEnd(bundle, n);
 }
 
 void ose_elemToBlob(ose_bundle bundle)
@@ -1887,11 +1925,6 @@ void ose_itemToBlob(ose_bundle bundle)
 	ose_addToInt32(bundle, o, 4);
 }
 
-void ose_joinBlobs(ose_bundle bundle)
-{
-
-}
-
 void ose_joinStrings(ose_bundle bundle)
 {
 
@@ -1903,29 +1936,63 @@ void ose_moveStringToAddress(ose_bundle bundle)
 	dropArg(bundle);
 }
 
-void ose_splitBlobFromEnd(ose_bundle bundle)
-{
-
-}
-
-void ose_splitBlobFromStart(ose_bundle bundle)
-{
-
-}
-
 void ose_splitStringFromEnd(ose_bundle bundle)
 {
-
+	int32_t onm1, snm1, on, sn;
+	be2(bundle, &onm1, &snm1, &on, &sn);
+	int32_t nm1_to, nm1_ntt, nm1_lto, nm1_po, nm1_lpo;
+	ose_getNthPayloadItem(bundle, 1, onm1,
+			      &nm1_to,
+			      &nm1_ntt,
+			      &nm1_lto,
+			      &nm1_po,
+			      &nm1_lpo);
+	int32_t n_to, n_ntt, n_lto, n_po, n_lpo;
+	ose_getNthPayloadItem(bundle, 1, on,
+			      &n_to,
+			      &n_ntt,
+			      &n_lto,
+			      &n_po,
+			      &n_lpo);
+        onm1 = nm1_lpo;
+	on = n_lpo;
+	ose_over(bundle);
+	//ose_swap(bundle);
+	char *b = ose_getBundlePtr(bundle);
+	char *str = b + onm1;
+	char *sep = b + on;
+	char *s = ose_peekString(bundle);
+	int32_t slen = strlen(s);
+	char *ltok = str;
+	char *tok = NULL;
+	while(ltok - str < slen && (ltok = strstr(ltok, sep))){
+		tok = ltok;
+		ltok++;
+	}
+	if(!tok){
+		ose_drop(bundle);
+		return;
+	}
+	int32_t n = tok - str;
+	// if(n == 0){
+	// 	ltok = tok;
+	// 	tok = strstr(tok + 1, sep);
+	// 	n = tok - ltok;
+	// }
+	ose_pushInt32(bundle, slen - n);
+	ose_decatenateStringFromEnd(bundle);
+	//slen -= n;
+	ose_rot(bundle);
+	ose_drop(bundle);
+	ose_pop(bundle);
+	ose_swap(bundle);
+	ose_rot(bundle);
 }
 
 void ose_splitStringFromStart(ose_bundle bundle)
 {
 	int32_t onm1, snm1, on, sn;
 	be2(bundle, &onm1, &snm1, &on, &sn);
-	// onm1 = onm1 + 4 + ose_getPaddedStringLen(bundle, onm1 + 4);
-	// onm1 = onm1 + ose_getPaddedStringLen(bundle, onm1);
-	// on = on + 4 + ose_getPaddedStringLen(bundle, on + 4);
-	// on = on + ose_getPaddedStringLen(bundle, on);
 	int32_t nm1_to, nm1_ntt, nm1_lto, nm1_po, nm1_lpo;
 	ose_getNthPayloadItem(bundle, 1, onm1,
 			      &nm1_to,
@@ -1952,6 +2019,7 @@ void ose_splitStringFromStart(ose_bundle bundle)
 	char *ltok = str;
 	char *tok = strstr(str, sep);
 	if(!tok){
+		ose_drop(bundle);
 		return;
 	}
 	int32_t n = tok - ltok;
@@ -1961,7 +2029,7 @@ void ose_splitStringFromStart(ose_bundle bundle)
 		n = tok - ltok;
 	}
 	ose_pushInt32(bundle, slen - n);
-	ose_decatenateString(bundle);
+	ose_decatenateStringFromEnd(bundle);
 	//slen -= n;
 	ose_rot(bundle);
 	ose_drop(bundle);
@@ -2022,36 +2090,48 @@ void ose_swapNBytes(ose_bundle bundle)
 	swapNBytes(bundle, ose_readInt32(bundle, -4), ose_popInt32(bundle));
 }
 
-void ose_trimBlob(ose_bundle bundle)
+void ose_trimStringEnd(ose_bundle bundle)
 {
-	int32_t n = ose_popInt32(bundle);
-	int32_t o = ose_getLastBundleElemOffset(bundle);
-	int32_t to, ntt, lto, po, lpo;
-	ose_getNthPayloadItem(bundle, 1, o, &to, &ntt, &lto, &po, &lpo);
-	ose_assert(ose_readByte(bundle, lto) == OSETT_BLOB);
-	int32_t s = ose_readInt32(bundle, lpo);
-	ose_assert(n <= s);
-	memset(ose_getBundlePtr(bundle) + lpo + ((s + 4) - n), 0, n);
-	int32_t newsize = s - n;
-	ose_writeInt32(bundle, lpo, newsize);
-	int32_t d = -(ose_pnbytes(s) - ose_pnbytes(newsize));
-	ose_addToInt32(bundle, o, d);
-	ose_addToSize(bundle, d);
-}
-
-void ose_trimString(ose_bundle bundle)
-{
-	int32_t n = ose_popInt32(bundle);
 	int32_t o = ose_getLastBundleElemOffset(bundle);
 	int32_t to, ntt, lto, po, lpo;
 	ose_getNthPayloadItem(bundle, 1, o, &to, &ntt, &lto, &po, &lpo);
 	ose_assert(ose_isStringType(ose_readByte(bundle, lto)) == OSETT_TRUE);
 	int32_t s = ose_getStringLen(bundle, lpo);
-	ose_assert(n <= s);
-	memset(ose_getBundlePtr(bundle) + lpo + ((s) - n), 0, n);
-	int32_t newsize = s - n;
-	//ose_writeInt32(bundle, lpo, newsize);
-	int32_t d = -(ose_pnbytes(s) - ose_pnbytes(newsize));
+	char *p = ose_readString(bundle, lpo);
+	int32_t i = s - 1;
+	while(i >= 0){
+		if(p[i] <= 32 || p[i] >= 127){
+			p[i] = 0;
+		}else{
+			break;
+		}
+		i--;
+	}
+	int32_t d = -(ose_pnbytes(s) - ose_pnbytes(i));
+	ose_addToInt32(bundle, o, d);
+	ose_addToSize(bundle, d);
+}
+
+void ose_trimStringStart(ose_bundle bundle)
+{
+	int32_t o = ose_getLastBundleElemOffset(bundle);
+	int32_t to, ntt, lto, po, lpo;
+	ose_getNthPayloadItem(bundle, 1, o, &to, &ntt, &lto, &po, &lpo);
+	ose_assert(ose_isStringType(ose_readByte(bundle, lto)) == OSETT_TRUE);
+	int32_t s = ose_getStringLen(bundle, lpo);
+	char *p = ose_readString(bundle, lpo);
+	int32_t i = 0;
+	while(i < s){
+		if(p[i] <= 32 || p[i] >= 127){
+			;
+		}else{
+			break;
+		}
+		i++;
+	}
+	int32_t d = -(ose_pnbytes(s) - ose_pnbytes(i));
+	memmove(p, p + i, s - i);
+	memset(p + (s - i), 0, s - i);
 	ose_addToInt32(bundle, o, d);
 	ose_addToSize(bundle, d);
 }
@@ -2115,7 +2195,7 @@ void ose_pmatch(ose_bundle bundle)
 	int r = ose_match_pattern(b + lponm1, b + lpon, &po, &ao);
 	ose_drop(bundle);
 	ose_pushInt32(bundle, strlen(ose_peekString(bundle)) - po);
-	ose_decatenateString(bundle);
+	ose_decatenateStringFromEnd(bundle);
 	ose_pop(bundle);
 	ose_swap(bundle);
 	ose_pushInt32(bundle, (r & OSE_MATCH_PATTERN_COMPLETE) != 0);
