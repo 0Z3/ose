@@ -94,18 +94,26 @@ int32_t ose_pprintMessageArg(ose_bundle bundle,
 		INCP(buf, n);
 		INCL(buf, buflen, n);
 		char *p = ose_readString(bundle, plo + 4);
-		for(int i = 0; i < (blobsize > 4 ? 4 : blobsize); i++){
-			n = snprintf(buf, buflen, "%02X", p[i]);
-			nn += n;
-			INCP(buf, n);
-			INCL(buf, buflen, n);
-		}
-		if(blobsize >= 8){
+		
+		if(blobsize > 8){
+			for(int i = 0; i < 4; i++){
+				n = snprintf(buf, buflen, "%02X", p[i]);
+				nn += n;
+				INCP(buf, n);
+				INCL(buf, buflen, n);
+			}
 			n = snprintf(buf, buflen, "..");
 			nn += n;
 			INCP(buf, n);
 			INCL(buf, buflen, n);
 			for(int i = blobsize - 4; i < blobsize; i++){
+				n = snprintf(buf, buflen, "%02X", p[i]);
+				nn += n;
+				INCP(buf, n);
+				INCL(buf, buflen, n);
+			}
+		}else{
+			for(int i = 0; i < blobsize; i++){
 				n = snprintf(buf, buflen, "%02X", p[i]);
 				nn += n;
 				INCP(buf, n);
