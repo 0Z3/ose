@@ -1927,7 +1927,28 @@ void ose_itemToBlob(ose_bundle bundle)
 
 void ose_joinStrings(ose_bundle bundle)
 {
-
+	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 3) == OSETT_TRUE, 1);
+	int32_t onm2, snm2, onm1, snm1, on, sn;
+	be3(bundle, &onm2, &snm2, &onm1, &snm1, &on, &sn);
+	int32_t tonm2, nttnm2, ltonm2, ponm2, lponm2;
+	int32_t tonm1, nttnm1, ltonm1, ponm1, lponm1;
+	int32_t ton, nttn, lton, pon, lpon;
+	ose_getNthPayloadItem(bundle, 1, onm2,
+			      &tonm2, &nttnm2, &ltonm2, &ponm2, &lponm2);
+	ose_getNthPayloadItem(bundle, 1, onm1,
+			      &tonm1, &nttnm1, &ltonm1, &ponm1, &lponm1);
+	ose_getNthPayloadItem(bundle, 1, on,
+			      &ton, &nttn, &lton, &pon, &lpon);
+	ose_rassert(ose_isStringType(ose_readByte(bundle, ltonm2)) == OSETT_TRUE, 1);
+	ose_rassert(ose_isStringType(ose_readByte(bundle, ltonm1)) == OSETT_TRUE, 1);
+	ose_rassert(ose_isStringType(ose_readByte(bundle, lton)) == OSETT_TRUE, 1);
+	ose_rassert(nttnm1 == 2, 1);
+	ose_rassert(nttn == 2, 1);
+	ose_swap(bundle);
+	ose_push(bundle);
+	ose_push(bundle);
+	ose_concatenateStrings(bundle);
+	ose_concatenateStrings(bundle);
 }
 
 void ose_moveStringToAddress(ose_bundle bundle)
