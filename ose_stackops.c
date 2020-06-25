@@ -58,11 +58,11 @@ static void ose_notrot_impl(ose_bundle bundle,
 			    int32_t snm1,
 			    int32_t on,
 			    int32_t sn);
-static void over(ose_bundle bundle,
-		 int32_t onm1,
-		 int32_t snm1,
-		 int32_t on,
-		 int32_t sn);
+static void ose_over_impl(ose_bundle bundle,
+			  int32_t onm1,
+			  int32_t snm1,
+			  int32_t on,
+			  int32_t sn);
 static void dropArg(ose_bundle bundle);
 static void be1(ose_bundle bundle, int32_t *on, int32_t *sn);
 static void be2(ose_bundle bundle,
@@ -635,48 +635,50 @@ struct ose_timetag ose_popTimetag(ose_bundle bundle)
 
 void ose_2drop(ose_bundle bundle)
 {
-	ose_drop(bundle);
-	ose_drop(bundle);
+	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 2) == OSETT_TRUE, 1);
+	int32_t onm1, snm1, on, sn, ss;
+	be2(bundle, &onm1, &snm1, &on, &sn);
+	ss = sn + snm1 + 8;
+	char *b = ose_getBundlePtr(bundle);
+	memset(b + onm1, 0, ss);
+	ose_addToSize(bundle, -ss);
 }
 
 void ose_2dup(ose_bundle bundle)
 {
-	ose_swap(bundle);
-	ose_dup(bundle);
-	ose_rot(bundle);
-	ose_dup(bundle);
+	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 2) == OSETT_TRUE, 1);
+	int32_t onm1, snm1, on, sn;
+	be2(bundle, &onm1, &snm1, &on, &sn);
+	const int32_t ss = snm1 + sn + 8;
+	ose_addToSize(bundle, ss);
+	char *b = ose_getBundlePtr(bundle);
+	memcpy(b + on + sn + 4, b + onm1, ss);
 }
 
 void ose_2over(ose_bundle bundle)
 {
-	int32_t onm3 = 0;
-	int32_t snm3 = 0;
-	int32_t onm2 = 0;
-	int32_t snm2 = 0;
-	int32_t onm1 = 0;
-	int32_t snm1 = 0;
-	int32_t on = 0;
-	int32_t sn = 0;
+	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 4) == OSETT_TRUE, 1);
+	int32_t onm3, snm3, onm2, snm2, onm1, snm1, on, sn;
 	be4(bundle, &onm3, &snm3, &onm2, &snm2, &onm1, &snm1, &on, &sn);
+	const int32_t ss = snm3 + snm2 + 8;
+	ose_addToSize(bundle, ss);
 	char *b = ose_getBundlePtr(bundle);
-	memcpy(b + on + sn + 4, b + onm3, snm3 + snm2 + 8);
+	memcpy(b + on + sn + 4, b + onm3, ss);
 }
 
 void ose_2swap(ose_bundle bundle)
 {
-	int32_t onm3 = 0;
-	int32_t snm3 = 0;
-	int32_t onm2 = 0;
-	int32_t snm2 = 0;
-	int32_t onm1 = 0;
-	int32_t snm1 = 0;
-	int32_t on = 0;
-	int32_t sn = 0;
+	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 4) == OSETT_TRUE, 1);
+	int32_t onm3, snm3, onm2, snm2, onm1, snm1, on, sn;
 	be4(bundle, &onm3, &snm3, &onm2, &snm2, &onm1, &snm1, &on, &sn);
+	const int32_t ss = snm3 + snm2 + 8;
+	const int32_t fs = ose_readInt32(bundle, on + sn + 4);
+	ose_writeInt32(bundle, on + sn + 4, 0);
 	char *b = ose_getBundlePtr(bundle);
-	memcpy(b + on + sn + 4, b + onm3, snm3 + snm2 + 8);
+	memcpy(b + on + sn + 4, b + onm3, ss);
 	memmove(b + onm3, b + onm1, snm3 + snm2 + snm1 + sn + 16);
-	memset(b + on + sn + 4, 0, snm3 + snm2 + 8);
+	memset(b + on + sn + 4, 0, ss);
+	ose_writeInt32(bundle, on + sn + 4, fs);
 }
 
 static void ose_drop_impl(ose_bundle bundle, int32_t o, int32_t s)
@@ -688,9 +690,8 @@ static void ose_drop_impl(ose_bundle bundle, int32_t o, int32_t s)
 
 void ose_drop(ose_bundle bundle)
 {
-	ose_assert(ose_bundleHasAtLeastNElems(bundle, 1) == OSETT_TRUE);
-	int32_t o = 0;
-	int32_t s = 0;
+	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 1) == OSETT_TRUE, 1);
+	int32_t o, s;
 	be1(bundle, &o, &s);
 	ose_drop_impl(bundle, o, s);
 }
@@ -698,24 +699,22 @@ void ose_drop(ose_bundle bundle)
 static void ose_dup_impl(ose_bundle bundle, int32_t o, int32_t s)
 {
 	char *b = ose_getBundlePtr(bundle);
-	memcpy(b + o + s + 4, b + o, s + 4);
 	ose_addToSize(bundle, s + 4);
+	memcpy(b + o + s + 4, b + o, s + 4);
 }
 
 void ose_dup(ose_bundle bundle)
 {
-	int32_t o = 0;
-	int32_t s = 0;
+	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 1) == OSETT_TRUE, 1);
+	int32_t o, s;
 	be1(bundle, &o, &s);
 	ose_dup_impl(bundle, o, s);
 }
 
 void ose_nip(ose_bundle bundle)
 {
-	int32_t onm1 = 0;
-	int32_t snm1 = 0;
-	int32_t on = 0;
-	int32_t sn = 0;
+	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 2) == OSETT_TRUE, 1);
+	int32_t onm1, snm1, on, sn;
 	be2(bundle, &onm1, &snm1, &on, &sn);
 	ose_swap_impl(bundle, onm1, snm1, on, sn);
 	ose_drop_impl(bundle, onm1 + sn + 4, snm1);
@@ -730,29 +729,27 @@ static void ose_notrot_impl(ose_bundle bundle,
 		   int32_t sn)
 {
 	char *b = ose_getBundlePtr(bundle);
+	int32_t fs = ose_readInt32(bundle, on + sn + 4);
+	ose_writeInt32(bundle, on + sn + 4, 0);
 	memmove(b + onm2 + sn + 4, b + onm2, snm2 + snm1 + sn + 12);
 	memcpy(b + onm2, b + on + sn + 4, sn + 4);
 	memset(b + on + sn + 4, 0, sn + 4);
+	ose_writeInt32(bundle, on + sn + 4, fs);
 }
 
 void ose_notrot(ose_bundle bundle)
 {
-
-	int32_t onm2 = 0;
-	int32_t snm2 = 0;
-	int32_t onm1 = 0;
-	int32_t snm1 = 0;
-	int32_t on = 0;
-	int32_t sn = 0;
+	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 3) == OSETT_TRUE, 1);
+	int32_t onm2, snm2, onm1, snm1, on, sn;
 	be3(bundle, &onm2, &snm2, &onm1, &snm1, &on, &sn);
 	ose_notrot_impl(bundle, onm2, snm2, onm1, snm1, on, sn);
 }
 
-static void over(ose_bundle bundle,
-		 int32_t onm1,
-		 int32_t snm1,
-		 int32_t on,
-		 int32_t sn)
+static void ose_over_impl(ose_bundle bundle,
+			  int32_t onm1,
+			  int32_t snm1,
+			  int32_t on,
+			  int32_t sn)
 {
 	char *b = ose_getBundlePtr(bundle);
 	memcpy(b + on + sn + 4, b + onm1, snm1 + 4);
@@ -761,12 +758,10 @@ static void over(ose_bundle bundle,
 
 void ose_over(ose_bundle bundle)
 {
-	int32_t onm1 = 0;
-	int32_t snm1 = 0;
-	int32_t on = 0;
-	int32_t sn = 0;
+	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 2) == OSETT_TRUE, 1);
+	int32_t onm1, snm1, on, sn;
 	be2(bundle, &onm1, &snm1, &on, &sn);
-	over(bundle, onm1, snm1, on, sn);
+	ose_over_impl(bundle, onm1, snm1, on, sn);
 }
 
 static void pick(ose_bundle bundle, int32_t *_o1, int32_t *_o2, int32_t *_s)
@@ -857,12 +852,12 @@ void ose_rollMatch(ose_bundle bundle)
 }
 
 static void ose_rot_impl(ose_bundle bundle,
-		int32_t onm2,
-		int32_t snm2,
-		int32_t onm1,
-		int32_t snm1,
-		int32_t on,
-		int32_t sn)
+			 int32_t onm2,
+			 int32_t snm2,
+			 int32_t onm1,
+			 int32_t snm1,
+			 int32_t on,
+			 int32_t sn)
 {
 	char *b = ose_getBundlePtr(bundle);
 	memcpy(b + on + sn + 4, b + onm2, snm2 + 4);
@@ -872,13 +867,8 @@ static void ose_rot_impl(ose_bundle bundle,
 
 void ose_rot(ose_bundle bundle)
 {
-	ose_assert(ose_getBundleElemCount(bundle) >= 3);
-	int32_t onm2 = 0;
-	int32_t snm2 = 0;
-	int32_t onm1 = 0;
-	int32_t snm1 = 0;
-	int32_t on = 0;
-	int32_t sn = 0;
+	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 3) == OSETT_TRUE, 1);
+	int32_t onm2, snm2, onm1, snm1, on, sn;
 	be3(bundle, &onm2, &snm2, &onm1, &snm1, &on, &sn);
 	ose_rot_impl(bundle, onm2, snm2, onm1, snm1, on, sn);
 }
@@ -889,7 +879,6 @@ static void ose_swap_impl(ose_bundle bundle,
 		 int32_t offset_n,
 		 int32_t size_n)
 {
-	ose_assert(ose_bundleHasAtLeastNElems(bundle, 2) == OSETT_TRUE);
 	char *b = ose_getBundlePtr(bundle);
 	memcpy(b + offset_n + size_n + 4, b + offset_nm1, size_nm1 + 4);
 	memmove(b + offset_nm1, b + offset_n, size_nm1 + size_n + 8);
@@ -898,23 +887,19 @@ static void ose_swap_impl(ose_bundle bundle,
 
 void ose_swap(ose_bundle bundle)
 {
-	int32_t onm1 = 0;
-	int32_t snm1 = 0;
-	int32_t on = 0;
-	int32_t sn = 0;
+	ose_assert(ose_bundleHasAtLeastNElems(bundle, 2) == OSETT_TRUE);
+	int32_t onm1, snm1, on, sn;
 	be2(bundle, &onm1, &snm1, &on, &sn);
 	ose_swap_impl(bundle, onm1, snm1, on, sn);
 }
 
 void ose_tuck(ose_bundle bundle)
 {
-	int32_t onm1 = 0;
-	int32_t snm1 = 0;
-	int32_t on = 0;
-	int32_t sn = 0;
+	ose_assert(ose_bundleHasAtLeastNElems(bundle, 2) == OSETT_TRUE);
+	int32_t onm1, snm1, on, sn;
 	be2(bundle, &onm1, &snm1, &on, &sn);
 	ose_swap_impl(bundle, onm1, snm1, on, sn);
-	over(bundle, onm1, sn, onm1 + sn + 4, snm1);
+	ose_over_impl(bundle, onm1, sn, onm1 + sn + 4, snm1);
 }
 
 /**************************************************
@@ -2815,7 +2800,7 @@ static void be4(ose_bundle bundle,
 	int32_t s3 = ose_readInt32(bundle, o3);
 	int32_t o4 = o3 + s3 + 4;
 	int32_t s4 = ose_readInt32(bundle, o4);
-	while(o3 + s3 + 4 < s){
+	while(o4 + s4 + 4 < s){
 		o1 = o2;
 		s1 = ose_readInt32(bundle, o1);
 		o2 = o3;

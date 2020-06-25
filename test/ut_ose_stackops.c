@@ -634,39 +634,276 @@ void ut_ose_popTimetag(void)
  **************************************************/
 void ut_ose_2drop(void)
 {
-
+	UNIT_TEST_WITH_BUNDLE(NULL,
+			      (ose_2drop(bundle), 0),
+			      ASSERTION_FAILED,
+			      "NULL bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S16 H,
+					  (ose_2drop(bundle), 0),
+					  ASSERTION_FAILED,
+					  "empty bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S32 H S12 A2 Ti Di,
+					  (ose_2drop(bundle), 0),
+					  ASSERTION_FAILED,
+					  "bundle with only one message");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S48 H S12 A2 Ti Di S12 A1 Tf Df,
+					  (ose_2drop(bundle),
+					   memcmp(S16 H,
+						  ose_getBundlePtr(bundle) - 4,
+						  20)),
+					  0,
+					  "bundle with 2 messages");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S68 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds1,
+					  (ose_2drop(bundle),
+					   memcmp(S32 H S12 A2 Ti Di,
+						  ose_getBundlePtr(bundle) - 4,
+						  36)),
+					  0,
+					  "bundle with 3 messages");
 }
 void ut_ose_2dup(void)
 {
-
+	UNIT_TEST_WITH_BUNDLE(NULL,
+			      (ose_2dup(bundle), 0),
+			      ASSERTION_FAILED,
+			      "NULL bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S16 H,
+					  (ose_2dup(bundle), 0),
+					  ASSERTION_FAILED,
+					  "empty bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S32 H S12 A2 Ti Di,
+					  (ose_2dup(bundle), 0),
+					  ASSERTION_FAILED,
+					  "bundle with only one message");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S48 H S12 A2 Ti Di S12 A1 Tf Df,
+					  (ose_2dup(bundle),
+					   memcmp(S80 H S12 A2 Ti Di S12 A1 Tf Df S12 A2 Ti Di S12 A1 Tf Df,
+						  ose_getBundlePtr(bundle) - 4,
+						  84)),
+					  0,
+					  "bundle with 2 messages");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S68 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds1,
+					  (ose_2dup(bundle),
+					   memcmp(S104 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds1 S12 A1 Tf Df S16 A4 Ts Ds1,
+						  ose_getBundlePtr(bundle) - 4,
+						  108)),
+					  0,
+					  "bundle with 3 messages");
 }
 void ut_ose_2over(void)
 {
-
+	UNIT_TEST_WITH_BUNDLE(NULL,
+			      (ose_2over(bundle), 0),
+			      ASSERTION_FAILED,
+			      "NULL bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S16 H,
+					  (ose_2over(bundle), 0),
+					  ASSERTION_FAILED,
+					  "empty bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S32 H S12 A2 Ti Di,
+					  (ose_2over(bundle), 0),
+					  ASSERTION_FAILED,
+					  "bundle with only one message");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S48 H S12 A2 Ti Di S12 A1 Tf Df,
+					  (ose_2over(bundle), 0),
+					  ASSERTION_FAILED,
+					  "bundle with only two messages");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S68 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds2,
+					  (ose_2over(bundle), 0),
+					  ASSERTION_FAILED,
+					  "bundle with only three messages");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S88 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds2 S16 A3 Ts Ds4,
+					  (ose_2over(bundle),
+					   memcmp(S120 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds2 S16 A3 Ts Ds4 S12 A2 Ti Di S12 A1 Tf Df,
+						  ose_getBundlePtr(bundle) - 4,
+						  124)),
+					  0,
+					  "bundle with 4 messages");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S112 H S20 A4 Ts Ds4 S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds2 S16 A3 Ts Ds4,
+					  (ose_2over(bundle),
+					   memcmp(S144 H S20 A4 Ts Ds4 S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds2 S16 A3 Ts Ds4 S12 A2 Ti Di S12 A1 Tf Df,
+						  ose_getBundlePtr(bundle) - 4,
+						  148)),
+					  0,
+					  "bundle with 5 messages");
 }
 void ut_ose_2swap(void)
 {
-
+	UNIT_TEST_WITH_BUNDLE(NULL,
+			      (ose_2swap(bundle), 0),
+			      ASSERTION_FAILED,
+			      "NULL bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S16 H,
+					  (ose_2swap(bundle), 0),
+					  ASSERTION_FAILED,
+					  "empty bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S32 H S12 A2 Ti Di,
+					  (ose_2swap(bundle), 0),
+					  ASSERTION_FAILED,
+					  "bundle with only one message");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S48 H S12 A2 Ti Di S12 A1 Tf Df,
+					  (ose_2swap(bundle), 0),
+					  ASSERTION_FAILED,
+					  "bundle with only two messages");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S68 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds2,
+					  (ose_2swap(bundle), 0),
+					  ASSERTION_FAILED,
+					  "bundle with only three messages");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S88 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds2 S16 A3 Ts Ds4,
+					  (ose_2swap(bundle),
+					   memcmp(S88 H S16 A4 Ts Ds2 S16 A3 Ts Ds4 S12 A2 Ti Di S12 A1 Tf Df,
+						  ose_getBundlePtr(bundle) - 4,
+						  92)),
+					  0,
+					  "bundle with 4 messages");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S112 H S20 A4 Ts Ds4 S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds2 S16 A3 Ts Ds4,
+					  (ose_2swap(bundle),
+					   memcmp(S112 H S20 A4 Ts Ds4 S16 A4 Ts Ds2 S16 A3 Ts Ds4 S12 A2 Ti Di S12 A1 Tf Df,
+						  ose_getBundlePtr(bundle) - 4,
+						  116)),
+					  0,
+					  "bundle with 5 messages");
 }
 void ut_ose_drop(void)
 {
-
+	UNIT_TEST_WITH_BUNDLE(NULL,
+			      (ose_drop(bundle), 0),
+			      ASSERTION_FAILED,
+			      "NULL bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S16 H,
+					  (ose_drop(bundle), 0),
+					  ASSERTION_FAILED,
+					  "empty bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S32 H S12 A2 Ti Di,
+					  (ose_drop(bundle),
+					   memcmp(S16 H,
+						  ose_getBundlePtr(bundle) - 4,
+						  20)),
+					  0,
+					  "bundle with 1 message");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S48 H S12 A2 Ti Di S12 A1 Tf Df,
+					  (ose_drop(bundle),
+					   memcmp(S32 H S12 A2 Ti Di,
+						  ose_getBundlePtr(bundle) - 4,
+						  36)),
+					  0,
+					  "bundle with 2 messages");
 }
 void ut_ose_dup(void)
 {
-
+	UNIT_TEST_WITH_BUNDLE(NULL,
+			      (ose_dup(bundle), 0),
+			      ASSERTION_FAILED,
+			      "NULL bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S16 H,
+					  (ose_dup(bundle), 0),
+					  ASSERTION_FAILED,
+					  "empty bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S32 H S12 A2 Ti Di,
+					  (ose_dup(bundle),
+					   memcmp(S48 H S12 A2 Ti Di S12 A2 Ti Di,
+						  ose_getBundlePtr(bundle) - 4,
+						  52)),
+					  0,
+					  "bundle with 1 message");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S48 H S12 A2 Ti Di S12 A1 Tf Df,
+					  (ose_dup(bundle),
+					   memcmp(S64 H S12 A2 Ti Di S12 A1 Tf Df S12 A1 Tf Df,
+						  ose_getBundlePtr(bundle) - 4,
+						  68)),
+					  0,
+					  "bundle with 2 messages");
 }
 void ut_ose_nip(void)
 {
-
+	UNIT_TEST_WITH_BUNDLE(NULL,
+			      (ose_nip(bundle), 0),
+			      ASSERTION_FAILED,
+			      "NULL bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S16 H,
+					  (ose_nip(bundle), 0),
+					  ASSERTION_FAILED,
+					  "empty bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S32 H S12 A2 Ti Di,
+					  (ose_nip(bundle), 0),
+					  ASSERTION_FAILED,
+					  "bundle with only one message");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S48 H S12 A2 Ti Di S12 A1 Tf Df,
+					  (ose_nip(bundle),
+					   memcmp(S32 H S12 A1 Tf Df,
+						  ose_getBundlePtr(bundle) - 4,
+						  36)),
+					  0,
+					  "bundle with 2 messages");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S68 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds1,
+					  (ose_nip(bundle),
+					   memcmp(S52 H S12 A2 Ti Di S16 A4 Ts Ds1,
+						  ose_getBundlePtr(bundle) - 4,
+						  56)),
+					  0,
+					  "bundle with 3 messages");
 }
 void ut_ose_notrot(void)
 {
-
+	UNIT_TEST_WITH_BUNDLE(NULL,
+			      (ose_notrot(bundle), 0),
+			      ASSERTION_FAILED,
+			      "NULL bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S16 H,
+					  (ose_notrot(bundle), 0),
+					  ASSERTION_FAILED,
+					  "empty bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S32 H S12 A2 Ti Di,
+			      (ose_notrot(bundle), 0),
+			      ASSERTION_FAILED,
+			      "bundle with only one message");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S48 H S12 A2 Ti Di S12 A1 Tf Df,
+					  (ose_notrot(bundle), 0),
+					  ASSERTION_FAILED,
+					  "bundle with only two messages");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S68 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds1,
+					  (ose_notrot(bundle),
+					   memcmp(S68 H S16 A4 Ts Ds1 S12 A2 Ti Di S12 A1 Tf Df,
+						  ose_getBundlePtr(bundle) - 4,
+						  72)),
+					  0,
+					  "bundle with 3 messages");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S92 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds1 S20 A5 Tb Db4,
+					  (ose_notrot(bundle),
+					   memcmp(S92 H S12 A2 Ti Di S20 A5 Tb Db4 S12 A1 Tf Df S16 A4 Ts Ds1,
+						  ose_getBundlePtr(bundle) - 4,
+						  96)),
+					  0,
+					  "bundle with 4 messages");
 }
 void ut_ose_over(void)
 {
-
+	UNIT_TEST_WITH_BUNDLE(NULL,
+			      (ose_over(bundle), 0),
+			      ASSERTION_FAILED,
+			      "NULL bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S16 H,
+					  (ose_over(bundle), 0),
+					  ASSERTION_FAILED,
+					  "empty bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S32 H S12 A2 Ti Di,
+					  (ose_over(bundle), 0),
+					  ASSERTION_FAILED,
+					  "bundle with only one message");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S48 H S12 A2 Ti Di S12 A1 Tf Df,
+					  (ose_over(bundle),
+					   memcmp(S64 H S12 A2 Ti Di S12 A1 Tf Df S12 A2 Ti Di,
+						  ose_getBundlePtr(bundle) - 4,
+						  68)),
+					  0,
+					  "bundle with 2 messages");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S68 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds1,
+					  (ose_over(bundle),
+					   memcmp(S84 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds1 S12 A1 Tf Df,
+						  ose_getBundlePtr(bundle) - 4,
+						  88)),
+					  0,
+					  "bundle with 3 messages");
 }
 void ut_ose_pick(void)
 {
@@ -694,15 +931,94 @@ void ut_ose_rollMatch(void)
 }
 void ut_ose_rot(void)
 {
-
+	UNIT_TEST_WITH_BUNDLE(NULL,
+			      (ose_rot(bundle), 0),
+			      ASSERTION_FAILED,
+			      "NULL bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S16 H,
+					  (ose_rot(bundle), 0),
+					  ASSERTION_FAILED,
+					  "empty bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S32 H S12 A2 Ti Di,
+					  (ose_rot(bundle), 0),
+					  ASSERTION_FAILED,
+					  "bundle with only one message");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S48 H S12 A2 Ti Di S12 A1 Tf Df,
+					  (ose_rot(bundle), 0),
+					  ASSERTION_FAILED,
+					  "bundle with only two messages");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S68 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds1,
+					  (ose_rot(bundle),
+					   memcmp(S68 H S12 A1 Tf Df S16 A4 Ts Ds1  S12 A2 Ti Di,
+						  ose_getBundlePtr(bundle) - 4,
+						  72)),
+					  0,
+					  "bundle with 3 messages");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S92 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds1 S20 A5 Tb Db4,
+					  (ose_rot(bundle),
+					   memcmp(S92 H S12 A2 Ti Di S16 A4 Ts Ds1 S20 A5 Tb Db4 S12 A1 Tf Df,
+						  ose_getBundlePtr(bundle) - 4,
+						  96)),
+					  0,
+					  "bundle with 4 messages");
 }
 void ut_ose_swap(void)
 {
-
+	UNIT_TEST_WITH_BUNDLE(NULL,
+			      (ose_swap(bundle), 0),
+			      ASSERTION_FAILED,
+			      "NULL bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S16 H,
+					  (ose_swap(bundle), 0),
+					  ASSERTION_FAILED,
+					  "empty bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S32 H S12 A2 Ti Di,
+					  (ose_swap(bundle), 0),
+					  ASSERTION_FAILED,
+					  "bundle with only one message");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S48 H S12 A2 Ti Di S12 A1 Tf Df,
+					  (ose_swap(bundle),
+					   memcmp(S48 H S12 A1 Tf Df S12 A2 Ti Di,
+						  ose_getBundlePtr(bundle) - 4,
+						  52)),
+					  0,
+					  "bundle with 2 messages");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S68 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds1,
+					  (ose_swap(bundle),
+					   memcmp(S68 H S12 A2 Ti Di S16 A4 Ts Ds1 S12 A1 Tf Df,
+						  ose_getBundlePtr(bundle) - 4,
+						  72)),
+					  0,
+					  "bundle with 3 messages");
 }
 void ut_ose_tuck(void)
 {
-
+	UNIT_TEST_WITH_BUNDLE(NULL,
+			      (ose_tuck(bundle), 0),
+			      ASSERTION_FAILED,
+			      "NULL bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S16 H,
+					  (ose_tuck(bundle), 0),
+					  ASSERTION_FAILED,
+					  "empty bundle");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S32 H S12 A2 Ti Di,
+					  (ose_tuck(bundle), 0),
+					  ASSERTION_FAILED,
+					  "bundle with only one message");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S48 H S12 A2 Ti Di S12 A1 Tf Df,
+					  (ose_tuck(bundle),
+					   memcmp(S64 H S12 A1 Tf Df S12 A2 Ti Di S12 A1 Tf Df,
+						  ose_getBundlePtr(bundle) - 4,
+						  68)),
+					  0,
+					  "bundle with 2 messages");
+	UNIT_TEST_WITH_INITIALIZED_BUNDLE(S68 H S12 A2 Ti Di S12 A1 Tf Df S16 A4 Ts Ds1,
+					  (ose_tuck(bundle),
+					   memcmp(S88 H S12 A2 Ti Di S16 A4 Ts Ds1 S12 A1 Tf Df S16 A4 Ts Ds1,
+						  ose_getBundlePtr(bundle) - 4,
+						  92)),
+					  0,
+					  "bundle with 3 messages");
 }
 
 /**************************************************
@@ -1055,24 +1371,24 @@ int main(int ac, char **av)
 	/**************************************************
 	 * Stack Operations
 	 **************************************************/
-	SKIP_UNIT_TEST_FUNCTION(ose_2drop, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_2dup, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_2over, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_2swap, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_drop, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_dup, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_nip, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_notrot, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_over, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_pick, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_pickBottom, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_pickMatch, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_roll, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_rollBottom, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_rollMatch, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_rot, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_swap, "");
-	SKIP_UNIT_TEST_FUNCTION(ose_tuck, "");
+	UNIT_TEST_FUNCTION(ose_2drop);
+	UNIT_TEST_FUNCTION(ose_2dup);
+	UNIT_TEST_FUNCTION(ose_2over);
+	UNIT_TEST_FUNCTION(ose_2swap);
+	UNIT_TEST_FUNCTION(ose_drop);
+	UNIT_TEST_FUNCTION(ose_dup);
+	UNIT_TEST_FUNCTION(ose_nip);
+	UNIT_TEST_FUNCTION(ose_notrot);
+	UNIT_TEST_FUNCTION(ose_over);
+	UNIT_TEST_FUNCTION(ose_pick);
+	UNIT_TEST_FUNCTION(ose_pickBottom);
+	UNIT_TEST_FUNCTION(ose_pickMatch);
+	UNIT_TEST_FUNCTION(ose_roll);
+	UNIT_TEST_FUNCTION(ose_rollBottom);
+	UNIT_TEST_FUNCTION(ose_rollMatch);
+	UNIT_TEST_FUNCTION(ose_rot);
+	UNIT_TEST_FUNCTION(ose_swap);
+	UNIT_TEST_FUNCTION(ose_tuck);
 
 	/**************************************************
 	 * Grouping / Ungrouping
