@@ -2153,9 +2153,9 @@ void ose_trimStringStart(ose_bundle bundle)
 		}
 		i++;
 	}
-	int32_t d = -(ose_pnbytes(s) - ose_pnbytes(i));
+	int32_t d = -(ose_pnbytes(i));
 	memmove(p, p + i, s - i);
-	memset(p + (s - i), 0, s - i);
+	memset(p + (s - i), 0, i);
 	ose_addToInt32(bundle, o, d);
 	ose_addToSize(bundle, d);
 }
