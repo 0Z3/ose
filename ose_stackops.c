@@ -1974,11 +1974,9 @@ void ose_splitStringFromEnd(ose_bundle bundle)
 		return;
 	}
 	int32_t n = tok - str;
-	// if(n == 0){
-	// 	ltok = tok;
-	// 	tok = strstr(tok + 1, sep);
-	// 	n = tok - ltok;
-	// }
+	if(n == 0){
+		n = 1;
+	}
 	ose_pushInt32(bundle, slen - n);
 	ose_decatenateStringFromEnd(bundle);
 	//slen -= n;
@@ -2026,14 +2024,19 @@ void ose_splitStringFromStart(ose_bundle bundle)
 	if(n == 0){
 		ltok = tok;
 		tok = strstr(tok + 1, sep);
-		n = tok - ltok;
+		if(!tok){
+			n = 1;
+		}else{
+			n = tok - ltok;
+		}
 	}
 	ose_pushInt32(bundle, slen - n);
 	ose_decatenateStringFromEnd(bundle);
 	//slen -= n;
 	ose_rot(bundle);
 	ose_drop(bundle);
-	ose_swap(bundle);
+	ose_pop(bundle);
+	ose_rot(bundle);
 }
 
 static void swap4Bytes(ose_bundle bundle, int32_t o)
