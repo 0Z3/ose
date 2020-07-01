@@ -583,12 +583,15 @@ int32_t ose_writeTimetag(ose_bundle bundle,
 
 ose_fn ose_readCFn(ose_constbundle bundle, const int32_t offset)
 {
-	const char * b = ose_getBundlePtr(bundle) + offset;
-	while((uintptr_t)b % sizeof(intptr_t)){
-		b++;
-	}
+	const char * b = ose_getBundlePtr(bundle);
+	ose_assert(b);
+	b += offset;
+	int32_t a = ose_readInt32(bundle, offset);
+	// while((uintptr_t)b % sizeof(intptr_t)){
+	// 	b++;
+	// }
 	intptr_t i = 0;
-	i = *((intptr_t *)b);
+	i = *((intptr_t *)(b + 4 + a));
 	ose_fn f = (ose_fn)i;
 	return f;
 }
@@ -601,11 +604,43 @@ int32_t ose_writeCFn(ose_bundle bundle,
 	ose_assert(b);
 	b += offset;
 	memset(b, 0, OSE_INTPTR2);
-	while((uintptr_t)b % sizeof(intptr_t)){
-		b++;
+	int32_t a = 0;
+	while((uintptr_t)(b + 4 + a) % sizeof(intptr_t)){
+		a++;
 	}
-	*((intptr_t *)b) = (intptr_t)fn;
+	*((int32_t *)b) = ose_htonl(a);
+	// while((uintptr_t)b % sizeof(intptr_t)){
+	// 	b++;
+	// }
+	*((intptr_t *)(b + 4 + a)) = (intptr_t)fn;
 	return OSE_INTPTR2;
+}
+
+void ose_alignCFn(ose_bundle bundle, const int32_t offset)
+{
+	char *b = ose_getBundlePtr(bundle);
+	ose_assert(b);
+	b += offset;
+	int32_t aold = ose_readInt32(bundle, offset);
+	int32_t anew = 0;
+	while((uintptr_t)(b + 4 + anew) % sizeof(intptr_t)){
+		anew++;
+	}
+	if(anew != aold){
+		*((int32_t *)b) = ose_htonl(anew);
+		memmove(b + 4 + anew, b + 4 + aold, sizeof(intptr_t));
+	}
+}
+
+void ose_callCFn(ose_bundle bundle, const int32_t offset, ose_bundle arg)
+{
+	ose_alignCFn(bundle, offset);
+	char *b = ose_getBundlePtr(bundle);
+	// intptr_t i = 0;
+	// i = *((intptr_t *)(b + offset + n));
+	// ose_fn f = (ose_fn)i;
+	ose_fn f = ose_readCFn(bundle, offset);
+	f(arg);
 }
 
 int32_t ose_getLastBundleElemOffset(ose_constbundle bundle)

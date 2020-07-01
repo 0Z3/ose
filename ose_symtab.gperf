@@ -163,10 +163,13 @@ struct _ose_symtab_rec { char *name; void (*f)(ose_bundle);};
 /end/quote, ose_builtin_end_quote
 /clear/env, ose_builtin_clearEnv
 /copy/env, ose_builtin_copyEnv
+/assign, ose_builtin_assign
+/apply, ose_builtin_apply
+/defun, ose_builtin_defun
 ###
 %%
 
-void (*ose_symtab_lookup(char *str))(ose_bundle)
+void (*ose_symtab_lookup(const char * const str))(ose_bundle)
 {
 	const struct _ose_symtab_rec *r = _ose_symtab_lookup(str, strlen(str));
 	if(r){

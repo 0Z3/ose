@@ -117,6 +117,13 @@ void osevm_lookup(ose_bundle osevm);
 extern void OSEVM_LOOKUP (ose_bundle osevm);
 #endif
 
+void osevm_apply(ose_bundle osevm);
+#ifndef OSEVM_APPLY
+#define OSEVM_APPLY osevm_apply
+#else
+extern void OSEVM_APPLY (ose_bundle osevm);
+#endif
+
 void osevm_toInt32(ose_bundle osevm);
 #ifndef OSEVM_TOINT32
 #define OSEVM_TOINT32 osevm_toInt32

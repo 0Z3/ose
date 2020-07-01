@@ -31,6 +31,7 @@
 #include "ose_stackops.h"
 #include "ose_assert.h"
 #include "ose_symtab.h"
+#include "ose_builtins.h"
 #include "ose_vm.h"
 
 static void popControlToStack(ose_bundle vm_c, ose_bundle vm_s)
@@ -66,16 +67,21 @@ void osevm_assign(ose_bundle osevm)
 		ose_rassert(0 && "assignment requires at least one argument", 1);
 		return;
 	}
-	ose_moveStringToAddress(vm_s);
 	while(1){
 		int32_t n = ose_getBundleElemCount(vm_s);
 		if(n == 1){
 			break;
 		}
 		ose_swap(vm_s);
+		if(ose_peekType(vm_s) == OSETT_BUNDLE){
+			ose_elemToBlob(vm_s);
+		}
+		ose_swap(vm_s);
 		ose_push(vm_s);
 	}
+	ose_moveStringToAddress(vm_s);
 	ose_replaceBundleElemInDest(vm_s, vm_e);
+	ose_clear(vm_s);
 }
 
 void osevm_lookup(ose_bundle osevm)
@@ -110,6 +116,20 @@ void osevm_lookup(ose_bundle osevm)
 		ose_concatenateStrings(vm_e);
 	}
 	ose_moveBundleElemToDest(vm_e, vm_s);
+}
+
+void osevm_apply(ose_bundle osevm)
+{
+	ose_bundle vm_i = OSEVM_INPUT(osevm);
+	ose_bundle vm_s = OSEVM_STACK(osevm);
+	ose_bundle vm_e = OSEVM_ENV(osevm);
+	ose_bundle vm_c = OSEVM_CONTROL(osevm);
+        ose_bundle vm_d = OSEVM_DUMP(osevm);
+	const char *address = ose_peekAddress(vm_c);
+	if(!strncmp(address, "/!/", 3)){
+		ose_pushString(vm_s, address + 2);
+	}
+	ose_builtin_apply(osevm);
 }
 
 void osevm_toInt32(ose_bundle osevm)
@@ -407,75 +427,14 @@ static void applyControl(ose_bundle osevm, char *address)
 			;
 		}ose_end_try;
 	}else if(!strncmp(address, "/!", 2)){
-		if(!strncmp(address, "/!/", 3)){
-			ose_fn f = ose_symtab_lookup(address + 2);
-			if(!f){
-				int32_t o = ose_getFirstOffsetForMatch(vm_e,
-								       address + 2);
-				if(o){
-					// assert stuff about o
-				        int32_t to, ntt, lto, po, lpo;
-					ose_getNthPayloadItem(vm_e,
-							      1,
-							      o,
-							      &to,
-							      &ntt,
-							      &lto,
-							      &po,
-							      &lpo);
-					if(ose_readByte(vm_e, to + 1)
-					   == OSETT_BLOB){
-						f = ose_readCFn(vm_e, po + 4);
-					}
-				}
-			}
-			if(f){
-				f(osevm);
-			}else{
-				ose_copyAddressToString(vm_c);
-				ose_moveBundleElemToDest(vm_c, vm_s);
-			}
-		}else{
-			if(ose_peekMessageArgType(vm_s) == OSETT_BLOB){
-				ose_blobToElem(vm_s);
-			}
-			if(ose_peekType(vm_s) == OSETT_BUNDLE){
-				ose_bundleAll(vm_i);
-				ose_moveBundleElemToDest(vm_i, vm_d);
-				ose_pushBundle(vm_d); // stack
-				ose_bundleAll(vm_e);
-				ose_copyBundleElemToDest(vm_e, vm_d);
-				ose_unpackDrop(vm_e);
-				ose_bundleAll(vm_c);
-				ose_moveBundleElemToDest(vm_c, vm_d);
-				
-				ose_pop(vm_s);
-				ose_countItems(vm_s);
-				int32_t n = ose_popInt32(vm_s);
-				for(int32_t i = 0; i < n; i++){
-					ose_pop(vm_s);
-					ose_pushInt32(vm_s, 3);
-					ose_roll(vm_s);
-					ose_swap(vm_s);
-					ose_push(vm_s);
-					ose_moveStringToAddress(vm_s);
-					ose_moveBundleElemToDest(vm_s, vm_e);
-				}
-				ose_drop(vm_s);
-				ose_moveBundleElemToDest(vm_s, vm_i);
-				ose_popAllDrop(vm_i);
-			}else{
-				void (*f)(ose_bundle) =
-					ose_symtab_lookup(ose_peekString(vm_s));
-				if(f){
-					ose_drop(vm_s);
-					f(osevm);
-				}else{
-					ose_copyAddressToString(vm_c);
-					ose_moveBundleElemToDest(vm_c, vm_s);
-				}
-			}
-		}
+		ose_try{
+			OSEVM_APPLY(osevm);
+		}ose_catch(1){
+			;
+			// debug
+		}ose_finally{
+			;
+		}ose_end_try;
 	}else if(!strcmp(address, "/(")){
 		// // move input to dump
 		// ose_bundleAll(vm_i);
@@ -709,16 +668,16 @@ static void restoreDump(ose_bundle osevm)
 	ose_unpackDrop(vm_c);
 			
 	// restore env
-	// ose_clear(vm_e);
-	// ose_moveBundleElemToDest(vm_d, vm_e);
-	// ose_unpackDrop(vm_e);
+	ose_clear(vm_e);
+	ose_moveBundleElemToDest(vm_d, vm_e);
+	ose_unpackDrop(vm_e);
 
 	// restore stack
 	ose_bundleAll(vm_s);
 	ose_moveBundleElemToDest(vm_d, vm_s);
 	ose_unpackDrop(vm_s);
 	ose_rollBottom(vm_s);
-	//ose_unpackDrop(vm_s);
+	ose_unpackDrop(vm_s);
 
 	// restore input
 	ose_moveBundleElemToDest(vm_d, vm_i);

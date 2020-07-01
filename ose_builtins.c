@@ -28,6 +28,7 @@ SOFTWARE.
 #include "ose_stackops.h"
 #include "ose_assert.h"
 #include "ose_vm.h"
+#include "ose_symtab.h"
 
 #define OSE_BUILTIN_DEFN(name)				\
 	void ose_builtin_##name(ose_bundle bundle)	\
@@ -183,9 +184,9 @@ void ose_builtin_eval(ose_bundle osevm)
 	ose_bundleAll(vm_s);
 	ose_moveBundleElemToDest(vm_s, vm_d);
 
-	// move environment to dump
-	// ose_bundleAll(vm_e);
-	// ose_moveBundleElemToDest(vm_e, vm_d);
+	// copy environment to dump
+	ose_bundleAll(vm_e);
+	ose_copyBundleElemToDest(vm_e, vm_d);
 
 	// move control to dump
 	// ose_bundleAll(vm_c);
@@ -366,4 +367,129 @@ void ose_builtin_copyEnv(ose_bundle osevm)
 	memcpy(ose_getBundlePtr(vm_s) + ss,
 	       ose_getBundlePtr(vm_e) - 4,
 	       es + 4);
+}
+
+void ose_builtin_assign(ose_bundle osevm)
+{
+	ose_bundle vm_s = OSEVM_STACK(osevm);
+	ose_bundle vm_e = OSEVM_ENV(osevm);
+	ose_rassert(ose_bundleHasAtLeastNElems(vm_s, 2) == OSETT_TRUE, 1);
+	ose_rassert(ose_peekType(vm_s) == OSETT_MESSAGE, 1);
+	ose_rassert(ose_isStringType(ose_peekMessageArgType(vm_s)) == OSETT_TRUE, 1);
+	ose_swap(vm_s);
+	if(ose_peekType(vm_s) == OSETT_BUNDLE){
+		ose_elemToBlob(vm_s);
+	}
+	ose_swap(vm_s);
+	ose_push(vm_s);
+	ose_moveStringToAddress(vm_s);
+	ose_replaceBundleElemInDest(vm_s, vm_e);
+	ose_drop(vm_s);
+}
+
+void ose_builtin_apply(ose_bundle osevm)
+{
+	ose_bundle vm_i = OSEVM_INPUT(osevm);
+	ose_bundle vm_s = OSEVM_STACK(osevm);
+	ose_bundle vm_e = OSEVM_ENV(osevm);
+	ose_bundle vm_c = OSEVM_CONTROL(osevm);
+	ose_bundle vm_d = OSEVM_DUMP(osevm);
+        ose_bundle vm_o = OSEVM_OUTPUT(osevm);
+	ose_rassert(ose_bundleHasAtLeastNElems(vm_s, 1) == OSETT_TRUE, 1);
+	while(1){
+		char elemtype = ose_peekType(vm_s);
+		if(elemtype == OSETT_BUNDLE){
+			// move input to dump
+			ose_bundleAll(vm_i);
+			ose_moveBundleElemToDest(vm_i, vm_d);
+			
+			// move bundle on the stack to input
+			ose_moveBundleElemToDest(vm_s, vm_i);
+			if(ose_peekType(vm_i) == OSETT_MESSAGE){
+				if(ose_peekMessageArgType(vm_i) == OSETT_BLOB){
+					// need a test here to make sure
+					// the blob contains a bundle member
+					if(1){
+						ose_blobToElem(vm_i);
+						ose_popAllDrop(vm_i);
+					}
+				}
+			}else{
+				ose_popAllDrop(vm_i);
+			}
+
+			// move stack to dump
+			// ose_bundleAll(vm_s);
+			// ose_moveBundleElemToDest(vm_s, vm_d);
+			ose_pushBundle(vm_d);
+
+			// copy environment to dump
+			ose_bundleAll(vm_e);
+			ose_copyBundleElemToDest(vm_e, vm_d);
+			ose_unpackDrop(vm_e);
+
+			// move control to dump
+			// ose_bundleAll(vm_c);
+			// ose_moveBundleElemToDest(vm_c, vm_d);
+			ose_pushBundle(vm_d);		
+			break;
+		}else if(elemtype == OSETT_MESSAGE){
+			char itemtype = ose_peekMessageArgType(vm_s);
+			if(ose_isStringType(itemtype) == OSETT_TRUE){
+				const char * const s = ose_peekString(vm_s);
+				// lookup in env
+				int32_t o = ose_getFirstOffsetForMatch(vm_e, s);
+				if(o >= OSE_BUNDLE_HEADER_LEN){
+					ose_pushString(vm_e, s);
+					ose_drop(vm_s);
+					ose_pickMatch(vm_e);
+					ose_moveBundleElemToDest(vm_e, vm_s);
+					continue;
+				}
+				// if it wasn't present in env, lookup in symtab
+				else{
+					ose_fn f = ose_symtab_lookup(s);
+					if(f){
+						ose_drop(vm_s);
+						f(osevm);
+						break;
+					}else{
+						break;
+					}
+				}
+			}else if(itemtype == OSETT_BLOB){
+				const char * const p = ose_peekBlob(vm_s);
+				int32_t len = ose_ntohl(*((int32_t *)p));
+				if(len > OSE_BUNDLE_HEADER_LEN
+				   && !strncmp(OSE_BUNDLE_ID, p + 4, 7)){
+					// blob is a bundle
+					ose_blobToElem(vm_s);
+					continue;
+				}else{
+					// blob is not a bundle
+					int32_t o = p - ose_getBundlePtr(vm_s);
+					ose_alignCFn(vm_s, o + 4);
+					ose_fn f = ose_readCFn(vm_s, o + 4);
+					if(f){
+						ose_drop(vm_s);
+						f(osevm);
+						break;
+					}else{
+						break;
+					}
+				}
+			}else{
+				ose_assert(0 && "found an unexpected type during application");
+				break;
+			}
+		}else{
+			ose_assert(0 && "encountered unknown element type!");
+			break;
+		}
+	}
+}
+
+void ose_builtin_defun(ose_bundle osevm)
+{
+
 }

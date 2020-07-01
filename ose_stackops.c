@@ -408,8 +408,7 @@ char ose_peekMessageArgType(const ose_bundle bundle)
 	if(s <= 8){
 		return OSETT_NOTYPETAG;
 	}else{
-		ose_assert(strcmp(ose_readString(bundle, o + 4),
-				  OSE_BUNDLE_ID));
+		ose_assert(strcmp(ose_readString(bundle, o + 4), OSE_BUNDLE_ID));
 		const int32_t tto = o + 4 + ose_getPaddedStringLen(bundle,
 								   o + 4);
 		const char *ptr = ose_getBundlePtr(bundle);

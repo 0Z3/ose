@@ -186,6 +186,8 @@ ose_fn ose_readCFn(ose_constbundle bundle, int32_t offset);
 int32_t ose_writeCFn(ose_bundle bundle,
 		     const int32_t offset,
 		     const ose_fn fn);
+void ose_alignCFn(ose_bundle bundle, const int32_t offset);
+void ose_callCFn(ose_bundle bundle, const int32_t offset, ose_bundle arg);
 
 
 /**
