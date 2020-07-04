@@ -56,13 +56,13 @@
 #define MAX_BUNDLE_LEN 1000000
 
 #define PORT_INPUT 10350
-#define PORT_ENV 10053
+//#define PORT_ENV 10053
 #define PORT_SEND 10666
 
 int udpsock_input;
-int udpsock_env;
+//int udpsock_env;
 struct sockaddr_in sockaddr_input;
-struct sockaddr_in sockaddr_env;
+//struct sockaddr_in sockaddr_env;
 struct sockaddr_in sockaddr_send;
 
 void printStack(ose_bundle bundle, char *name);
@@ -81,6 +81,8 @@ int step = 0;
 
 jmp_buf repl_jmp_buf;
 volatile sig_atomic_t repl_assertion_failed = 0;
+
+volatile sig_atomic_t quit = 0;
 
 void ose_repl_preInput(ose_bundle osevm)
 {
@@ -258,12 +260,14 @@ void sig_handler(int signo)
 {
 	switch(signo){
 	case SIGINT:
-		exit(0);
-#ifndef OSE_DEBUG
+		quit++;
+		if(quit > 1){
+			exit(0);
+		}
+		longjmp(repl_jmp_buf, 2);
 	case SIGABRT:
 		repl_assertion_failed = 1;
 		longjmp(repl_jmp_buf, 1);
-#endif
 	}
 }
 
@@ -373,7 +377,13 @@ int main(int ac, char **av)
 	const char *homedir = getenv("HOME");
 	char histfile[strlen(homedir) + 6];
 	sprintf(histfile, "%s/.ose", homedir);
-	read_history(histfile);
+	int r = read_history(histfile);
+	if(r){
+		fprintf(stderr,
+			"ose: couldn't read history file: "
+			"read_history(%s) returned %d\n",
+			histfile, r);
+	}
 
 	// set up ose environment and vm
 	bytes = (char *)malloc(MAX_BUNDLE_LEN);
@@ -387,18 +397,18 @@ int main(int ac, char **av)
 
 	// set up udp sockets and select
 	sockaddr_input = sockaddr_init("127.0.0.1", PORT_INPUT);
-	sockaddr_env = sockaddr_init("127.0.0.1", PORT_ENV);
+	//sockaddr_env = sockaddr_init("127.0.0.1", PORT_ENV);
 	sockaddr_send = sockaddr_init("127.0.0.1", PORT_SEND);
 	udpsock_input = setupUDP(&sockaddr_input, PORT_INPUT);
-	udpsock_env = setupUDP(&sockaddr_env, PORT_ENV);
+	//udpsock_env = setupUDP(&sockaddr_env, PORT_ENV);
 	fd_set rset;
 	FD_ZERO(&rset);
-	int maxfdp1 = (udpsock_env > udpsock_input
-		       ? udpsock_env
-		       : udpsock_input) + 1;
+	// int maxfdp1 = (udpsock_env > udpsock_input
+	// 	       ? udpsock_env
+	// 	       : udpsock_input) + 1;
+	int maxfdp1 = udpsock_input + 1;
 	
 	while(1){
-#ifndef OSE_DEBUG
 		switch(setjmp(repl_jmp_buf)){
 		case 1: {
 			if(repl_assertion_failed){
@@ -407,10 +417,15 @@ int main(int ac, char **av)
 				rl_callback_read_char();
 			}
 		}
+			break;
+		case 2: {
+			goto cleanup_and_quit;
 		}
-#endif
+			break;
+		}
+
 		FD_SET(udpsock_input, &rset);
-		FD_SET(udpsock_env, &rset);
+		//FD_SET(udpsock_env, &rset);
 		FD_SET(STDIN_FILENO, &rset);
 		int nselect = select(maxfdp1, &rset, NULL, NULL, NULL);
 		if(nselect <= 0){
@@ -434,36 +449,44 @@ int main(int ac, char **av)
 				run();
 				sendStacksUDP(udpsock_input,
 					      (struct sockaddr_in *)&clientaddr);
+				ose_clear(vm_o);
 			}
 		}
-		if(FD_ISSET(udpsock_env, &rset)){
-			struct sockaddr_in clientaddr;
-			socklen_t clientaddr_len = sizeof(struct sockaddr_in);;
-			memset(&clientaddr, 0, sizeof(struct sockaddr_in));
-			char buf[1024];
-			int len = recvfrom(udpsock_env, buf, 1024, 0,
-					   (struct sockaddr *)&clientaddr,
-					   &clientaddr_len);
-			if(len > 0){
-				ose_pushBlob(vm_i, len, buf);
-				ose_blobToElem(vm_i);
-				ose_popAllDrop(vm_i);
-				ose_countElems(vm_i);
-				int32_t n = ose_popInt32(vm_i);
-				for(int i = 0; i < n; i++){
-					ose_replaceBundleElemInDest(vm_i, vm_e);
-					ose_drop(vm_i);
-				}
-				sendStacksUDP(udpsock_input,
-					      (struct sockaddr_in *)&clientaddr);
-			}
-		}
+		// if(FD_ISSET(udpsock_env, &rset)){
+		// 	struct sockaddr_in clientaddr;
+		// 	socklen_t clientaddr_len = sizeof(struct sockaddr_in);;
+		// 	memset(&clientaddr, 0, sizeof(struct sockaddr_in));
+		// 	char buf[1024];
+		// 	int len = recvfrom(udpsock_env, buf, 1024, 0,
+		// 			   (struct sockaddr *)&clientaddr,
+		// 			   &clientaddr_len);
+		// 	if(len > 0){
+		// 		ose_pushBlob(vm_i, len, buf);
+		// 		ose_blobToElem(vm_i);
+		// 		ose_popAllDrop(vm_i);
+		// 		ose_countElems(vm_i);
+		// 		int32_t n = ose_popInt32(vm_i);
+		// 		for(int i = 0; i < n; i++){
+		// 			ose_replaceBundleElemInDest(vm_i, vm_e);
+		// 			ose_drop(vm_i);
+		// 		}
+		// 		sendStacksUDP(udpsock_input,
+		// 			      (struct sockaddr_in *)&clientaddr);
+		// 	}
+		// }
 
 		if(FD_ISSET(STDIN_FILENO, &rset)){
 			rl_callback_read_char();
 		}
 	}
-	int r = write_history(histfile);
+ cleanup_and_quit:
+	r = write_history(histfile);
+	if(r){
+		fprintf(stderr,
+			"ose: couldn't write history file: "
+			"write_history(%s) returned %d\n",
+			histfile, r);
+	}
 	return 0;
 }
 
@@ -528,14 +551,14 @@ int sendUDP(ose_bundle bundle, int sock, short port, struct sockaddr_in *addr)
 
 void sendStacksUDP(int sock, struct sockaddr_in *addr)
 {
-	sendUDP(vm_e,
+	sendUDP(vm_o,
 		sock,
 		PORT_SEND,
 		addr);
-	sendUDP(vm_s,
-		sock,
-		PORT_SEND,
-		addr);
+	// sendUDP(vm_s,
+	// 	sock,
+	// 	PORT_SEND,
+	// 	addr);
 }
 
 void run(void)

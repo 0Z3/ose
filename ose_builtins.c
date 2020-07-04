@@ -157,13 +157,14 @@ void ose_builtin_eval(ose_bundle osevm)
 	ose_bundle vm_d = OSEVM_DUMP(osevm);
         ose_bundle vm_o = OSEVM_OUTPUT(osevm);
 
-	// move output to dump
-	// ose_bundleAll(vm_o);
-	// ose_moveBundleElemToDest(vm_o, "/d");
-			
 	// move input to dump
 	ose_bundleAll(vm_i);
 	ose_moveBundleElemToDest(vm_i, vm_d);
+
+	int32_t n = ose_getBundleElemCount(vm_s);
+	if(1){//n >= 2){
+		ose_pushString(vm_i, "/!/copy/env");
+	}
 			
 	// move bundle on the stack to input
 	ose_moveBundleElemToDest(vm_s, vm_i);
@@ -180,24 +181,32 @@ void ose_builtin_eval(ose_bundle osevm)
 		ose_popAllDrop(vm_i);
 	}
 
+	// copy environment to dump
+	ose_bundleAll(vm_e);
+	ose_copyBundleElemToDest(vm_e, vm_d);
+	if(n >= 2){
+		ose_clear(vm_e);
+		if(ose_peekType(vm_s) == OSETT_MESSAGE){
+			if(ose_peekMessageArgType(vm_s) == OSETT_BLOB){
+				ose_blobToElem(vm_s);
+			}else{
+				ose_assert(0 && "second argument to eval, the environment, must be a blob or a bundle.");
+			}
+		}
+		ose_moveBundleElemToDest(vm_s, vm_e);
+		ose_unpackDrop(vm_e);
+	}else{
+		ose_unpackDrop(vm_e);
+	}
+
 	// move stack to dump
 	ose_bundleAll(vm_s);
 	ose_moveBundleElemToDest(vm_s, vm_d);
 
-	// copy environment to dump
-	ose_bundleAll(vm_e);
-	ose_copyBundleElemToDest(vm_e, vm_d);
-
 	// move control to dump
-	// ose_bundleAll(vm_c);
-	// ose_moveBundleElemToDest(vm_c, vm_d);
-	ose_pushBundle(vm_d);
-
-	// move input to top of environment
-	// ose_bundleAll(vm_i);
-	// ose_copyBundleElemToDest(vm_i, "/e");
-	// ose_unpackDrop(vm_i);
-	// ose_popAllDrop(vm_e);
+	ose_drop(vm_c);
+	ose_bundleAll(vm_c);
+	ose_moveBundleElemToDest(vm_c, vm_d);
 }
 
 void ose_builtin_if(ose_bundle osevm)
@@ -305,38 +314,31 @@ void ose_builtin_end_dotimes(ose_bundle osevm)
 void ose_builtin_moveElemToDest(ose_bundle osevm)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
+	ose_rassert(ose_peekType(vm_s) == OSETT_MESSAGE, 1);
+	ose_rassert(ose_isStringType(ose_peekMessageArgType(vm_s)) == OSETT_TRUE, 1);
 	ose_bundle dest = ose_enter(osevm, ose_peekString(vm_s));
-	ose_push(vm_s);
-	char *a = ose_peekString(vm_s);
-	ose_moveBundleElemToDestAddr(vm_s, a);
-	ose_pop(dest);
-	ose_drop(dest);
+	ose_drop(vm_s);
+	ose_moveBundleElemToDest(vm_s, dest);
 }
 
 void ose_builtin_copyElemToDest(ose_bundle osevm)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
+	ose_rassert(ose_peekType(vm_s) == OSETT_MESSAGE, 1);
+	ose_rassert(ose_isStringType(ose_peekMessageArgType(vm_s)) == OSETT_TRUE, 1);
 	ose_bundle dest = ose_enter(osevm, ose_peekString(vm_s));
-	ose_push(vm_s);
-	char *a = ose_peekString(vm_s);
-	ose_copyBundleElemToDestAddr(vm_s, a);
-	ose_pop(dest);
-	ose_drop(dest);
-	ose_pop(vm_s);
 	ose_drop(vm_s);
+	ose_copyBundleElemToDest(vm_s, dest);
 }
 
 void ose_builtin_replaceElemInDest(ose_bundle osevm)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
+	ose_rassert(ose_peekType(vm_s) == OSETT_MESSAGE, 1);
+	ose_rassert(ose_isStringType(ose_peekMessageArgType(vm_s)) == OSETT_TRUE, 1);
 	ose_bundle dest = ose_enter(osevm, ose_peekString(vm_s));
-	ose_push(vm_s);
-	char *a = ose_peekString(vm_s);
-	ose_replaceBundleElemInDestAddr(vm_s, a);
-	ose_pop(dest);
-	ose_drop(dest);
-	ose_pop(vm_s);
 	ose_drop(vm_s);
+	ose_replaceBundleElemInDest(vm_s, dest);
 }
 
 void ose_builtin_quote(ose_bundle osevm)
@@ -402,7 +404,7 @@ void ose_builtin_apply(ose_bundle osevm)
 			// move input to dump
 			ose_bundleAll(vm_i);
 			ose_moveBundleElemToDest(vm_i, vm_d);
-			
+
 			// move bundle on the stack to input
 			ose_moveBundleElemToDest(vm_s, vm_i);
 			if(ose_peekType(vm_i) == OSETT_MESSAGE){
@@ -418,32 +420,36 @@ void ose_builtin_apply(ose_bundle osevm)
 				ose_popAllDrop(vm_i);
 			}
 
-			// move stack to dump
-			// ose_bundleAll(vm_s);
-			// ose_moveBundleElemToDest(vm_s, vm_d);
-			ose_pushBundle(vm_d);
-
 			// copy environment to dump
 			ose_bundleAll(vm_e);
 			ose_copyBundleElemToDest(vm_e, vm_d);
 			ose_unpackDrop(vm_e);
 
+			// move stack to dump
+			// ose_bundleAll(vm_s);
+			// ose_moveBundleElemToDest(vm_s, vm_d);
+			ose_pushBundle(vm_d);
+
 			// move control to dump
-			// ose_bundleAll(vm_c);
-			// ose_moveBundleElemToDest(vm_c, vm_d);
-			ose_pushBundle(vm_d);		
+			ose_drop(vm_c);
+			ose_bundleAll(vm_c);
+			ose_moveBundleElemToDest(vm_c, vm_d);
+			//ose_pushBundle(vm_d);		
 			break;
 		}else if(elemtype == OSETT_MESSAGE){
 			char itemtype = ose_peekMessageArgType(vm_s);
 			if(ose_isStringType(itemtype) == OSETT_TRUE){
 				const char * const s = ose_peekString(vm_s);
 				// lookup in env
+				// fix this--it does two lookups with matches
+				// this should call the lookup function
 				int32_t o = ose_getFirstOffsetForMatch(vm_e, s);
 				if(o >= OSE_BUNDLE_HEADER_LEN){
 					ose_pushString(vm_e, s);
 					ose_drop(vm_s);
 					ose_pickMatch(vm_e);
 					ose_moveBundleElemToDest(vm_e, vm_s);
+					ose_drop(vm_e); // matched key
 					continue;
 				}
 				// if it wasn't present in env, lookup in symtab

@@ -402,6 +402,7 @@ static void applyControl(ose_bundle osevm, char *address)
 	ose_bundle vm_e = OSEVM_ENV(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
         ose_bundle vm_d = OSEVM_DUMP(osevm);
+	ose_bundle vm_o = OSEVM_OUTPUT(osevm);
 
 	// pop control, push to stack, and evaluate
 	int32_t addresslen = strlen(address);
@@ -435,6 +436,21 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
+	}else if(!strncmp(address, "/>", 2)){
+		ose_bundle dest = vm_o;
+		if(address[2] == '/'){
+			dest = ose_enter(osevm, address + 2);
+		}else{
+			;
+		}
+		ose_moveBundleElemToDest(vm_s, dest);
+		ose_unpackDrop(dest);
+	}else if(!strncmp(address, "/<", 2)){
+		if(address[2] == '/'){
+			//ose_moveBundleElemToDestAddr(vm_s, address + 2);
+		}else{
+			//ose_moveBundleElemToDest(vm_s, vm_o);
+		}
 	}else if(!strcmp(address, "/(")){
 		// // move input to dump
 		// ose_bundleAll(vm_i);
@@ -630,6 +646,10 @@ static void popAllControl(ose_bundle osevm)
 			   || !strncmp(str, "/!/", 3)
 			   || !strcmp(str, "/$")
 			   || !strncmp(str, "/$/", 3)
+			   || !strcmp(str, "/>")
+			   || !strncmp(str, "/>/", 3)
+			   || !strcmp(str, "/<")
+			   || !strncmp(str, "/</", 3)
 			   || !strcmp(str, "/(")
 			   || !strcmp(str, "/)")
 			   || !strcmp(str, "/&")
@@ -666,11 +686,6 @@ static void restoreDump(ose_bundle osevm)
 	// restore control
 	ose_moveBundleElemToDest(vm_d, vm_c);
 	ose_unpackDrop(vm_c);
-			
-	// restore env
-	ose_clear(vm_e);
-	ose_moveBundleElemToDest(vm_d, vm_e);
-	ose_unpackDrop(vm_e);
 
 	// restore stack
 	ose_bundleAll(vm_s);
@@ -678,6 +693,11 @@ static void restoreDump(ose_bundle osevm)
 	ose_unpackDrop(vm_s);
 	ose_rollBottom(vm_s);
 	ose_unpackDrop(vm_s);
+
+	// restore env
+	ose_clear(vm_e);
+	ose_moveBundleElemToDest(vm_d, vm_e);
+	ose_unpackDrop(vm_e);
 
 	// restore input
 	ose_moveBundleElemToDest(vm_d, vm_i);
@@ -725,7 +745,9 @@ char osevm_step(ose_bundle osevm)
 		}ose_catch(1){
 			// debug
 		}ose_finally{
-			ose_drop(vm_c);
+			if(ose_bundleHasAtLeastNElems(vm_c, 1) == OSETT_TRUE){
+				ose_drop(vm_c);
+			}
 		}ose_end_try;
 		return OSETT_TRUE;
 	}else if(ose_bundleIsEmpty(vm_i) == OSETT_FALSE){
@@ -765,7 +787,9 @@ void osevm_run(ose_bundle osevm)
 				applyControl(osevm, ose_peekAddress(vm_c));
 				// check status and drop into
 				// debugger if necessary
-				ose_drop(vm_c);
+				if(ose_bundleHasAtLeastNElems(vm_c, 1) == OSETT_TRUE){
+					ose_drop(vm_c);
+				}
 			}
 			OSEVM_POSTCONTROL(osevm);
 		}

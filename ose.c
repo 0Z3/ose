@@ -52,19 +52,19 @@ int32_t ntohl(int32_t x)
 #include <stdio.h>
 #include <string.h>
 #include "ose_print.h"
-void p(ose_bundle bundle)
+void p(ose_bundle bundle, const char * const str)
 {
 	char buf[8192];
 	memset(buf, 0, 8192);
 	ose_pprintBundle(bundle, buf, 8192);
-	printf("xx\n%s\n", buf);
+	printf("\n%s>>>>>\n%s\n%s<<<<<\n", str, buf, str);
 }
-void e(ose_bundle bundle)
+void e(ose_bundle bundle, const char * const str)
 {
 	char buf[8192];
 	memset(buf, 0, 8192);
 	ose_pprintBundle(bundle, buf, 8192);
-	fprintf(stderr, "xx\n%s\n", buf);
+	fprintf(stderr, "\n%s>>>>>\n%s\n%s<<<<<\n", str, buf, str);
 }
 void pbytes(ose_bundle bundle, int32_t start, int32_t end)
 {
