@@ -982,6 +982,7 @@ void ose_mod(ose_bundle bundle);
 void ose_pow(ose_bundle bundle);
 void ose_neg(ose_bundle bundle);
 void ose_eql(ose_bundle bundle);
+void ose_neq(ose_bundle bundle);
 void ose_lte(ose_bundle bundle);
 void ose_lt(ose_bundle bundle);
 void ose_and(ose_bundle bundle);

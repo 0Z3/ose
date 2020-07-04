@@ -132,6 +132,7 @@ struct _ose_symtab_rec { char *name; void (*f)(ose_bundle);};
 /pow, ose_builtin_pow
 /neg, ose_builtin_neg
 /eql, ose_builtin_eql
+/neq, ose_builtin_neq
 /lte, ose_builtin_lte
 /lt, ose_builtin_lt
 /and, ose_builtin_and
@@ -152,10 +153,7 @@ struct _ose_symtab_rec { char *name; void (*f)(ose_bundle);};
 ################################################################################
 /eval, ose_builtin_eval
 /if, ose_builtin_if
-/else, ose_builtin_else
-/end/if, ose_builtin_end_if
 /dotimes, ose_builtin_dotimes
-/end/dotimes, ose_builtin_end_dotimes
 /move/elem/todest, ose_builtin_moveElemToDest
 /copy/elem/todest, ose_builtin_copyElemToDest
 /replace/elem/indest, ose_builtin_replaceElemInDest

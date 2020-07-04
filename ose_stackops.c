@@ -2684,6 +2684,30 @@ void ose_eql(ose_bundle bundle)
 	ose_drop(bundle);
 }
 
+void ose_neq(ose_bundle bundle)
+{
+	int32_t onm1, on, snm1, sn;
+	be2(bundle, &onm1, &snm1, &on, &sn);
+	int32_t tonm1 = onm1 + 4 + ose_getPaddedStringLen(bundle, onm1 + 4);
+	int32_t ton = on + 4 + ose_getPaddedStringLen(bundle, on + 4);
+	char *b = ose_getBundlePtr(bundle);
+	int32_t lnm1 = snm1 - (tonm1 - (onm1 + 4));
+	int32_t ln = sn - (ton - (on + 4));
+	if(lnm1 != ln){
+		ose_pushInt32(bundle, 0);
+		return;
+	}
+	if(!memcmp(b + tonm1, b + ton, ln)){
+		ose_pushInt32(bundle, 0);
+	}else{
+		ose_pushInt32(bundle, 1);
+	}
+	ose_swap(bundle);
+	ose_drop(bundle);
+	ose_swap(bundle);
+	ose_drop(bundle);
+}
+
 void ose_lte(ose_bundle bundle)
 {
 

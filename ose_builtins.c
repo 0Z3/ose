@@ -134,6 +134,7 @@ OSE_BUILTIN_DEFN(mod)
 OSE_BUILTIN_DEFN(pow)
 OSE_BUILTIN_DEFN(neg)
 OSE_BUILTIN_DEFN(eql)
+OSE_BUILTIN_DEFN(neq)
 OSE_BUILTIN_DEFN(lte)
 OSE_BUILTIN_DEFN(lt)
 OSE_BUILTIN_DEFN(and)
@@ -211,104 +212,31 @@ void ose_builtin_eval(ose_bundle osevm)
 
 void ose_builtin_if(ose_bundle osevm)
 {
-	ose_bundle vm_i = OSEVM_INPUT(osevm);
+	ose_bundle vm_c = OSEVM_CONTROL(osevm);
 	ose_bundle vm_s = OSEVM_STACK(osevm);
-	int32_t t = ose_popInt32(vm_s);
-	if(t){
-		// nothing to do
-	}else{
-		while(1){
-			char *address = ose_peekAddress(vm_i);
-			if(strlen(address) == 0
-			   && ose_peekMessageArgType(vm_i) == OSETT_STRING){
-				address = ose_peekString(vm_i);
-			}
-			if(!strcmp(address, "/!/else")){
-				ose_drop(vm_i);
-				break;
-			}
-			ose_drop(vm_i);
-		}
-	}
+	ose_pushInt32(vm_s, 0);
+	ose_neq(vm_s);
+	ose_roll(vm_s);
+	ose_drop(vm_s);
+	ose_pushMessage(vm_c, "/!/eval", 7, 0);
+	ose_swap(vm_c);
 }
-
-void ose_builtin_else(ose_bundle osevm)
-{
-	ose_bundle vm_i = OSEVM_INPUT(osevm);
-	while(1){
-		char *address = ose_peekAddress(vm_i);
-		if(strlen(address) == 0
-		   && ose_peekMessageArgType(vm_i) == OSETT_STRING){
-			address = ose_peekString(vm_i);
-		}
-		if(!strcmp(address, "/!/end/if")){
-			ose_drop(vm_i);
-			break;
-		}
-		ose_drop(vm_i);
-	}
-}
-
-void ose_builtin_end_if(ose_bundle osevm)
-{}
 
 void ose_builtin_dotimes(ose_bundle osevm)
 {
-	ose_bundle vm_i = OSEVM_INPUT(osevm);
+	ose_bundle vm_c = OSEVM_CONTROL(osevm);
 	ose_bundle vm_s = OSEVM_STACK(osevm);
-	ose_bundle vm_d = OSEVM_DUMP(osevm);
 	int32_t n = ose_popInt32(vm_s);
 	if(n > 0){
-		ose_pushBundle(vm_i);
-		ose_pushInt32(vm_i, n - 1);
-		ose_push(vm_i);
-		ose_pushMessage(vm_i, "/!/dotimes", strlen("/!/dotimes"), 0);
-		ose_push(vm_i);
-		ose_swap(vm_i);
-		ose_push(vm_i);
-		ose_swap(vm_i);
-		while(1){
-			char *address = ose_peekAddress(vm_i);
-			if(strlen(address) == 0
-			   && ose_peekMessageArgType(vm_i) == OSETT_STRING){
-				address = ose_peekString(vm_i);
-			}
-			if(!strcmp(address, "/!/end/dotimes")){
-				ose_push(vm_i);
-				ose_copyBundleElemToDest(vm_i, vm_d);
-				ose_popAllDrop(vm_i);
-				ose_drop(vm_i);
-				ose_drop(vm_i);
-				break;
-			}else{
-				ose_push(vm_i);
-				ose_swap(vm_i);
-			}
-		}
+		ose_drop(vm_c);
+		ose_pushMessage(vm_c, "/!/dotimes", 10, 0);
+		ose_pushInt32(vm_c, n - 1);
+		ose_copyBundleElemToDest(vm_s, vm_c);
+		ose_pushMessage(vm_c, "/!/eval", 7, 0);
+		ose_pushMessage(vm_c, "/!/dotimes", 10, 0);
 	}else{
-		while(1){
-			char *address = ose_peekAddress(vm_i);
-			if(strlen(address) == 0
-			   && ose_peekMessageArgType(vm_i) == OSETT_STRING){
-				address = ose_peekString(vm_i);
-			}
-			if(!strcmp(address, "/!/end/dotimes")){
-				ose_drop(vm_i);
-				break;
-			}else{
-				ose_drop(vm_i);
-			}
-		}
+		ose_drop(vm_s);
 	}
-}
-
-void ose_builtin_end_dotimes(ose_bundle osevm)
-{
-	ose_bundle vm_i = OSEVM_INPUT(osevm);
-	ose_bundle vm_d = OSEVM_DUMP(osevm);
-	//ose_drop(vm_i);
-	ose_moveBundleElemToDest(vm_d, vm_i);
-	ose_popAllDrop(vm_i);
 }
 
 void ose_builtin_moveElemToDest(ose_bundle osevm)

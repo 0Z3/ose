@@ -118,6 +118,7 @@ OSE_BUILTIN_DECL(mod)
 OSE_BUILTIN_DECL(pow)
 OSE_BUILTIN_DECL(neg)
 OSE_BUILTIN_DECL(eql)
+OSE_BUILTIN_DECL(neq)
 OSE_BUILTIN_DECL(lte)
 OSE_BUILTIN_DECL(lt)
 OSE_BUILTIN_DECL(and)
@@ -134,10 +135,10 @@ OSE_BUILTIN_DECL(isBoolType);
 
 void ose_builtin_eval(ose_bundle osevm);
 void ose_builtin_if(ose_bundle osevm);
-void ose_builtin_else(ose_bundle osevm);
-void ose_builtin_end_if(ose_bundle osevm);
+// void ose_builtin_else(ose_bundle osevm);
+// void ose_builtin_end_if(ose_bundle osevm);
 void ose_builtin_dotimes(ose_bundle osevm);
-void ose_builtin_end_dotimes(ose_bundle osevm);
+// void ose_builtin_end_dotimes(ose_bundle osevm);
 void ose_builtin_moveElemToDest(ose_bundle osevm);
 void ose_builtin_copyElemToDest(ose_bundle osevm);
 void ose_builtin_replaceElemInDest(ose_bundle osevm);
