@@ -157,8 +157,6 @@ struct _ose_symtab_rec { char *name; void (*f)(ose_bundle);};
 /move/elem/todest, ose_builtin_moveElemToDest
 /copy/elem/todest, ose_builtin_copyElemToDest
 /replace/elem/indest, ose_builtin_replaceElemInDest
-/quote, ose_builtin_quote
-/end/quote, ose_builtin_end_quote
 /clear/env, ose_builtin_clearEnv
 /copy/env, ose_builtin_copyEnv
 /assign, ose_builtin_assign

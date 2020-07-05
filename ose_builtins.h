@@ -135,15 +135,10 @@ OSE_BUILTIN_DECL(isBoolType);
 
 void ose_builtin_eval(ose_bundle osevm);
 void ose_builtin_if(ose_bundle osevm);
-// void ose_builtin_else(ose_bundle osevm);
-// void ose_builtin_end_if(ose_bundle osevm);
 void ose_builtin_dotimes(ose_bundle osevm);
-// void ose_builtin_end_dotimes(ose_bundle osevm);
 void ose_builtin_moveElemToDest(ose_bundle osevm);
 void ose_builtin_copyElemToDest(ose_bundle osevm);
 void ose_builtin_replaceElemInDest(ose_bundle osevm);
-void ose_builtin_quote(ose_bundle osevm);
-void ose_builtin_end_quote(ose_bundle osevm);
 void ose_builtin_clearEnv(ose_bundle osevm);
 void ose_builtin_copyEnv(ose_bundle osevm);
 void ose_builtin_assign(ose_bundle osevm);

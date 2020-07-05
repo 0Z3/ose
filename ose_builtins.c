@@ -267,19 +267,6 @@ void ose_builtin_replaceElemInDest(ose_bundle osevm)
 	ose_replaceBundleElemInDest(vm_s, dest);
 }
 
-void ose_builtin_quote(ose_bundle osevm)
-{
-	ose_bundle vm_i = OSEVM_INPUT(osevm);
-	ose_bundle vm_s = OSEVM_STACK(osevm);
-	while(strcmp(ose_peekAddress(vm_i), "/!/end/quote")){
-		ose_moveBundleElemToDest(vm_i, vm_s);
-	}
-	ose_drop(vm_i);
-}
-
-void ose_builtin_end_quote(ose_bundle osevm)
-{}
-
 void ose_builtin_clearEnv(ose_bundle osevm)
 {
 	ose_clear(OSEVM_ENV(osevm));
