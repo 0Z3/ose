@@ -436,6 +436,15 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
+	}else if(!strncmp(address, "/>>", 3)){
+		ose_bundle dest = vm_o;
+		if(address[3] == '/'){
+			dest = ose_enter(osevm, address + 3);
+		}else{
+			;
+		}
+		ose_copyBundleElemToDest(vm_s, dest);
+		ose_unpackDrop(dest);
 	}else if(!strncmp(address, "/>", 2)){
 		ose_bundle dest = vm_o;
 		if(address[2] == '/'){
@@ -443,7 +452,8 @@ static void applyControl(ose_bundle osevm, char *address)
 		}else{
 			;
 		}
-		ose_moveBundleElemToDest(vm_s, dest);
+		ose_clear(dest);
+		ose_copyBundleElemToDest(vm_s, dest);
 		ose_unpackDrop(dest);
 	}else if(!strncmp(address, "/<", 2)){
 		if(address[2] == '/'){
@@ -648,6 +658,8 @@ static void popAllControl(ose_bundle osevm)
 			   || !strncmp(str, "/$/", 3)
 			   || !strcmp(str, "/>")
 			   || !strncmp(str, "/>/", 3)
+			   || !strcmp(str, "/>>")
+			   || !strncmp(str, "/>>/", 4)
 			   || !strcmp(str, "/<")
 			   || !strncmp(str, "/</", 3)
 			   || !strcmp(str, "/(")

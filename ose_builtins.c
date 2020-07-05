@@ -228,8 +228,6 @@ void ose_builtin_dotimes(ose_bundle osevm)
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	int32_t n = ose_popInt32(vm_s);
 	if(n > 0){
-		ose_drop(vm_c);
-		ose_pushMessage(vm_c, "/!/dotimes", 10, 0);
 		ose_pushInt32(vm_c, n - 1);
 		ose_copyBundleElemToDest(vm_s, vm_c);
 		ose_pushMessage(vm_c, "/!/eval", 7, 0);
