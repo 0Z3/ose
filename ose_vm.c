@@ -92,29 +92,11 @@ void osevm_lookup(ose_bundle osevm)
         ose_bundle vm_d = OSEVM_DUMP(osevm);
 	const char * const address = ose_peekAddress(vm_c);
 	if(!strncmp(address, "/$/", 3)){
-		ose_pushString(vm_e,
-			       address + 2);
+		ose_pushString(vm_e, address + 2);
 	}else{
 		popStackToEnv(vm_s, vm_e);
 	}
-	ose_countElems(vm_e);
-	ose_moveBundleElemToDest(vm_e, vm_d);
 	ose_pickMatch(vm_e);
-	ose_countElems(vm_e);
-	ose_moveBundleElemToDest(vm_d, vm_e);
-	ose_eql(vm_e);
-	
-	if(ose_popInt32(vm_e) == 0){
-		// success
-		ose_swap(vm_e);
-		ose_drop(vm_e);
-	}else{
-		// failure
-		ose_copyAddressToString(vm_e);
-		ose_swap(vm_e);
-		ose_push(vm_e);
-		ose_concatenateStrings(vm_e);
-	}
 	ose_moveBundleElemToDest(vm_e, vm_s);
 }
 
@@ -436,31 +418,66 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
+	}else if(!strncmp(address, "/>>>", 4)){
+		ose_bundle dest = vm_o;
+		if(address[4] == '/'){
+			dest = ose_enter(osevm, address + 4);
+		}
+		if(ose_bundleIsEmpty(vm_s) == OSETT_FALSE){
+			int32_t n = 1;
+			if(ose_peekType(vm_s) == OSETT_BUNDLE){
+				ose_countItems(vm_s);
+				int32_t n = ose_popInt32(vm_s);
+				ose_unpackDrop(vm_s);
+			}
+			for(int i = 0; i < n; i++){
+				ose_replaceBundleElemInDest(vm_s, dest);
+				ose_drop(vm_s);
+			}
+		}
 	}else if(!strncmp(address, "/>>", 3)){
 		ose_bundle dest = vm_o;
 		if(address[3] == '/'){
 			dest = ose_enter(osevm, address + 3);
-		}else{
-			;
 		}
-		ose_copyBundleElemToDest(vm_s, dest);
-		ose_unpackDrop(dest);
+		if(ose_bundleIsEmpty(vm_s) == OSETT_FALSE){
+			ose_moveBundleElemToDest(vm_s, dest);
+			if(ose_peekType(dest) == OSETT_BUNDLE){
+				ose_unpackDrop(dest);
+			}
+		}
 	}else if(!strncmp(address, "/>", 2)){
 		ose_bundle dest = vm_o;
 		if(address[2] == '/'){
 			dest = ose_enter(osevm, address + 2);
-		}else{
-			;
 		}
 		ose_clear(dest);
-		ose_copyBundleElemToDest(vm_s, dest);
-		ose_unpackDrop(dest);
-	}else if(!strncmp(address, "/<", 2)){
-		if(address[2] == '/'){
-			//ose_moveBundleElemToDestAddr(vm_s, address + 2);
-		}else{
-			//ose_moveBundleElemToDest(vm_s, vm_o);
+		if(ose_bundleIsEmpty(vm_s) == OSETT_FALSE){
+			ose_moveBundleElemToDest(vm_s, dest);
+			if(ose_peekType(dest) == OSETT_BUNDLE){
+				ose_unpackDrop(dest);
+			}
 		}
+	}else if(!strncmp(address, "/<<<", 4)){
+		ose_bundle src = vm_e;
+		if(address[4] == '/'){
+			src = ose_enter(osevm, address + 4);
+		}
+		ose_copyBundleElemToDest(src, vm_s);
+	}else if(!strncmp(address, "/<<", 3)){
+		ose_bundle src = vm_e;
+		if(address[3] == '/'){
+			src = ose_enter(osevm, address + 3);
+		}
+		ose_moveBundleElemToDest(src, vm_s);
+	}else if(!strncmp(address, "/<", 2)){
+		ose_bundle src = vm_e;
+		if(address[2] == '/'){
+			src = ose_enter(osevm, address + 2);
+		}
+		ose_bundleAll(src);
+		ose_copyBundleElemToDest(src, vm_s);
+		ose_unpackDrop(src);
 	}else if(!strcmp(address, "/(")){
 		// // move input to dump
 		// ose_bundleAll(vm_i);
@@ -656,10 +673,16 @@ static void popAllControl(ose_bundle osevm)
 			   || !strncmp(str, "/!/", 3)
 			   || !strcmp(str, "/$")
 			   || !strncmp(str, "/$/", 3)
-			   || !strcmp(str, "/>")
-			   || !strncmp(str, "/>/", 3)
+			   || !strcmp(str, "/>>>")
+			   || !strncmp(str, "/>>>/", 5)
 			   || !strcmp(str, "/>>")
 			   || !strncmp(str, "/>>/", 4)
+			   || !strcmp(str, "/>")
+			   || !strncmp(str, "/>/", 3)
+			   || !strcmp(str, "/<<<")
+			   || !strncmp(str, "/<<</", 5)
+			   || !strcmp(str, "/<<")
+			   || !strncmp(str, "/<</", 4)
 			   || !strcmp(str, "/<")
 			   || !strncmp(str, "/</", 3)
 			   || !strcmp(str, "/(")

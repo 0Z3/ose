@@ -59,7 +59,7 @@ SOFTWARE.
 #line 34 "ose_symtab.gperf"
 struct _ose_symtab_rec { char *name; void (*f)(ose_bundle);};
 
-#define TOTAL_KEYWORDS 107
+#define TOTAL_KEYWORDS 105
 #define MIN_WORD_LENGTH 3
 #define MAX_WORD_LENGTH 23
 #define MIN_HASH_VALUE 3
@@ -88,7 +88,7 @@ _ose_symtab_hash (register const char *str, register size_t len)
       211, 211, 211, 211, 211, 211, 211, 211, 211, 211,
       211, 211, 211, 211, 211, 211, 211, 211, 211, 211,
       211, 211, 211, 211, 211, 211, 211,  20,  40,  70,
-       15,   5,  40,   5, 110,   0,  75,  20,   5,   0,
+       15,   5,  15,   5, 110,   0,  75,  20,   5,   0,
        40,  10,  15,  30,   0,   0,   0,  65,  95,   0,
       211,   0, 211, 211, 211, 211, 211, 211, 211, 211,
       211, 211, 211, 211, 211, 211, 211, 211, 211, 211,
@@ -215,10 +215,11 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {"/pick/bottom", ose_builtin_pickBottom},
 #line 114 "ose_symtab.gperf"
     {"/swap/bytes/n", ose_builtin_swapNBytes},
-    {""},
+#line 134 "ose_symtab.gperf"
+    {"/eql", ose_builtin_eql},
 #line 81 "ose_symtab.gperf"
     {"/length/tt", ose_builtin_lengthTT},
-#line 166 "ose_symtab.gperf"
+#line 164 "ose_symtab.gperf"
     {"/defun", ose_builtin_defun},
 #line 82 "ose_symtab.gperf"
     {"/length/item", ose_builtin_lengthItem},
@@ -228,7 +229,7 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {"/pop", ose_builtin_pop},
 #line 80 "ose_symtab.gperf"
     {"/length/address", ose_builtin_lengthAddress},
-#line 165 "ose_symtab.gperf"
+#line 163 "ose_symtab.gperf"
     {"/apply", ose_builtin_apply},
     {""},
 #line 98 "ose_symtab.gperf"
@@ -254,24 +255,23 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {"/pop/all/drop", ose_builtin_popAllDrop},
 #line 127 "ose_symtab.gperf"
     {"/add", ose_builtin_add},
-    {""},
-#line 160 "ose_symtab.gperf"
-    {"/quote", ose_builtin_quote},
+    {""}, {""},
 #line 100 "ose_symtab.gperf"
     {"/string/toaddress/swap", ose_builtin_swapStringToAddress},
 #line 96 "ose_symtab.gperf"
     {"/concat/blobs", ose_builtin_concatenateBlobs},
-#line 134 "ose_symtab.gperf"
-    {"/eql", ose_builtin_eql},
+    {""},
 #line 97 "ose_symtab.gperf"
     {"/concat/strings", ose_builtin_concatenateStrings},
-    {""}, {""},
+    {""},
+#line 106 "ose_symtab.gperf"
+    {"/elem/toblob", ose_builtin_elemToBlob},
 #line 116 "ose_symtab.gperf"
     {"/trim/string/start", ose_builtin_trimStringStart},
 #line 102 "ose_symtab.gperf"
     {"/decat/blob/fromend", ose_builtin_decatenateBlobFromEnd},
     {""}, {""},
-#line 164 "ose_symtab.gperf"
+#line 162 "ose_symtab.gperf"
     {"/assign", ose_builtin_assign},
 #line 99 "ose_symtab.gperf"
     {"/payload", ose_builtin_copyPayloadToBlob},
@@ -304,12 +304,9 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {"/swap/bytes/4", ose_builtin_swap4Bytes},
 #line 130 "ose_symtab.gperf"
     {"/div", ose_builtin_div},
-#line 161 "ose_symtab.gperf"
-    {"/end/quote", ose_builtin_end_quote},
-    {""},
-#line 106 "ose_symtab.gperf"
-    {"/elem/toblob", ose_builtin_elemToBlob},
-    {""},
+    {""}, {""}, {""},
+#line 155 "ose_symtab.gperf"
+    {"/if", ose_builtin_if},
 #line 128 "ose_symtab.gperf"
     {"/sub", ose_builtin_sub},
     {""}, {""}, {""}, {""},
@@ -317,11 +314,13 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {"/mul", ose_builtin_mul},
 #line 47 "ose_symtab.gperf"
     {"/over", ose_builtin_over},
-    {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
     {""}, {""}, {""}, {""},
+#line 154 "ose_symtab.gperf"
+    {"/eval", ose_builtin_eval},
+    {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
 #line 51 "ose_symtab.gperf"
     {"/roll/jth", ose_builtin_roll},
-#line 162 "ose_symtab.gperf"
+#line 160 "ose_symtab.gperf"
     {"/clear/env", ose_builtin_clearEnv},
     {""}, {""}, {""},
 #line 144 "ose_symtab.gperf"
@@ -332,10 +331,7 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {""}, {""}, {""}, {""},
 #line 122 "ose_symtab.gperf"
     {"/make/bundle", ose_builtin_pushBundle},
-    {""}, {""},
-#line 154 "ose_symtab.gperf"
-    {"/eval", ose_builtin_eval},
-    {""},
+    {""}, {""}, {""}, {""},
 #line 118 "ose_symtab.gperf"
     {"/pmatch", ose_builtin_pmatch},
     {""},
@@ -348,17 +344,14 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {""}, {""}, {""},
 #line 56 "ose_symtab.gperf"
     {"/tuck", ose_builtin_tuck},
-    {""}, {""},
-#line 155 "ose_symtab.gperf"
-    {"/if", ose_builtin_if},
-    {""}, {""}, {""},
+    {""}, {""}, {""}, {""}, {""}, {""},
 #line 71 "ose_symtab.gperf"
     {"/unpack", ose_builtin_unpack},
     {""}, {""}, {""},
 #line 148 "ose_symtab.gperf"
     {"/is/type/numeric", ose_builtin_isNumericType},
     {""}, {""},
-#line 163 "ose_symtab.gperf"
+#line 161 "ose_symtab.gperf"
     {"/copy/env", ose_builtin_copyEnv},
     {""},
 #line 50 "ose_symtab.gperf"
@@ -406,7 +399,7 @@ _ose_symtab_lookup (register const char *str, register size_t len)
     }
   return 0;
 }
-#line 168 "ose_symtab.gperf"
+#line 166 "ose_symtab.gperf"
 
 
 void (*ose_symtab_lookup(const char * const str))(ose_bundle)

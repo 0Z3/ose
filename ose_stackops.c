@@ -812,7 +812,7 @@ void ose_pickMatch(ose_bundle bundle)
 	int32_t s = ose_readInt32(bundle, -4);
 	while(o < s){
 		if(!strcmp(addr, ose_readString(bundle, o + 4))){
-			//ose_drop(bundle);
+			ose_drop(bundle);
 			char *b = ose_getBundlePtr(bundle);
 			s = ose_readInt32(bundle, -4);
 			int32_t ss = ose_readInt32(bundle, o);

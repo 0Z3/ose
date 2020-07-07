@@ -362,7 +362,6 @@ void ose_builtin_apply(ose_bundle osevm)
 					ose_drop(vm_s);
 					ose_pickMatch(vm_e);
 					ose_moveBundleElemToDest(vm_e, vm_s);
-					ose_drop(vm_e); // matched key
 					continue;
 				}
 				// if it wasn't present in env, lookup in symtab
