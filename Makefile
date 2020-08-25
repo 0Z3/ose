@@ -21,8 +21,10 @@ CORE_CFILES=ose.c ose_util.c ose_stackops.c ose_context.c ose_match.c ose_assert
 CORE_HFILES=ose.h ose_conf.h ose_util.h ose_stackops.h ose_context.h ose_match.h ose_assert.h
 SYS_CFILES=sys/ose_load.c
 SYS_HFILES=sys/ose_load.h
-VM_CFILES=ose_symtab.c ose_builtins.c ose_vm.c
-VM_HFILES=ose_symtab.h ose_builtins.h ose_vm.h
+BUILTINS_CFILES=ose_builtins.c
+BUILTINS_HFILES=ose_builtins.h
+VM_CFILES=ose_symtab.c ose_vm.c $(BUILTINS_CFILES)
+VM_HFILES=ose_symtab.h ose_vm.h $(BUILTINS_HFILES)
 LANG_CFILES=ose_print.c
 LANG_HFILES=ose_print.h
 TEST_CFILES=ut_ose_util.c ut_ose_stackops.c
@@ -40,19 +42,65 @@ Applications/repl/ose_repl.c
 REPL_HFILES=$(CORE_HFILES) $(SYS_HFILES) $(VM_HFILES) $(LANG_HFILES)
 ose: CC=clang
 ose: CFLAGS=$(CFLAGS_RELEASE)
+ose: HOOKS=-DOSEVM_PREINPUT=ose_repl_preInput -DOSEVM_POSTINPUT=ose_repl_postInput -DOSEVM_PRECONTROL=ose_repl_preControl -DOSEVM_POSTCONTROL=ose_repl_postControl -DOSEVM_FUNCALL=ose_repl_funcall
 ose: $(REPL_CFILES) $(REPL_HFILES) 
 	$(CC) $(CFLAGS) -o ose \
-	-DOSE_CONF_VM_SIZE=1000000 \
+	$(HOOKS) \
+	-DOSE_CONF_VM_INPUT_SIZE=131072 \
+	-DOSE_CONF_VM_STACK_SIZE=131072 \
+	-DOSE_CONF_VM_ENV_SIZE=131072 \
+	-DOSE_CONF_VM_CONTROL_SIZE=131072 \
+	-DOSE_CONF_VM_DUMP_SIZE=131072 \
+	-DOSE_CONF_VM_OUTPUT_SIZE=131072 \
 	$(REPL_CFILES) -ledit -ldl
 
 debug: CC=clang
 debug: CFLAGS=$(CFLAGS_DEBUG)
-debug: HOOKS=-DOSEVM_PREINPUT=ose_repl_preInput -DOSEVM_POSTINPUT=ose_repl_postInput -DOSEVM_PRECONTROL=ose_repl_preControl -DOSEVM_POSTCONTROL=ose_repl_postControl
+debug: HOOKS=-DOSEVM_PREINPUT=ose_repl_preInput -DOSEVM_POSTINPUT=ose_repl_postInput -DOSEVM_PRECONTROL=ose_repl_preControl -DOSEVM_POSTCONTROL=ose_repl_postControl -DOSEVM_FUNCALL=ose_repl_funcall
 debug: $(REPL_CFILES) $(REPL_HFILES)
 	$(CC) $(CFLAGS) -o ose \
 	$(HOOKS) \
-	-DOSE_CONF_VM_SIZE=1000000 \
+	-DOSE_CONF_VM_INPUT_SIZE=131072 \
+	-DOSE_CONF_VM_STACK_SIZE=131072 \
+	-DOSE_CONF_VM_ENV_SIZE=131072 \
+	-DOSE_CONF_VM_CONTROL_SIZE=131072 \
+	-DOSE_CONF_VM_DUMP_SIZE=131072 \
+	-DOSE_CONF_VM_OUTPUT_SIZE=131072 \
 	$(REPL_CFILES) -ledit -ldl
+
+OSEC_CFILES=$(CORE_CFILES) $(SYS_CFILES) $(VM_CFILES) $(LANG_CFILES) osec.c
+OSEC_HFILES=$(CORE_HFILES) $(SYS_HFILES) $(VM_HFILES) $(LANG_HFILES)
+osec: CC=clang
+osec: CFLAGS=$(CFLAGS_DEBUG)
+osec: HOOKS=-DOSEVM_ASSIGN=osec_assign \
+-DOSEVM_LOOKUP=osec_lookup \
+-DOSEVM_FUNCALL=osec_funcall \
+-DOSEVM_QUOTE=osec_quote \
+-DOSEVM_COPYCONTEXTBUNDLE=osec_copyContextBundle \
+-DOSEVM_APPENDTOCONTEXTBUNDLE=osec_appendToContextBundle \
+-DOSEVM_REPLACECONTEXTBUNDLE=osec_replaceContextBundle \
+-DOSEVM_MOVEELEMTOCONTEXTBUNDLE=osec_moveElemToContextBundle \
+-DOSEVM_EXEC=osec_exec \
+-DOSEVM_EXECINCURRENTCONTEXT=osec_execInCurrentContext \
+-DOSEVM_APPLY=osec_apply \
+-DOSEVM_RETURN=osec_return \
+-DOSEVM_DEFUN=osec_defun \
+-DOSEVM_ENDDEFUN=osec_endDefun \
+-DOSEVM_TOINT32=osec_toInt32 \
+-DOSEVM_TOFLOAT=osec_toFloat \
+-DOSEVM_TOSTRING=osec_toString \
+-DOSEVM_TOBLOB=osec_toBlob \
+-DOSEVM_APPENDBYTE=osec_appendByte \
+-DOSEVM_DEFAULT=osec_default \
+-DOSEVM_PREINPUT=osec_preInput \
+-DOSEVM_POSTINPUT=osec_postInput \
+-DOSEVM_PRECONTROL=osec_preControl \
+-DOSEVM_POSTCONTROL=osec_postControl
+osec: $(OSEC_CFILES) $(OSEC_HFILES) 
+	$(CC) $(CFLAGS) -o osec \
+	$(HOOKS) \
+	-DOSE_CONF_SYMTAB_FNSYMS \
+	$(OSEC_CFILES)
 
 JS_CFILES=$(CORE_CFILES) $(VM_CFILES) $(LANG_CFILES) js/osejs.c
 JS_HFILES=$(CORE_HFILES) $(VM_HFILES) $(LANG_HFILES)
@@ -62,7 +110,6 @@ js/libose.js: CFLAGS=-I. -O3 -s MALLOC="emmalloc" -s EXPORTED_FUNCTIONS=$(EMSCRI
 js/libose.js: $(JS_CFILES) $(JS_HFILES) js/osejs_export.mk js/ose.js js/osevm.js
 	$(CC) $(CFLAGS) -o js/libose.js \
 	$(JS_CFILES)
-#	-DOSE_CONF_VM_SIZE=1000000 \
 
 .PHONY: js
 js: js/libose.js
@@ -77,4 +124,4 @@ test: $(TESTS) test/common.h test/ut_common.h
 
 .PHONY: clean
 clean:
-	rm -rf ose *.dSYM $(TESTDIR)/*.dSYM $(TESTS) docs js/libose.js js/libose.wasm
+	rm -rf ose *.dSYM $(TESTDIR)/*.dSYM $(TESTS) docs js/libose.js js/libose.wasm osec

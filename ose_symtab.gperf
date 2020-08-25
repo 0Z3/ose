@@ -21,9 +21,17 @@ SOFTWARE.
 */
 #include <stdlib.h>
 #include <string.h>
+#include "ose_conf.h"
 #include "ose.h"
 #include "ose_stackops.h"
 #include "ose_builtins.h"
+
+#ifdef OSE_SYMTAB_FNSYMS
+#define OSE_SYMTAB_VALUE(s) s, #s
+#else
+#define OSE_SYMTAB_VALUE(s) s
+#endif
+
 %}
 %readonly-tables
 %global-table
@@ -31,141 +39,150 @@ SOFTWARE.
 %define hash-function-name _ose_symtab_hash
 %define lookup-function-name _ose_symtab_lookup
 %define word-array-name _ose_symtab_wordlist
-struct _ose_symtab_rec { char *name; void (*f)(ose_bundle);};
+
+struct _ose_symtab_rec {
+	char *name;
+	void (*f)(ose_bundle);
+#ifdef OSE_SYMTAB_FNSYMS
+	char *fnsym;
+#endif
+};
 %%
 ################################################################################
 ### Stack Operations
 ################################################################################
-/2drop, ose_builtin_2drop
-/2dup, ose_builtin_2dup
-/2over, ose_builtin_2over
-/2swap, ose_builtin_2swap
-/drop, ose_builtin_drop
-/dup, ose_builtin_dup
-/nip, ose_builtin_nip
-/-rot, ose_builtin_notrot
-/over, ose_builtin_over
-/pick/jth, ose_builtin_pick
-/pick/bottom, ose_builtin_pickBottom
-/pick/match, ose_builtin_pickMatch
-/roll/jth, ose_builtin_roll
-/roll/bottom, ose_builtin_rollBottom
-/roll/match, ose_builtin_rollMatch
-/rot, ose_builtin_rot
-/swap, ose_builtin_swap
-/tuck, ose_builtin_tuck
+/2drop, OSE_SYMTAB_VALUE(ose_builtin_2drop)
+/2dup, OSE_SYMTAB_VALUE(ose_builtin_2dup)
+/2over, OSE_SYMTAB_VALUE(ose_builtin_2over)
+/2swap, OSE_SYMTAB_VALUE(ose_builtin_2swap)
+/drop, OSE_SYMTAB_VALUE(ose_builtin_drop)
+/dup, OSE_SYMTAB_VALUE(ose_builtin_dup)
+/nip, OSE_SYMTAB_VALUE(ose_builtin_nip)
+/-rot, OSE_SYMTAB_VALUE(ose_builtin_notrot)
+/over, OSE_SYMTAB_VALUE(ose_builtin_over)
+/pick/jth, OSE_SYMTAB_VALUE(ose_builtin_pick)
+/pick/bottom, OSE_SYMTAB_VALUE(ose_builtin_pickBottom)
+/pick/match, OSE_SYMTAB_VALUE(ose_builtin_pickMatch)
+/roll/jth, OSE_SYMTAB_VALUE(ose_builtin_roll)
+/roll/bottom, OSE_SYMTAB_VALUE(ose_builtin_rollBottom)
+/roll/match, OSE_SYMTAB_VALUE(ose_builtin_rollMatch)
+/rot, OSE_SYMTAB_VALUE(ose_builtin_rot)
+/swap, OSE_SYMTAB_VALUE(ose_builtin_swap)
+/tuck, OSE_SYMTAB_VALUE(ose_builtin_tuck)
 ################################################################################
 ### Grouping / Ungrouping
 ################################################################################
-/bundle/all, ose_builtin_bundleAll
-/bundle/frombottom, ose_builtin_bundleFromBottom
-/bundle/fromtop, ose_builtin_bundleFromTop
-/clear, ose_builtin_clear
-/clear/payload, ose_builtin_clearPayload
-/pop, ose_builtin_pop
-/pop/all, ose_builtin_popAll
-/pop/all/drop, ose_builtin_popAllDrop
-/pop/all/bundle, ose_builtin_popAllBundle
-/pop/all/drop/bundle, ose_builtin_popAllDropBundle
-/push, ose_builtin_push
-/unpack, ose_builtin_unpack
-/unpack/drop, ose_builtin_unpackDrop
-/unpack/bundle, ose_builtin_unpackBundle
-/unpack/drop/bundle, ose_builtin_unpackDropBundle
+/bundle/all, OSE_SYMTAB_VALUE(ose_builtin_bundleAll)
+/bundle/frombottom, OSE_SYMTAB_VALUE(ose_builtin_bundleFromBottom)
+/bundle/fromtop, OSE_SYMTAB_VALUE(ose_builtin_bundleFromTop)
+/clear, OSE_SYMTAB_VALUE(ose_builtin_clear)
+/clear/payload, OSE_SYMTAB_VALUE(ose_builtin_clearPayload)
+/pop, OSE_SYMTAB_VALUE(ose_builtin_pop)
+/pop/all, OSE_SYMTAB_VALUE(ose_builtin_popAll)
+/pop/all/drop, OSE_SYMTAB_VALUE(ose_builtin_popAllDrop)
+/pop/all/bundle, OSE_SYMTAB_VALUE(ose_builtin_popAllBundle)
+/pop/all/drop/bundle, OSE_SYMTAB_VALUE(ose_builtin_popAllDropBundle)
+/push, OSE_SYMTAB_VALUE(ose_builtin_push)
+/unpack, OSE_SYMTAB_VALUE(ose_builtin_unpack)
+/unpack/drop, OSE_SYMTAB_VALUE(ose_builtin_unpackDrop)
+/unpack/bundle, OSE_SYMTAB_VALUE(ose_builtin_unpackBundle)
+/unpack/drop/bundle, OSE_SYMTAB_VALUE(ose_builtin_unpackDropBundle)
 ################################################################################
 ### Queries
 ################################################################################
-/count/elems, ose_builtin_countElems
-/count/items, ose_builtin_countItems
-/length/address, ose_builtin_lengthAddress
-/length/tt, ose_builtin_lengthTT
-/length/item, ose_builtin_lengthItem
-/lengths/items, ose_builtin_lengthsItems
-/size/address, ose_builtin_sizeAddress
-/size/elem, ose_builtin_sizeElem
-/size/item, ose_builtin_sizeItem
-/size/payload, ose_builtin_sizePayload
-/sizes/elems, ose_builtin_sizesElems
-/sizes/items, ose_builtin_sizesItems
-/size/tt, ose_builtin_sizeTT
+/count/elems, OSE_SYMTAB_VALUE(ose_builtin_countElems)
+/count/items, OSE_SYMTAB_VALUE(ose_builtin_countItems)
+/length/address, OSE_SYMTAB_VALUE(ose_builtin_lengthAddress)
+/length/tt, OSE_SYMTAB_VALUE(ose_builtin_lengthTT)
+/length/item, OSE_SYMTAB_VALUE(ose_builtin_lengthItem)
+/lengths/items, OSE_SYMTAB_VALUE(ose_builtin_lengthsItems)
+/size/address, OSE_SYMTAB_VALUE(ose_builtin_sizeAddress)
+/size/elem, OSE_SYMTAB_VALUE(ose_builtin_sizeElem)
+/size/item, OSE_SYMTAB_VALUE(ose_builtin_sizeItem)
+/size/payload, OSE_SYMTAB_VALUE(ose_builtin_sizePayload)
+/sizes/elems, OSE_SYMTAB_VALUE(ose_builtin_sizesElems)
+/sizes/items, OSE_SYMTAB_VALUE(ose_builtin_sizesItems)
+/size/tt, OSE_SYMTAB_VALUE(ose_builtin_sizeTT)
 ################################################################################
 ### Operations on Bundle Elements and Items
 ################################################################################
-/blob/toelem, ose_builtin_blobToElem
-/blob/totype, ose_builtin_blobToType
-/concat/blobs, ose_builtin_concatenateBlobs
-/concat/strings, ose_builtin_concatenateStrings
-/address, ose_builtin_copyAddressToString
-/payload, ose_builtin_copyPayloadToBlob
-/string/toaddress/swap, ose_builtin_swapStringToAddress
-/tt, ose_builtin_copyTTToBlob
-/decat/blob/fromend, ose_builtin_decatenateBlobFromEnd
-/decat/blob/fromstart, ose_builtin_decatenateBlobFromStart
-/decat/string/fromend, ose_builtin_decatenateStringFromEnd
-/decat/string/fromstart, ose_builtin_decatenateStringFromStart
-/elem/toblob, ose_builtin_elemToBlob
-/item/toblob, ose_builtin_itemToBlob
-/join/strings, ose_builtin_joinStrings
-/string/toaddress/move, ose_builtin_moveStringToAddress
-/split/string/fromend, ose_builtin_splitStringFromEnd
-/split/string/fromstart, ose_builtin_splitStringFromStart
-/swap/bytes/4, ose_builtin_swap4Bytes
-/swap/bytes/8, ose_builtin_swap8Bytes
-/swap/bytes/n, ose_builtin_swapNBytes
-/trim/string/end, ose_builtin_trimStringEnd
-/trim/string/start, ose_builtin_trimStringStart
-/match, ose_builtin_match
-/pmatch, ose_builtin_pmatch
+/blob/toelem, OSE_SYMTAB_VALUE(ose_builtin_blobToElem)
+/blob/totype, OSE_SYMTAB_VALUE(ose_builtin_blobToType)
+/concat/blobs, OSE_SYMTAB_VALUE(ose_builtin_concatenateBlobs)
+/concat/strings, OSE_SYMTAB_VALUE(ose_builtin_concatenateStrings)
+/address, OSE_SYMTAB_VALUE(ose_builtin_copyAddressToString)
+/payload, OSE_SYMTAB_VALUE(ose_builtin_copyPayloadToBlob)
+/string/toaddress/swap, OSE_SYMTAB_VALUE(ose_builtin_swapStringToAddress)
+/tt, OSE_SYMTAB_VALUE(ose_builtin_copyTTToBlob)
+/decat/blob/fromend, OSE_SYMTAB_VALUE(ose_builtin_decatenateBlobFromEnd)
+/decat/blob/fromstart, OSE_SYMTAB_VALUE(ose_builtin_decatenateBlobFromStart)
+/decat/string/fromend, OSE_SYMTAB_VALUE(ose_builtin_decatenateStringFromEnd)
+/decat/string/fromstart, OSE_SYMTAB_VALUE(ose_builtin_decatenateStringFromStart)
+/elem/toblob, OSE_SYMTAB_VALUE(ose_builtin_elemToBlob)
+/item/toblob, OSE_SYMTAB_VALUE(ose_builtin_itemToBlob)
+/join/strings, OSE_SYMTAB_VALUE(ose_builtin_joinStrings)
+/string/toaddress/move, OSE_SYMTAB_VALUE(ose_builtin_moveStringToAddress)
+/split/string/fromend, OSE_SYMTAB_VALUE(ose_builtin_splitStringFromEnd)
+/split/string/fromstart, OSE_SYMTAB_VALUE(ose_builtin_splitStringFromStart)
+/swap/bytes/4, OSE_SYMTAB_VALUE(ose_builtin_swap4Bytes)
+/swap/bytes/8, OSE_SYMTAB_VALUE(ose_builtin_swap8Bytes)
+/swap/bytes/n, OSE_SYMTAB_VALUE(ose_builtin_swapNBytes)
+/trim/string/end, OSE_SYMTAB_VALUE(ose_builtin_trimStringEnd)
+/trim/string/start, OSE_SYMTAB_VALUE(ose_builtin_trimStringStart)
+/match, OSE_SYMTAB_VALUE(ose_builtin_match)
+/pmatch, OSE_SYMTAB_VALUE(ose_builtin_pmatch)
+/replace, OSE_SYMTAB_VALUE(ose_builtin_replace)
+/assign, OSE_SYMTAB_VALUE(ose_builtin_assign)
+/lookup, OSE_SYMTAB_VALUE(ose_builtin_lookup)
 ################################################################################
 ### Creatio Ex Nihilo
 ################################################################################
-/make/bundle, ose_builtin_pushBundle
-/push/blob, ose_builtin_makeBlob
+/make/bundle, OSE_SYMTAB_VALUE(ose_builtin_pushBundle)
+/push/blob, OSE_SYMTAB_VALUE(ose_builtin_makeBlob)
 ################################################################################
 ### Arithmetic
 ################################################################################
-/add, ose_builtin_add
-/sub, ose_builtin_sub
-/mul, ose_builtin_mul
-/div, ose_builtin_div
-/mod, ose_builtin_mod
-/pow, ose_builtin_pow
-/neg, ose_builtin_neg
-/eql, ose_builtin_eql
-/neq, ose_builtin_neq
-/lte, ose_builtin_lte
-/lt, ose_builtin_lt
-/and, ose_builtin_and
-/or, ose_builtin_or
+/add, OSE_SYMTAB_VALUE(ose_builtin_add)
+/sub, OSE_SYMTAB_VALUE(ose_builtin_sub)
+/mul, OSE_SYMTAB_VALUE(ose_builtin_mul)
+/div, OSE_SYMTAB_VALUE(ose_builtin_div)
+/mod, OSE_SYMTAB_VALUE(ose_builtin_mod)
+/pow, OSE_SYMTAB_VALUE(ose_builtin_pow)
+/neg, OSE_SYMTAB_VALUE(ose_builtin_neg)
+/eql, OSE_SYMTAB_VALUE(ose_builtin_eql)
+/neq, OSE_SYMTAB_VALUE(ose_builtin_neq)
+/lte, OSE_SYMTAB_VALUE(ose_builtin_lte)
+/lt, OSE_SYMTAB_VALUE(ose_builtin_lt)
+/and, OSE_SYMTAB_VALUE(ose_builtin_and)
+/or, OSE_SYMTAB_VALUE(ose_builtin_or)
 ################################################################################
 ### Predicates
 ################################################################################
-/is/addresschar, ose_builtin_isAddressChar
-/is/type/known, ose_builtin_isKnownTypetag
-/is/type/string, ose_builtin_isStringType
-/is/type/int, ose_builtin_isIntegerType
-/is/type/float, ose_builtin_isFloatType
-/is/type/numeric, ose_builtin_isNumericType
-/is/type/unit, ose_builtin_isUnitType
-/is/type/bool, ose_builtin_isBoolType
+/is/addresschar, OSE_SYMTAB_VALUE(ose_builtin_isAddressChar)
+/is/type/known, OSE_SYMTAB_VALUE(ose_builtin_isKnownTypetag)
+/is/type/string, OSE_SYMTAB_VALUE(ose_builtin_isStringType)
+/is/type/int, OSE_SYMTAB_VALUE(ose_builtin_isIntegerType)
+/is/type/float, OSE_SYMTAB_VALUE(ose_builtin_isFloatType)
+/is/type/numeric, OSE_SYMTAB_VALUE(ose_builtin_isNumericType)
+/is/type/unit, OSE_SYMTAB_VALUE(ose_builtin_isUnitType)
+/is/type/bool, OSE_SYMTAB_VALUE(ose_builtin_isBoolType)
 ################################################################################
 ### Builtins
 ################################################################################
-/eval, ose_builtin_eval
-/if, ose_builtin_if
-/dotimes, ose_builtin_dotimes
-/move/elem/todest, ose_builtin_moveElemToDest
-/copy/elem/todest, ose_builtin_copyElemToDest
-/replace/elem/indest, ose_builtin_replaceElemInDest
-/clear/env, ose_builtin_clearEnv
-/copy/env, ose_builtin_copyEnv
-/assign, ose_builtin_assign
-/apply, ose_builtin_apply
-/defun, ose_builtin_defun
+/exec, OSE_SYMTAB_VALUE(ose_builtin_exec)
+/if, OSE_SYMTAB_VALUE(ose_builtin_if)
+/dotimes, OSE_SYMTAB_VALUE(ose_builtin_dotimes)
+/copy/bundle, OSE_SYMTAB_VALUE(ose_builtin_copyBundle)
+/append/bundle, OSE_SYMTAB_VALUE(ose_builtin_appendBundle)
+/replace/bundle, OSE_SYMTAB_VALUE(ose_builtin_replaceBundle)
+/move/elem, OSE_SYMTAB_VALUE(ose_builtin_moveElem)
+/copy/elem, OSE_SYMTAB_VALUE(ose_builtin_copyElem)
+/apply, OSE_SYMTAB_VALUE(ose_builtin_apply)
+/return, OSE_SYMTAB_VALUE(ose_builtin_return)
 ###
 %%
 
-void (*ose_symtab_lookup(const char * const str))(ose_bundle)
+void (*ose_symtab_lookup_fn(const char * const str))(ose_bundle)
 {
 	const struct _ose_symtab_rec *r = _ose_symtab_lookup(str, strlen(str));
 	if(r){
@@ -174,6 +191,18 @@ void (*ose_symtab_lookup(const char * const str))(ose_bundle)
 		return NULL;
 	}
 }
+
+#ifdef OSE_SYMTAB_FNSYMS
+char *ose_symtab_lookup_fnsym(const char * const str)
+{
+	const struct _ose_symtab_rec *r = _ose_symtab_lookup(str, strlen(str));
+	if(r){
+		return r->fnsym;
+	}else{
+		return NULL;
+	}
+}
+#endif
 
 int ose_symtab_len(void)
 {

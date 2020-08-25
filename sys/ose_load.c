@@ -38,11 +38,13 @@ SOFTWARE.
 
 void ose_loadLib(ose_bundle bundle, const char * const name)
 {
+	ose_bundle vm_s = OSEVM_STACK(bundle);
 	void *h = dlopen(name, RTLD_LAZY);
 	ose_rassert(h != NULL, 1);
 	void (*ose_main)(ose_bundle) = NULL;
 	*(void**)(&ose_main) = dlsym(h, "ose_main");
 	ose_rassert(ose_main != NULL, 1);
+	ose_drop(vm_s);
 	ose_main(bundle);
 }
 
@@ -62,21 +64,4 @@ void ose_readFile(ose_bundle bundle, const char * const name)
 		ose_pushString(bundle, buf);
 	}
 	fclose(fp);
-	// fseek(fp, 0L, SEEK_END);
-	// const int32_t n = ftell(fp);
-	// rewind(fp);
-	// ose_pushBlob(bundle, n - 4, NULL);
-	// int32_t o = ose_readInt32(bundle, -4);
-	// o -= ose_pnbytes(n);
-	// ose_assert(o > OSE_BUNDLE_HEADER_LEN);
-	// b += o;
-	// size_t r = fread(b, n, 1, fp);
-	// fclose(fp);
-	// ose_rassert(r == 1, 1);
-	// o--;
-	// while(ose_readByte(bundle, o) != OSETT_BLOB
-	//       && o > OSE_BUNDLE_HEADER_LEN){
-	// 	o--;
-	// }
-	// ose_writeByte(bundle, o, OSETT_STRING);
 }

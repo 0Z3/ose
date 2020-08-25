@@ -247,7 +247,7 @@ void ose_copyBundleElemToDest(ose_bundle src, ose_bundle dest);
  * @param src The source bundle.
  * @param dest_addr The destination address.
  */
-void ose_copyBundleElemToDestAddr(ose_bundle src, char *dest_addr);
+void ose_copyBundleElemToDestAddr(ose_bundle src, const char * const dest_addr);
 
 
 
@@ -271,7 +271,7 @@ void ose_moveBundleElemToDest(ose_bundle src, ose_bundle dest);
  * @param src The source bundle.
  * @param dest_addr The destination address.
  */
-void ose_moveBundleElemToDestAddr(ose_bundle src, char *dest_addr);
+void ose_moveBundleElemToDestAddr(ose_bundle src, const char * const dest_addr);
 
 
 
@@ -301,7 +301,19 @@ void ose_replaceBundleElemInDest(ose_bundle src, ose_bundle dest);
  * @param src The source bundle.
  * @param dest_addr The destination address.
  */
-void ose_replaceBundleElemInDestAddr(ose_bundle src, char *dest_addr);
+void ose_replaceBundleElemInDestAddr(ose_bundle src,
+				     const char * const dest_addr);
+
+
+
+
+
+
+void ose_copyBundle(ose_constbundle src, ose_bundle dest);
+void ose_appendBundle(ose_bundle src, ose_bundle dest);
+void ose_replaceBundle(ose_bundle src, ose_bundle dest);
+void ose_copyElem(ose_constbundle src, ose_bundle dest);
+void ose_moveElem(ose_bundle src, ose_bundle dest);
 
 
 

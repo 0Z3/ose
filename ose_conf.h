@@ -175,10 +175,37 @@ static const int32_t OSE_ADDRESS_ANONVAL_SIZE = OSE_ADDRESS_ANONVAL_NBYTES
 #endif // OSE_DEBUG
 #endif // OSE_CONF_ADDRESS_ANONVAL
 
-#ifdef OSE_CONF_VM_SIZE
-#define OSE_VM_SIZE OSE_CONF_VM_SIZE
+#if defined(OSE_CONF_VM_INPUT_SIZE)		\
+	&& defined(OSE_CONF_VM_STACK_SIZE)	\
+	&& defined(OSE_CONF_VM_ENV_SIZE)	\
+	&& defined(OSE_CONF_VM_CONTROL_SIZE)	\
+	&& defined(OSE_CONF_VM_DUMP_SIZE)	\
+	&& defined(OSE_CONF_VM_OUTPUT_SIZE)
+#define OSEVM_HAVE_SIZES
+#define OSEVM_INPUT_SIZE OSE_CONF_VM_INPUT_SIZE
+#define OSEVM_STACK_SIZE OSE_CONF_VM_STACK_SIZE
+#define OSEVM_ENV_SIZE OSE_CONF_VM_ENV_SIZE
+#define OSEVM_CONTROL_SIZE OSE_CONF_VM_CONTROL_SIZE
+#define OSEVM_DUMP_SIZE OSE_CONF_VM_DUMP_SIZE
+#define OSEVM_OUTPUT_SIZE OSE_CONF_VM_OUTPUT_SIZE
+
+#elif !defined(OSE_CONF_VM_INPUT_SIZE)		\
+	&& !defined(OSE_CONF_VM_STACK_SIZE)	\
+	&& !defined(OSE_CONF_VM_ENV_SIZE)	\
+	&& !defined(OSE_CONF_VM_CONTROL_SIZE)	\
+	&& !defined(OSE_CONF_VM_DUMP_SIZE)	\
+	&& !defined(OSE_CONF_VM_OUTPUT_SIZE)
+
+#else
+#warning Sizes were specified for some, but not all of the VM stacks.	\
+	Sizes specified will be ignored during compilation,		\
+	and must be passed to osevm_init() at runtime.
 #endif
 
+#ifdef OSE_CONF_SYMTAB_FNSYMS
+#define OSE_SYMTAB_FNSYMS
+#endif
+	
 #endif // __DOXYGEN__
 
 #ifdef __cplusplus

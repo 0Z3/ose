@@ -412,9 +412,9 @@ char ose_peekMessageArgType(const ose_bundle bundle)
 		const int32_t tto = o + 4 + ose_getPaddedStringLen(bundle,
 								   o + 4);
 		const char *ptr = ose_getBundlePtr(bundle);
-		ose_assert(tto - o < s);
+		ose_assert(tto - o <= s);
 		const int32_t len = strlen(ptr + tto);
-		ose_assert((tto + len - 1) - o < s);
+		ose_assert((tto + len - 1) - o <= s);
 		return ptr[tto + len - 1];
 	}
 }
@@ -805,7 +805,7 @@ void ose_pickBottom(ose_bundle bundle)
 
 }
 
-void ose_pickMatch(ose_bundle bundle)
+int32_t ose_pickMatch_impl(ose_bundle bundle)
 {
 	char *addr = ose_peekString(bundle);
 	int32_t o = OSE_BUNDLE_HEADER_LEN;
@@ -816,12 +816,28 @@ void ose_pickMatch(ose_bundle bundle)
 			char *b = ose_getBundlePtr(bundle);
 			s = ose_readInt32(bundle, -4);
 			int32_t ss = ose_readInt32(bundle, o);
-			memcpy(b + s, b + o, ss + 4);
 			ose_addToSize(bundle, ss + 4);
-			return;
+			memcpy(b + s, b + o, ss + 4);
+			return 1;
 		}
 		o += ose_readInt32(bundle, o) + 4;
 	}
+	return 0;
+}
+
+void ose_pickMatch(ose_bundle bundle)
+{
+	ose_pushInt32(bundle, ose_pickMatch_impl(bundle));
+}
+
+int32_t ose_pickPMatch_impl(ose_bundle bundle)
+{
+	return 0;
+}
+
+void ose_pickPMatch(ose_bundle bundle)
+{
+	ose_pushInt32(bundle, ose_pickPMatch_impl(bundle));
 }
 
 void ose_roll(ose_bundle bundle)
@@ -845,9 +861,44 @@ void ose_rollBottom(ose_bundle bundle)
 	memset(b + s, 0, ss + 4);
 }
 
+int32_t ose_rollMatch_impl(ose_bundle bundle)
+{
+	char *addr = ose_peekString(bundle);
+	int32_t o = OSE_BUNDLE_HEADER_LEN;
+	int32_t s = ose_readInt32(bundle, -4);
+	while(o < s){
+		if(!strcmp(addr, ose_readString(bundle, o + 4))){
+			ose_drop(bundle);
+			char *b = ose_getBundlePtr(bundle);
+			s = ose_readInt32(bundle, -4);
+			int32_t ss = ose_readInt32(bundle, o);
+			ose_addToSize(bundle, ss + 4);
+			memcpy(b + s, b + o, ss + 4);
+			memmove(b + o,
+				b + o + ss + 4,
+				(s + ss + 4) - (o + ss + 4));
+			memset(b + s, 0, ss + 4);
+			ose_addToSize(bundle, -(ss + 4));
+			return 1;
+		}
+		o += ose_readInt32(bundle, o) + 4;
+	}
+	return 0;
+}
+
 void ose_rollMatch(ose_bundle bundle)
 {
+	ose_pushInt32(bundle, ose_rollMatch_impl(bundle));
+}
 
+int32_t ose_rollPMatch_impl(ose_bundle bundle)
+{
+	return 0;
+}
+
+void ose_rollPMatch(ose_bundle bundle)
+{
+	ose_pushInt32(bundle, ose_rollPMatch_impl(bundle));
 }
 
 static void ose_rot_impl(ose_bundle bundle,
@@ -1271,8 +1322,7 @@ void ose_unpack(ose_bundle bundle)
 		ose_writeInt32(bundle, o, OSE_BUNDLE_HEADER_LEN);
 	}else{
 		char *b = ose_getBundlePtr(bundle);
-		int32_t o = 0, s = 0;
-		be1(bundle, &o, &s);
+		int32_t s = ose_readInt32(bundle, o);
 		int32_t to = o + 4;
 		to += ose_pstrlen(b + to);
 		int32_t po = to + ose_pstrlen(b + to);
@@ -2210,6 +2260,110 @@ void ose_pmatch(ose_bundle bundle)
 	ose_pushInt32(bundle, (r & OSE_MATCH_ADDRESS_COMPLETE) != 0);
 }
 
+static void ose_replace_impl(ose_bundle bundle,
+			     int32_t dest_offset,
+			     int32_t src_offset,
+			     int32_t src_size)
+{
+	char *b = ose_getBundlePtr(bundle);
+	int32_t o = dest_offset + 4 + OSE_BUNDLE_HEADER_LEN;
+	int32_t end = src_offset;
+	while(o < end){
+		int32_t s = ose_readInt32(bundle, o);
+		if(!strcmp(b + o + 4, b + end + 4)){
+			int32_t len = (end - (o + 4 + s))
+				+ 4 + src_size;
+			memmove(b + o, b + o + 4 + s, len);
+			end -= s + 4;
+		}else{
+			o += s + 4;
+		}
+	}
+	// clean up the end of the bundle and adjust the
+	// size of the sub bundle and the main bundle
+	end += 4 + src_size;
+	int32_t s = ose_readInt32(bundle, -4);
+	memset(b + end, 0, s - end);
+	ose_writeInt32(bundle, dest_offset, (end - dest_offset) - 4);
+	ose_addToSize(bundle, end - s);
+}
+
+void ose_replace(ose_bundle bundle)
+{
+	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 2) == OSETT_TRUE, 1);
+	int32_t s = ose_readInt32(bundle, -4);
+	int32_t on, sn, onm1, snm1, onm2, snm2;
+	be2(bundle, &onm1, &snm1, &on, &sn);
+	ose_rassert(ose_getBundleElemType(bundle, onm1) == OSETT_BUNDLE, 1);
+	ose_rassert(ose_getBundleElemType(bundle, on) == OSETT_MESSAGE, 1);
+	ose_replace_impl(bundle, onm1, on, sn);
+}
+
+void ose_assign(ose_bundle bundle)
+{
+	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 3) == OSETT_TRUE, 1);
+	int32_t s = ose_readInt32(bundle, -4);
+	int32_t on, sn, onm1, snm1, onm2, snm2;
+	be3(bundle, &onm2, &snm2, &onm1, &snm1, &on, &sn);
+	ose_rassert(ose_getBundleElemType(bundle, onm2) == OSETT_BUNDLE, 1);
+	ose_rassert(ose_getBundleElemType(bundle, onm1) == OSETT_MESSAGE, 1);
+	ose_rassert(ose_getBundleElemType(bundle, on) == OSETT_MESSAGE, 1);
+
+	int32_t to, ntt, lto, po, lpo;
+	ose_getNthPayloadItem(bundle, 1, on, &to, &ntt, &lto, &po, &lpo);
+	ose_rassert(ose_isStringType(ose_readByte(bundle, lto)) == OSETT_TRUE, 1);
+
+	char *b = ose_getBundlePtr(bundle);
+	const char addylen = strlen(b + lpo);
+	const char paddylen = ose_pnbytes(addylen);
+	memmove(b + on + 4, b + lpo, paddylen);
+
+	ose_addToSize(bundle, snm1);
+	int32_t data_offset = onm1 + 4;
+	data_offset += ose_pstrlen(b + data_offset);
+	int32_t data_len = on - data_offset;
+	memcpy(b + on + 4 + paddylen, b + data_offset, data_len);
+	memcpy(b + onm1 + 4, b + on + 4, paddylen + data_len);
+	int32_t extra = ose_readInt32(bundle, -4)
+		- (onm1 + 4 + paddylen + data_len);
+		
+	memset(b + onm1 + 4 + paddylen + data_len, 0, extra);
+	ose_addToSize(bundle, -extra);
+	ose_writeInt32(bundle, onm1, paddylen + data_len);
+
+	ose_replace_impl(bundle, onm2, onm1, paddylen + data_len);
+}
+
+void ose_lookup(ose_bundle bundle)
+{
+	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 2) == OSETT_TRUE, 1);
+	int32_t s = ose_readInt32(bundle, -4);
+	int32_t on, sn, onm1, snm1;
+	be2(bundle, &onm1, &snm1, &on, &sn);
+	ose_rassert(ose_getBundleElemType(bundle, onm1) == OSETT_BUNDLE, 1);
+
+	int32_t to, ntt, lto, po, lpo;
+	ose_getNthPayloadItem(bundle, 1, on, &to, &ntt, &lto, &po, &lpo);
+	ose_rassert(ose_isStringType(ose_readByte(bundle, lto)) == OSETT_TRUE, 1);
+
+	char *b = ose_getBundlePtr(bundle);
+	const char addylen = strlen(b + lpo);
+	const char paddylen = ose_pnbytes(addylen);
+
+	int32_t o = onm1 + 4 + OSE_BUNDLE_HEADER_LEN;
+	while(o < on){
+		int32_t ss = ose_readInt32(bundle, o);
+		if(!strcmp(b + o + 4, b + lpo)){
+			memset(b + on, 0, sn + 4);
+			int32_t len = (ss + 4) - (sn + 4);
+			ose_addToSize(bundle, len);
+			memcpy(b + on, b + o, ss + 4);
+			break;
+		}
+		o += ss + 4;
+	}
+}
+
 /**************************************************
  * Creatio Ex Nihilo
  **************************************************/
@@ -2740,6 +2894,7 @@ void ose_or(ose_bundle bundle)
 static void be1(ose_bundle bundle, int32_t *on, int32_t *sn)
 {
 	int32_t s = ose_readInt32(bundle, -4);
+	ose_assert(s > OSE_BUNDLE_HEADER_LEN);
        	int32_t o1 = OSE_BUNDLE_HEADER_LEN;
 	int32_t s1 = ose_readInt32(bundle, o1);
 	while(o1 + s1 + 4 < s){
@@ -2757,20 +2912,22 @@ static void be2(ose_bundle bundle,
 		int32_t *sn)
 {
 	int32_t s = ose_readInt32(bundle, -4);
+	ose_assert(s > OSE_BUNDLE_HEADER_LEN);
        	int32_t o1 = OSE_BUNDLE_HEADER_LEN;
-	int32_t o2 = OSE_BUNDLE_HEADER_LEN;
 	int32_t s1 = ose_readInt32(bundle, o1);
-	int32_t s2 = s1;
-	while(o1 + s1 + 4 < s){
-		o2 = o1;
-		o1 += s1 + 4;
-		s2 = s1;
-		s1 = ose_readInt32(bundle, o1);
+	ose_assert(s > o1 + 4 + s1);
+	int32_t o2 = o1 + 4 + s1;
+	int32_t s2 = ose_readInt32(bundle, o2);
+	while(o2 + s2 + 4 < s){
+		o1 = o2;
+		s1 = s2;
+		o2 += s2 + 4;
+		s2 = ose_readInt32(bundle, o2);
 	}
-	*onm1 = o2;
-	*snm1 = s2;
-	*on = o1;
-	*sn = s1;
+	*onm1 = o1;
+	*snm1 = s1;
+	*on = o2;
+	*sn = s2;
 }
 
 static void be3(ose_bundle bundle,
@@ -2782,10 +2939,13 @@ static void be3(ose_bundle bundle,
 		int32_t *sn)
 {
 	int32_t s = ose_readInt32(bundle, -4);
+	ose_assert(s > OSE_BUNDLE_HEADER_LEN);
        	int32_t o1 = OSE_BUNDLE_HEADER_LEN;
 	int32_t s1 = ose_readInt32(bundle, o1);
+	ose_assert(s > o1 + 4 + s1);
 	int32_t o2 = o1 + s1 + 4;
 	int32_t s2 = ose_readInt32(bundle, o2);
+	ose_assert(s > o2 + 4 + s2);
 	int32_t o3 = o2 + s2 + 4;
 	int32_t s3 = ose_readInt32(bundle, o3);
 	while(o3 + s3 + 4 < s){
@@ -2815,12 +2975,16 @@ static void be4(ose_bundle bundle,
 		int32_t *sn)
 {
 	int32_t s = ose_readInt32(bundle, -4);
+	ose_assert(s > OSE_BUNDLE_HEADER_LEN);
        	int32_t o1 = OSE_BUNDLE_HEADER_LEN;
 	int32_t s1 = ose_readInt32(bundle, o1);
+	ose_assert(s > o1 + 4 + s1);
 	int32_t o2 = o1 + s1 + 4;
 	int32_t s2 = ose_readInt32(bundle, o2);
+	ose_assert(s > o2 + 4 + s2);
 	int32_t o3 = o2 + s2 + 4;
 	int32_t s3 = ose_readInt32(bundle, o3);
+	ose_assert(s > o3 + 4 + s3);
 	int32_t o4 = o3 + s3 + 4;
 	int32_t s4 = ose_readInt32(bundle, o4);
 	while(o4 + s4 + 4 < s){

@@ -26,7 +26,10 @@ SOFTWARE.
 extern "C" {
 #endif
 
-void (*ose_symtab_lookup(const char * const str))(ose_bundle);
+void (*ose_symtab_lookup_fn(const char * const str))(ose_bundle);
+#ifdef OSE_SYMTAB_FNSYMS
+char *ose_symtab_lookup_fnsym(const char * const str);
+#endif
 int ose_symtab_len(void);
 char *ose_symtab_getNthSym(int n);
 

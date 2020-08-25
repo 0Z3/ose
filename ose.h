@@ -205,6 +205,9 @@ struct ose_timetag
 #include <stdio.h>
 void p(ose_bundle bundle, const char * const str);
 void e(ose_bundle bundle, const char * const str);
+
+void pbytes(ose_bundle bundle, int32_t start, int32_t end);
+
 #endif
 
 #ifdef __cplusplus

@@ -821,7 +821,10 @@ void ose_pickBottom(ose_bundle bundle);
  * @f$\mathrm{PICKMATCH}(S(E_1^{msg}(I_{1_1}^s, \ldots, E_i(A=I_{1_1}|\ldots))))
  * \Rightarrow S'(E_1, \ldots, E_i)@f$
  */
+int32_t ose_pickMatch_impl(ose_bundle bundle);
 void ose_pickMatch(ose_bundle bundle);
+int32_t ose_pickPMatch_impl(ose_bundle bundle);
+void ose_picPkMatch(ose_bundle bundle);
 
 
 
@@ -864,7 +867,10 @@ void ose_rollBottom(ose_bundle bundle);
  * @f$\mathrm{ROLLMATCH}(S(E_1^{msg}(I_{1_1}^s, \ldots, E_i(A=I_{1_1}|\ldots))))
  * \Rightarrow S'(E_1, \ldots)@f$
  */
+int32_t ose_rollMatch_impl(ose_bundle bundle);
 void ose_rollMatch(ose_bundle bundle);
+int32_t ose_rollPMatch_impl(ose_bundle bundle);
+void ose_picPkMatch(ose_bundle bundle);
 
 
 
@@ -958,6 +964,9 @@ void ose_trimStringEnd(ose_bundle bundle);
 void ose_trimStringStart(ose_bundle bundle);
 void ose_match(ose_bundle bundle);
 void ose_pmatch(ose_bundle bundle);
+void ose_replace(ose_bundle bundle);
+void ose_assign(ose_bundle bundle);
+void ose_lookup(ose_bundle bundle);
 
 /**************************************************
  * Creatio Ex Nihilo

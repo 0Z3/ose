@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 // this function is defined in ose_symtab.c
-void (*ose_builtin_lookup(char *str))(ose_bundle);
+//void (*ose_builtin_lookup(char *str))(ose_bundle);
 
 #define OSE_BUILTIN_DECL(name)			\
 	void ose_builtin_##name(ose_bundle bundle);
@@ -106,6 +106,9 @@ OSE_BUILTIN_DECL(trimStringEnd)
 OSE_BUILTIN_DECL(trimStringStart)
 OSE_BUILTIN_DECL(match)
 OSE_BUILTIN_DECL(pmatch)
+OSE_BUILTIN_DECL(replace)
+OSE_BUILTIN_DECL(assign)
+OSE_BUILTIN_DECL(lookup)
 
 OSE_BUILTIN_DECL(makeBlob)
 OSE_BUILTIN_DECL(pushBundle)
@@ -133,17 +136,18 @@ OSE_BUILTIN_DECL(isNumericType);
 OSE_BUILTIN_DECL(isUnitType);
 OSE_BUILTIN_DECL(isBoolType);
 
-void ose_builtin_eval(ose_bundle osevm);
+void ose_builtin_exec(ose_bundle osevm);
 void ose_builtin_if(ose_bundle osevm);
 void ose_builtin_dotimes(ose_bundle osevm);
-void ose_builtin_moveElemToDest(ose_bundle osevm);
-void ose_builtin_copyElemToDest(ose_bundle osevm);
-void ose_builtin_replaceElemInDest(ose_bundle osevm);
-void ose_builtin_clearEnv(ose_bundle osevm);
-void ose_builtin_copyEnv(ose_bundle osevm);
+void ose_builtin_copyBundle(ose_bundle osevm);
+void ose_builtin_appendBundle(ose_bundle osevm);
+void ose_builtin_replaceBundle(ose_bundle osevm);
+void ose_builtin_moveElem(ose_bundle osevm);
+void ose_builtin_copyElem(ose_bundle osevm);
 void ose_builtin_assign(ose_bundle osevm);
+void ose_builtin_lookup(ose_bundle osevm);
 void ose_builtin_apply(ose_bundle osevm);
-void ose_builtin_defun(ose_bundle osevm);
+void ose_builtin_return(ose_bundle osevm);
 
 #ifdef __cplusplus
 }

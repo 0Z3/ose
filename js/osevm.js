@@ -25,26 +25,26 @@
     __exports['run'] = __module.cwrap('osevm_run', null, ['number']);
     __exports['input'] = (vm)=>{
 	return __module.ccall('ose_enter', 'number', ['number', 'string'],
- 			    [vm, "/ii"]);
+ 			    [vm, "/_i"]);
     };
     __exports['stack'] = (vm)=>{
 	return __module.ccall('ose_enter', 'number', ['number', 'string'],
- 			    [vm, "/ss"]);
+ 			    [vm, "/_s"]);
     };
     __exports['env'] = (vm)=>{
 	return __module.ccall('ose_enter', 'number', ['number', 'string'],
- 			    [vm, "/ee"]);
+ 			    [vm, "/_e"]);
     };
     __exports['control'] = (vm)=>{
 	return __module.ccall('ose_enter', 'number', ['number', 'string'],
- 			    [vm, "/cc"]);
+ 			    [vm, "/_c"]);
     };
     __exports['dump'] = (vm)=>{
 	return __module.ccall('ose_enter', 'number', ['number', 'string'],
- 			    [vm, "/dd"]);
+ 			    [vm, "/_d"]);
     };
     __exports['output'] = (vm)=>{
 	return __module.ccall('ose_enter', 'number', ['number', 'string'],
- 			    [vm, "/oo"]);
+ 			    [vm, "/_o"]);
     };
 })();
