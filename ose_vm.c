@@ -251,7 +251,7 @@ void osevm_moveElemToContextBundle(ose_bundle osevm)
 	if(address[2] == '/'){
 		dest = ose_enter(osevm, address + 2);
 	}
-	ose_replaceBundle(src, dest);
+	ose_moveElem(src, dest);
 }
 
 /**
