@@ -856,7 +856,7 @@ int main(int ac, char **av)
 				printf("%d%% used, %d bytes free\n",
 				       (int32_t)(s / (s + sa)), sa);
 #ifdef OSE_HAVE_HPTIMER
-				printf("Elapsed time: %lluns, %fms, %fs\n",
+				printf("Elapsed time: %"PRIo64"ns, %fms, %fs\n",
 				       elapsed_time,
 				       (double)elapsed_time / 1000000.,
 				       (double)elapsed_time / 1000000000.);

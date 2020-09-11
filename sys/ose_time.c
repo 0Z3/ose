@@ -55,6 +55,7 @@ uint64_t ose_timeToMonotonicNanos(ose_hptimer t, uint64_t tt)
 #elif defined(__unix__)
 #include <unistd.h>
 #ifdef _POSIX_VERSION
+#include <time.h>
 
 ose_hptimer ose_initTimer(void)
 {
