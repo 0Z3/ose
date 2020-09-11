@@ -159,7 +159,7 @@ static void popInputToControl(ose_bundle vm_i, ose_bundle vm_c)
 /**
  * /@
  */
-void osevm_assign(ose_bundle osevm)
+void osevm_assign(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_e = OSEVM_ENV(osevm);
@@ -175,22 +175,20 @@ void osevm_assign(ose_bundle osevm)
 	char *sb = ose_getBundlePtr(vm_s);
 	int32_t ss = ose_readInt32(vm_s, -4);
 	
-	char *addr = ose_peekAddress(vm_c);
-	
 	int addr_is_on_stack = 0;
-	if(addr[2] == '/'){
-		addr += 2;
+	if(address[2] == '/'){
+		address += 2;
 	}else{
 		addr_is_on_stack = 1;
-		addr = ose_peekString(vm_s);
+		address = ose_peekString(vm_s);
 	}
-	int32_t addrlen = strlen(addr);
+	int32_t addrlen = strlen(address);
 	int32_t paddrlen = ose_pnbytes(addrlen);
 
 	int32_t eo = OSE_BUNDLE_HEADER_LEN;
 	int32_t amt = 0;
 	while(eo < es){
-		if(!strcmp(addr, eb + eo + 4)){
+		if(!strcmp(address, eb + eo + 4)){
 			int32_t ss = ose_readInt32(vm_e, eo);
 			int32_t no = eo + ss + 4;
 			memmove(eb + eo,
@@ -203,7 +201,7 @@ void osevm_assign(ose_bundle osevm)
 	}
 	memset(eb + es, 0, amt);
 	ose_decSize(vm_e, amt);
-	memcpy(eb + es + 4, addr, addrlen);
+	memcpy(eb + es + 4, address, addrlen);
 
 	eo = es + 4 + paddrlen;
 	eb[eo] = OSETT_ID;
@@ -238,7 +236,6 @@ void osevm_assign(ose_bundle osevm)
 	ose_incSize(vm_e, eo - es);
 	ose_clear(vm_s);
 #else	
-	const char * const address = ose_peekAddress(vm_c);
 	if(address[2] == '/'){
 		ose_pushString(vm_s, address + 2);
 	}
@@ -273,13 +270,12 @@ void osevm_assign(ose_bundle osevm)
 /**
  * /$
  */
-void osevm_lookup(ose_bundle osevm)
+void osevm_lookup(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_e = OSEVM_ENV(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
         ose_bundle vm_d = OSEVM_DUMP(osevm);
-	const char * const address = ose_peekAddress(vm_c);
 	if(OSEVM_GET_FLAGS(osevm) & OSEVM_FLAG_COMPILE){
 		popControlToStack(vm_c, vm_s);
 		return;
@@ -297,14 +293,13 @@ void osevm_lookup(ose_bundle osevm)
 /**
  * /!
  */
-void osevm_funcall(ose_bundle osevm)
+void osevm_funcall(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_i = OSEVM_INPUT(osevm);
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_e = OSEVM_ENV(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
         ose_bundle vm_d = OSEVM_DUMP(osevm);
-	const char *address = ose_peekAddress(vm_c);
 	if(OSEVM_GET_FLAGS(osevm) & OSEVM_FLAG_COMPILE){
 		popControlToStack(vm_c, vm_s);
 		return;
@@ -318,11 +313,10 @@ void osevm_funcall(ose_bundle osevm)
 /**
  * /'
  */
-void osevm_quote(ose_bundle osevm)
+void osevm_quote(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	const char *address = ose_peekAddress(vm_c);
 	if(OSEVM_GET_FLAGS(osevm) & OSEVM_FLAG_COMPILE){
 		popControlToStack(vm_c, vm_s);
 		return;
@@ -333,12 +327,11 @@ void osevm_quote(ose_bundle osevm)
 /**
  * />
  */
-void osevm_copyContextBundle(ose_bundle osevm)
+void osevm_copyContextBundle(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_e = OSEVM_ENV(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	const char *address = ose_peekAddress(vm_c);
 	if(OSEVM_GET_FLAGS(osevm) & OSEVM_FLAG_COMPILE){
 		popControlToStack(vm_c, vm_s);
 		return;
@@ -354,12 +347,11 @@ void osevm_copyContextBundle(ose_bundle osevm)
 /**
  * /<<
  */
-void osevm_appendToContextBundle(ose_bundle osevm)
+void osevm_appendToContextBundle(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_e = OSEVM_ENV(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	const char *address = ose_peekAddress(vm_c);
 	if(OSEVM_GET_FLAGS(osevm) & OSEVM_FLAG_COMPILE){
 		popControlToStack(vm_c, vm_s);
 		return;
@@ -375,12 +367,11 @@ void osevm_appendToContextBundle(ose_bundle osevm)
 /**
  * /<
  */
-void osevm_replaceContextBundle(ose_bundle osevm)
+void osevm_replaceContextBundle(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_e = OSEVM_ENV(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	const char *address = ose_peekAddress(vm_c);
 	if(OSEVM_GET_FLAGS(osevm) & OSEVM_FLAG_COMPILE){
 		popControlToStack(vm_c, vm_s);
 		return;
@@ -396,12 +387,11 @@ void osevm_replaceContextBundle(ose_bundle osevm)
 /**
  * /-
  */
-void osevm_moveElemToContextBundle(ose_bundle osevm)
+void osevm_moveElemToContextBundle(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_o = OSEVM_OUTPUT(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	const char *address = ose_peekAddress(vm_c);
 	if(OSEVM_GET_FLAGS(osevm) & OSEVM_FLAG_COMPILE){
 		popControlToStack(vm_c, vm_s);
 		return;
@@ -417,11 +407,10 @@ void osevm_moveElemToContextBundle(ose_bundle osevm)
 /**
  * /.
  */
-void osevm_exec(ose_bundle osevm)
+void osevm_exec(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	char *address = ose_peekAddress(vm_c);
 	const int32_t addresslen = strlen(address);
 	if(OSEVM_GET_FLAGS(osevm) & OSEVM_FLAG_COMPILE){
 		popControlToStack(vm_c, vm_s);
@@ -480,11 +469,10 @@ void osevm_exec(ose_bundle osevm)
 /**
  * /|
  */
-void osevm_execInCurrentContext(ose_bundle osevm)
+void osevm_execInCurrentContext(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	char *address = ose_peekAddress(vm_c);
 	const int32_t addresslen = strlen(address);
 	if(OSEVM_GET_FLAGS(osevm) & OSEVM_FLAG_COMPILE){
 		popControlToStack(vm_c, vm_s);
@@ -556,11 +544,10 @@ void osevm_execInCurrentContext(ose_bundle osevm)
 /**
  * /:
  */
-void osevm_apply(ose_bundle osevm)
+void osevm_apply(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	char *address = ose_peekAddress(vm_c);
 	const int32_t addresslen = strlen(address);
 	if(OSEVM_GET_FLAGS(osevm) & OSEVM_FLAG_COMPILE){
 		popControlToStack(vm_c, vm_s);
@@ -620,12 +607,11 @@ void osevm_apply(ose_bundle osevm)
 /**
  * /;
  */
-void osevm_return(ose_bundle osevm)
+void osevm_return(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_i = OSEVM_INPUT(osevm);
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	char *address = ose_peekAddress(vm_c);
 	const int32_t addresslen = strlen(address);
 	if(OSEVM_GET_FLAGS(osevm) & OSEVM_FLAG_COMPILE){
 		popControlToStack(vm_c, vm_s);
@@ -726,7 +712,7 @@ void osevm_return(ose_bundle osevm)
 /**
  * /(
  */
-void osevm_defun(ose_bundle osevm)
+void osevm_defun(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_i = OSEVM_INPUT(osevm);
 	ose_bundle vm_s = OSEVM_STACK(osevm);
@@ -734,7 +720,6 @@ void osevm_defun(ose_bundle osevm)
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
         ose_bundle vm_d = OSEVM_DUMP(osevm);
 	ose_bundle vm_o = OSEVM_OUTPUT(osevm);
-	const char * const address = ose_peekAddress(vm_c);
 	
 	int32_t flags = OSEVM_GET_FLAGS(osevm);
 	OSEVM_SET_FLAGS(osevm, flags | OSEVM_FLAG_COMPILE);
@@ -760,12 +745,11 @@ void osevm_defun(ose_bundle osevm)
 /**
  * /)
  */
-void osevm_endDefun(ose_bundle osevm)
+void osevm_endDefun(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
 	ose_bundle vm_d = OSEVM_DUMP(osevm);
-	const char * const address = ose_peekAddress(vm_c);
 	int32_t flags = OSEVM_GET_FLAGS(osevm);
 	OSEVM_SET_FLAGS(osevm, flags ^ OSEVM_FLAG_COMPILE);
 	ose_rollBottom(vm_s);
@@ -782,11 +766,10 @@ void osevm_endDefun(ose_bundle osevm)
 /**
  * /i
  */
-void osevm_toInt32(ose_bundle osevm)
+void osevm_toInt32(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	const char * const address = ose_peekAddress(vm_c);
 	if(address[2] == '/'){
 		const int32_t l = strtol(address + 3, NULL, 10);
 		ose_pushInt32(vm_s, l);
@@ -834,11 +817,10 @@ void osevm_toInt32(ose_bundle osevm)
 /**
  * /f
  */
-void osevm_toFloat(ose_bundle osevm)
+void osevm_toFloat(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	const char * const address = ose_peekAddress(vm_c);
 	if(address[2] == '/'){
 		const float f = strtof(address + 3, NULL);
 		ose_pushFloat(vm_s, f);
@@ -887,11 +869,10 @@ void osevm_toFloat(ose_bundle osevm)
 /**
  * /s
  */
-void osevm_toString(ose_bundle osevm)
+void osevm_toString(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	const char * const address = ose_peekAddress(vm_c);
 	if(address[2] == '/'){
 		ose_pushString(vm_s, address + 3);
 	}else{
@@ -941,11 +922,10 @@ void osevm_toString(ose_bundle osevm)
 /**
  * /b
  */
-void osevm_toBlob(ose_bundle osevm)
+void osevm_toBlob(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	char *address = ose_peekAddress(vm_c);
 	if(address[2] == '/'){
 		char *p = address + 3;
 		const int32_t n = strlen(p);
@@ -967,11 +947,10 @@ void osevm_toBlob(ose_bundle osevm)
 /**
  * /&
  */
-void osevm_appendByte(ose_bundle osevm)
+void osevm_appendByte(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	char *address = ose_peekAddress(vm_c);
 
 	const char SLIP_END = 0300;
 	const char SLIP_ESC = 0333;
@@ -1096,7 +1075,7 @@ void osevm_appendByte(ose_bundle osevm)
 	}
 }
 
-void osevm_default(ose_bundle osevm)
+void osevm_default(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
@@ -1213,7 +1192,7 @@ static void applyControl(ose_bundle osevm, char *address)
 	if(flags & OSEVM_FLAG_COMPILE){
 		if(route_mthd(a, OSEVM_TOK_CPAR, 1)){
 			ose_try{
-				OSEVM_ENDDEFUN(osevm);
+				OSEVM_ENDDEFUN(osevm, address);
 			}ose_catch(1){
 				;
 				// debug
@@ -1228,7 +1207,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		ose_copyElem(vm_c, vm_s);
 	}else if(route(a, OSEVM_TOK_AT, 1)){
 		ose_try{
-			OSEVM_ASSIGN(osevm);
+			OSEVM_ASSIGN(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1237,7 +1216,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route(a, OSEVM_TOK_DOLLAR, 1)){
 		ose_try{
-			OSEVM_LOOKUP(osevm);
+			OSEVM_LOOKUP(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1246,7 +1225,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route(a, OSEVM_TOK_BANG, 1)){
 		ose_try{
-			OSEVM_FUNCALL(osevm);
+			OSEVM_FUNCALL(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1255,7 +1234,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route_pfx(a, OSEVM_TOK_QUOTE, 1)){
 		ose_try{
-			OSEVM_QUOTE(osevm);
+			OSEVM_QUOTE(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1264,7 +1243,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route(a, OSEVM_TOK_GT, 1)){
 		ose_try{
-			OSEVM_COPYCONTEXTBUNDLE(osevm);
+			OSEVM_COPYCONTEXTBUNDLE(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1273,7 +1252,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route(a, OSEVM_TOK_LTLT, 2)){
 		ose_try{
-			OSEVM_APPENDTOCONTEXTBUNDLE(osevm);
+			OSEVM_APPENDTOCONTEXTBUNDLE(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1282,7 +1261,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route(a, OSEVM_TOK_LT, 1)){
 		ose_try{
-			OSEVM_REPLACECONTEXTBUNDLE(osevm);
+			OSEVM_REPLACECONTEXTBUNDLE(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1291,7 +1270,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route(a, OSEVM_TOK_DASH, 1)){
 		ose_try{
-			OSEVM_MOVEELEMTOCONTEXTBUNDLE(osevm);
+			OSEVM_MOVEELEMTOCONTEXTBUNDLE(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1300,7 +1279,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route(a, OSEVM_TOK_DOT, 1)){
 		ose_try{
-			OSEVM_EXEC(osevm);
+			OSEVM_EXEC(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1309,7 +1288,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route(a, OSEVM_TOK_PIPE, 1)){
 		ose_try{
-			OSEVM_EXECINCURRENTCONTEXT(osevm);
+			OSEVM_EXECINCURRENTCONTEXT(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1318,7 +1297,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route(a, OSEVM_TOK_COLON, 1)){
 		ose_try{
-			OSEVM_APPLY(osevm);
+			OSEVM_APPLY(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1327,7 +1306,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route(a, OSEVM_TOK_SCOLON, 1)){
 		ose_try{
-			OSEVM_RETURN(osevm);
+			OSEVM_RETURN(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1336,7 +1315,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route(a, OSEVM_TOK_OPAR, 1)){
 		ose_try{
-			OSEVM_DEFUN(osevm);
+			OSEVM_DEFUN(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1345,7 +1324,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route(a, OSEVM_TOK_i, 1)){
 		ose_try{
-			OSEVM_TOINT32(osevm);
+			OSEVM_TOINT32(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1354,7 +1333,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route(a, OSEVM_TOK_f, 1)){
 		ose_try{
-			OSEVM_TOFLOAT(osevm);
+			OSEVM_TOFLOAT(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1363,7 +1342,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route(a, OSEVM_TOK_s, 1)){
 		ose_try{
-			OSEVM_TOSTRING(osevm);
+			OSEVM_TOSTRING(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1372,7 +1351,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route(a, OSEVM_TOK_b, 1)){
 		ose_try{
-			OSEVM_TOBLOB(osevm);
+			OSEVM_TOBLOB(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1381,7 +1360,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else if(route(a, OSEVM_TOK_AMP, 1)){
 		ose_try{
-			OSEVM_APPENDBYTE(osevm);
+			OSEVM_APPENDBYTE(osevm, address);
 		}ose_catch(1){
 			;
 			// debug
@@ -1390,7 +1369,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_end_try;
 	}else{
 		ose_try{
-			OSEVM_DEFAULT(osevm);
+			OSEVM_DEFAULT(osevm, address);
 		}ose_catch(1){
 			;
 			// debug

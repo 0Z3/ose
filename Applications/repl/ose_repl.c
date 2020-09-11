@@ -174,21 +174,20 @@ void oserepl_postControl(ose_bundle osevm)
 {
 }
 
-void oserepl_defun(ose_bundle osevm)
+void oserepl_defun(ose_bundle osevm, char *address)
 {
 	rl_set_prompt(or_prompt_compile);
-	osevm_defun(osevm);
+	osevm_defun(osevm, address);
 }
 
-void oserepl_endDefun(ose_bundle osevm)
+void oserepl_endDefun(ose_bundle osevm, char *address)
 {
 	rl_set_prompt(or_prompt_normal);
-	osevm_endDefun(osevm);
+	osevm_endDefun(osevm, address);
 }
 
-void oserepl_default(ose_bundle osevm)
+void oserepl_default(ose_bundle osevm, char *address)
 {
-	const char *address = ose_peekAddress(vm_c);
 	const int32_t len = strlen(address);
 	if(!strncmp(address, or_prefix, or_prefixlen)){
 		if(len == or_prefixlen){
@@ -205,7 +204,7 @@ void oserepl_default(ose_bundle osevm)
 			}
 		}
 	}
-	osevm_default(osevm);
+	osevm_default(osevm, address);
 }
 
 int oserepl_isKnownAddress(const char * const address)

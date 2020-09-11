@@ -152,144 +152,144 @@ ose_bundle osevm_init(ose_bundle bundle,
 /**********************************************************************
  * Hooks
  **********************************************************************/
-void osevm_assign(ose_bundle osevm);
+void osevm_assign(ose_bundle osevm, char *address);
 #ifndef OSEVM_ASSIGN
 #define OSEVM_ASSIGN osevm_assign
 #else
-extern void OSEVM_ASSIGN (ose_bundle osevm);
+extern void OSEVM_ASSIGN (ose_bundle osevm, char *address);
 #endif
 
-void osevm_lookup(ose_bundle osevm);
+void osevm_lookup(ose_bundle osevm, char *address);
 #ifndef OSEVM_LOOKUP
 #define OSEVM_LOOKUP osevm_lookup
 #else
-extern void OSEVM_LOOKUP (ose_bundle osevm);
+extern void OSEVM_LOOKUP (ose_bundle osevm, char *address);
 #endif
 
-void osevm_funcall(ose_bundle osevm);
+void osevm_funcall(ose_bundle osevm, char *address);
 #ifndef OSEVM_FUNCALL
 #define OSEVM_FUNCALL osevm_funcall
 #else
-extern void OSEVM_FUNCALL (ose_bundle osevm);
+extern void OSEVM_FUNCALL (ose_bundle osevm, char *address);
 #endif
 
-void osevm_quote(ose_bundle osevm);
+void osevm_quote(ose_bundle osevm, char *address);
 #ifndef OSEVM_QUOTE
 #define OSEVM_QUOTE osevm_quote
 #else
-extern void OSEVM_QUOTE (ose_bundle osevm);
+extern void OSEVM_QUOTE (ose_bundle osevm, char *address);
 #endif
 
-void osevm_copyContextBundle(ose_bundle osevm);
+void osevm_copyContextBundle(ose_bundle osevm, char *address);
 #ifndef OSEVM_COPYCONTEXTBUNDLE
 #define OSEVM_COPYCONTEXTBUNDLE osevm_copyContextBundle
 #else
-extern void OSEVM_COPYCONTEXTBUNDLE (ose_bundle osevm);
+extern void OSEVM_COPYCONTEXTBUNDLE (ose_bundle osevm, char *address);
 #endif
 
-void osevm_appendToContextBundle(ose_bundle osevm);
+void osevm_appendToContextBundle(ose_bundle osevm, char *address);
 #ifndef OSEVM_APPENDTOCONTEXTBUNDLE
 #define OSEVM_APPENDTOCONTEXTBUNDLE osevm_appendToContextBundle
 #else
-extern void OSEVM_APPENDTOCONTEXTBUNDLE (ose_bundle osevm);
+extern void OSEVM_APPENDTOCONTEXTBUNDLE (ose_bundle osevm, char *address);
 #endif
 
-void osevm_replaceContextBundle(ose_bundle osevm);
+void osevm_replaceContextBundle(ose_bundle osevm, char *address);
 #ifndef OSEVM_REPLACECONTEXTBUNDLE
 #define OSEVM_REPLACECONTEXTBUNDLE osevm_replaceContextBundle
 #else
-extern void OSEVM_REPLACECONTEXTBUNDLE (ose_bundle osevm);
+extern void OSEVM_REPLACECONTEXTBUNDLE (ose_bundle osevm, char *address);
 #endif
 
-void osevm_moveElemToContextBundle(ose_bundle osevm);
+void osevm_moveElemToContextBundle(ose_bundle osevm, char *address);
 #ifndef OSEVM_MOVEELEMTOCONTEXTBUNDLE
 #define OSEVM_MOVEELEMTOCONTEXTBUNDLE osevm_moveElemToContextBundle
 #else
-extern void OSEVM_MOVEELEMTOCONTEXTBUNDLE (ose_bundle osevm);
+extern void OSEVM_MOVEELEMTOCONTEXTBUNDLE (ose_bundle osevm, char *address);
 #endif
 
-void osevm_exec(ose_bundle osevm);
+void osevm_exec(ose_bundle osevm, char *address);
 #ifndef OSEVM_EXEC
 #define OSEVM_EXEC osevm_exec
 #else
-extern void OSEVM_EXEC (ose_bundle osevm);
+extern void OSEVM_EXEC (ose_bundle osevm, char *address);
 #endif
 
-void osevm_execInCurrentContext(ose_bundle osevm);
+void osevm_execInCurrentContext(ose_bundle osevm, char *address);
 #ifndef OSEVM_EXECINCURRENTCONTEXT
 #define OSEVM_EXECINCURRENTCONTEXT osevm_execInCurrentContext
 #else
-extern void OSEVM_EXECINCURRENTCONTEXT (ose_bundle osevm);
+extern void OSEVM_EXECINCURRENTCONTEXT (ose_bundle osevm, char *address);
 #endif
 
-void osevm_apply(ose_bundle osevm);
+void osevm_apply(ose_bundle osevm, char *address);
 #ifndef OSEVM_APPLY
 #define OSEVM_APPLY osevm_apply
 #else
-extern void OSEVM_APPLY (ose_bundle osevm);
+extern void OSEVM_APPLY (ose_bundle osevm, char *address);
 #endif
 
-void osevm_return(ose_bundle osevm);
+void osevm_return(ose_bundle osevm, char *address);
 #ifndef OSEVM_RETURN
 #define OSEVM_RETURN osevm_return
 #else
-extern void OSEVM_RETURN (ose_bundle osevm);
+extern void OSEVM_RETURN (ose_bundle osevm, char *address);
 #endif
 
-void osevm_defun(ose_bundle osevm);
+void osevm_defun(ose_bundle osevm, char *address);
 #ifndef OSEVM_DEFUN
 #define OSEVM_DEFUN osevm_defun
 #else
-extern void OSEVM_DEFUN (ose_bundle osevm);
+extern void OSEVM_DEFUN (ose_bundle osevm, char *address);
 #endif
 
-void osevm_endDefun(ose_bundle osevm);
+void osevm_endDefun(ose_bundle osevm, char *address);
 #ifndef OSEVM_ENDDEFUN
 #define OSEVM_ENDDEFUN osevm_endDefun
 #else
-extern void OSEVM_ENDDEFUN (ose_bundle osevm);
+extern void OSEVM_ENDDEFUN (ose_bundle osevm, char *address);
 #endif
 
-void osevm_toInt32(ose_bundle osevm);
+void osevm_toInt32(ose_bundle osevm, char *address);
 #ifndef OSEVM_TOINT32
 #define OSEVM_TOINT32 osevm_toInt32
 #else
-extern void OSEVM_TOINT32 (ose_bundle osevm);
+extern void OSEVM_TOINT32 (ose_bundle osevm, char *address);
 #endif
 
-void osevm_toFloat(ose_bundle osevm);
+void osevm_toFloat(ose_bundle osevm, char *address);
 #ifndef OSEVM_TOFLOAT
 #define OSEVM_TOFLOAT osevm_toFloat
 #else
-extern void OSEVM_TOFLOAT (ose_bundle osevm);
+extern void OSEVM_TOFLOAT (ose_bundle osevm, char *address);
 #endif
 
-void osevm_toString(ose_bundle osevm);
+void osevm_toString(ose_bundle osevm, char *address);
 #ifndef OSEVM_TOSTRING
 #define OSEVM_TOSTRING osevm_toString
 #else
-extern void OSEVM_TOSTRING (ose_bundle osevm);
+extern void OSEVM_TOSTRING (ose_bundle osevm, char *address);
 #endif
 
-void osevm_toBlob(ose_bundle osevm);
+void osevm_toBlob(ose_bundle osevm, char *address);
 #ifndef OSEVM_TOBLOB
 #define OSEVM_TOBLOB osevm_toBlob
 #else
-extern void OSEVM_TOBLOB (ose_bundle osevm);
+extern void OSEVM_TOBLOB (ose_bundle osevm, char *address);
 #endif
 
-void osevm_appendByte(ose_bundle osevm);
+void osevm_appendByte(ose_bundle osevm, char *address);
 #ifndef OSEVM_APPENDBYTE
 #define OSEVM_APPENDBYTE osevm_appendByte
 #else
-extern void OSEVM_APPENDBYTE (ose_bundle osevm);
+extern void OSEVM_APPENDBYTE (ose_bundle osevm, char *address);
 #endif
 
-void osevm_default(ose_bundle osevm);
+void osevm_default(ose_bundle osevm, char *address);
 #ifndef OSEVM_DEFAULT
 #define OSEVM_DEFAULT osevm_default
 #else
-extern void OSEVM_DEFAULT (ose_bundle osevm);
+extern void OSEVM_DEFAULT (ose_bundle osevm, char *address);
 #endif
 
 void osevm_preInput(ose_bundle osevm);
