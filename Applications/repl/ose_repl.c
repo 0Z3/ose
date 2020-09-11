@@ -42,6 +42,8 @@
 #include "ose_symtab.h"
 #include "ose_print.h"
 #include "sys/ose_load.h"
+#include "sys/ose_time.h"
+#include "ose_version.h"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -51,171 +53,382 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-#define MAX_INPUT_LEN 4096
-#define MAX_OUTPUT_LEN 4096
+#ifndef MAX_BUNDLE_LEN
 #define MAX_BUNDLE_LEN 1000000
+#endif
 
-#define PORT_INPUT 10350
-#define PORT_SEND 10666
+/**********************************************************************
+ * Global vars
+ **********************************************************************/
 
-int udpsock_input;
-struct sockaddr_in sockaddr_input;
-struct sockaddr_in sockaddr_send;
+// Data and pointers for the main bundle and vm
+static char *bytes;
+static ose_bundle bundle, osevm, vm_i, vm_s, vm_e, vm_c, vm_d, vm_o;
 
-void printStack(ose_bundle bundle, char *name);
-struct sockaddr_in sockaddr_init(char *addr, short port);
-int setupUDP(struct sockaddr_in *sa, short port);
-int sendUDP(ose_bundle bundle, int sock, short port, struct sockaddr_in *addr);
-void sendStacksUDP(int sock, struct sockaddr_in *addr);
-void run(void);
+// REPL options
+static int or_verbose = 0;
+static int or_step = 0;
+static char *or_prefix = NULL;
+static int32_t or_prefixlen = 0;
+static int or_udp_input = 0;
+static int or_udp_output = 0;
 
-char *bytes;
-ose_bundle bundle, osevm, vm_i, vm_s, vm_e, vm_c, vm_d, vm_o;
+// Signaling and control
+static jmp_buf or_jmp_buf;
+static volatile sig_atomic_t or_assertion_failed = 0;
+static volatile sig_atomic_t or_quit = 0;
+static volatile int or_have_input = 0;
 
-// options
-int verbose = 0;
-int step = 0;
-volatile sig_atomic_t abort_on_error = 0;
+// If we have access to a high precision timer, 
+// we use it to time the run() operation
+#ifdef OSE_HAVE_HPTIMER
+static ose_hptimer or_hptimer;
+#endif
 
-jmp_buf repl_jmp_buf;
-volatile sig_atomic_t repl_assertion_failed = 0;
+static char *or_prompt_normal = "# ";
+static char *or_prompt_compile = "(compile)# ";
+static char *or_prompt = "# ";
 
-volatile sig_atomic_t quit = 0;
+// UDP I/O
+static int or_udp_socket_input, or_udp_socket_output;
+static struct sockaddr_in or_udp_sockaddr_in_input;
+static struct sockaddr_in or_udp_sockaddr_in_output;
+static const char *or_udp_addrstr_output = "127.0.0.1";
+static uint16_t or_udp_port_input = 10053;
+static uint16_t or_udp_port_output = 10073;
 
-void repl_abortOnError(ose_bundle bundle);
-void repl_import(ose_bundle osevm);
-void repl_send(ose_bundle osevm);
-void repl_step(ose_bundle bundle);
-void repl_verbose(ose_bundle bundle);
-	
-struct repl_fn
+/**********************************************************************
+ * Forward decls
+ **********************************************************************/
+
+// REPL builtins accessable with /ose messages
+static void oserepl_import(ose_bundle osevm);
+static void oserepl_step(ose_bundle bundle);
+static void oserepl_verbose(ose_bundle bundle);
+static void oserepl_printContextBundle(ose_bundle bundle);
+static void oserepl_udpport(ose_bundle bundle);
+static void oserepl_udpaddr(ose_bundle bundle);
+static void oserepl_setPrefix(ose_bundle bundle);
+
+static struct or_fn
 {
-	char *name;
+	char *sym;
 	ose_fn fn;
-} repl_fns[] = {
-		{"/repl/abortonerror", repl_abortOnError},
-		{"/repl/import", repl_import},
-		{"/repl/send", repl_send},
-		{"/repl/step", repl_step},
-		{"/repl/verbose", repl_verbose},
-		// print bundle
+} or_fns[] = {{"/import", oserepl_import},
+	      {"/step", oserepl_step},
+	      {"/verbose", oserepl_verbose},
+	      {"/print", oserepl_printContextBundle},
+	      {"/udp/input/port/get", oserepl_udpport},
+	      {"/udp/input/port/set", oserepl_udpport},
+	      {"/udp/output/port/get", oserepl_udpport},
+	      {"/udp/output/port/set", oserepl_udpport},
+	      {"/udp/output/addr/get", oserepl_udpaddr},
+	      {"/udp/output/addr/set", oserepl_udpaddr},
+	      {"/setprefix", oserepl_setPrefix},
 };
 
-void ose_repl_preInput(ose_bundle osevm)
+// editline / readline
+static void oserepl_rl_compgen_addContextBundleSfxs(const char * const text,
+						    const int textlen,
+						    const char * const pfx,
+						    const int32_t pfxlen,
+						    const char * const sym,
+						    const char **pfxs,
+						    const char **matches,
+						    const char **sfxs,
+						    int32_t *nmatches);
+static char *oserepl_rl_compgen(const char *text, int state);
+static char **oserepl_rl_compcb(const char *text, int start, int end);
+static void oserepl_rl_cb(char *line);
+
+// UDP I/O
+static int oserepl_udp_sock(const char * const addr,
+			    uint16_t port,
+			    struct sockaddr_in *sa);
+static int oserepl_udp_send(ose_bundle bundle);
+
+// REPL
+static void oserepl_sigHandler(int signo);
+static uint64_t oserepl_run(void);
+static void oserepl_init(void);
+int main(int ac, char **av);
+
+/**********************************************************************
+ * Implementation
+ **********************************************************************/
+
+// REPL hooks
+void oserepl_preInput(ose_bundle osevm)
 {
 }
 
-void ose_repl_postInput(ose_bundle osevm)
+void oserepl_postInput(ose_bundle osevm)
 {
 }
 
-void ose_repl_preControl(ose_bundle osevm)
+void oserepl_preControl(ose_bundle osevm)
 {
 }
 
-void ose_repl_postControl(ose_bundle osevm)
+void oserepl_postControl(ose_bundle osevm)
 {
 }
 
-void ose_repl_funcall(ose_bundle osevm)
+void oserepl_defun(ose_bundle osevm)
 {
-	ose_bundle vm_s = OSEVM_STACK(osevm);
-	ose_bundle vm_c = OSEVM_CONTROL(osevm);
+	rl_set_prompt(or_prompt_compile);
+	osevm_defun(osevm);
+}
+
+void oserepl_endDefun(ose_bundle osevm)
+{
+	rl_set_prompt(or_prompt_normal);
+	osevm_endDefun(osevm);
+}
+
+void oserepl_default(ose_bundle osevm)
+{
 	const char *address = ose_peekAddress(vm_c);
 	const int32_t len = strlen(address);
-	if(len > 2){
+	if(!strncmp(address, or_prefix, or_prefixlen)){
+		if(len == or_prefixlen){
+			return;
+		}
 		for(int i = 0;
-		    i < sizeof(repl_fns) / sizeof(struct repl_fn);
+		    i < sizeof(or_fns) / sizeof(struct or_fn);
 		    i++){
-			if(!strcmp(address + 2, repl_fns[i].name)){
-				repl_fns[i].fn(osevm);
+			if(!strncmp(address + or_prefixlen,
+				    or_fns[i].sym,
+				    strlen(or_fns[i].sym))){
+				or_fns[i].fn(osevm);
 				return;
 			}
 		}
 	}
-	osevm_funcall(osevm);
+	osevm_default(osevm);
 }
 
-char *completion_generator(const char *text, int state)
+int oserepl_isKnownAddress(const char * const address)
+{
+	if(!strncmp(address, or_prefix, or_prefixlen)){
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
+// editline / readline
+static void oserepl_rl_compgen_addContextBundleSfxs(const char * const text,
+						    const int textlen,
+						    const char * const pfx,
+						    const int32_t pfxlen,
+						    const char * const sym,
+						    const char **pfxs,
+						    const char **matches,
+						    const char **sfxs,
+						    int32_t *nmatches)
+{
+	const int32_t s = ose_readInt32(osevm, -4);
+	int32_t o = OSE_BUNDLE_HEADER_LEN;
+	int32_t symlen = strlen(sym);
+	while(o < s){
+		const int32_t ss =
+			ose_readInt32(osevm, o);
+		const char * const addr =
+			ose_readString(osevm, o + 4);
+		pfxs[*nmatches] = pfx;
+		matches[*nmatches] = sym;
+		sfxs[*nmatches] = addr;
+		(*nmatches)++;
+		o += ss + 4;
+	}
+}
+
+static char *oserepl_rl_compgen(const char *text, int state)
 {
 	int symtablen = ose_symtab_len();
-	static char *matches[1024];
+	static const char *matches[256];
+	static const char *pfxs[256];
+	static const char *sfxs[256];
 	static int nmatches;
 	static int curmatch;
-	static char tok = 0;
+
 	if(state == 0){
 		nmatches = 0;
 		curmatch = 0;
 		int len = strlen(text);
-		if(len < 3){
-			return NULL;
-		}
 		if(*text != '/'){
 			return NULL;
 		}
-		text++;
-		len--;
-		tok = *text;
-		text++;
-		len--;
-		if(tok == '!'){
-			for(int i = 0;
-			    i < sizeof(repl_fns) / sizeof(struct repl_fn);
-			    i++){
-				char *name = repl_fns[i].name;
-				if(!strncmp(name, text, len)){
-					matches[nmatches++] = name;
-				}
-			}
+		if(!strncmp(text, "/!", 2)){
 			for(int i = 0; i < symtablen; i++){
 				char *sym = ose_symtab_getNthSym(i);
-				if(!strncmp(text, sym, len)){
-					matches[nmatches++] = sym;
+				if(!strncmp(text + 2, sym, len - 2)){
+					pfxs[nmatches] = "/!";
+					matches[nmatches] = sym;
+					sfxs[nmatches] = NULL;
+					nmatches++;
 				}
 			}
-		}else if(tok == '$'){
+		}
+		if(!strncmp(text, "/$", 2)){
 			int32_t o = OSE_BUNDLE_HEADER_LEN;
 			int32_t s = ose_readInt32(vm_e, -4);
 			while(o < s){
 				int32_t ss = ose_readInt32(vm_e, o);
 				char *addy = ose_readString(vm_e, o + 4);
-				if(!strncmp(text, addy, len)){
-					matches[nmatches++] = addy;
+				if(!strncmp(text + 2, addy, len - 2)){
+					pfxs[nmatches] = "/$";
+					matches[nmatches] = addy;
+					sfxs[nmatches] = NULL;
+					nmatches++;
 				}
 				o += ss + 4;
 			}
-		}else{
-			return NULL;
 		}
+		if(!strncmp(text, or_prefix, len)){
+			pfxs[nmatches] = or_prefix;
+			matches[nmatches] = NULL;
+			sfxs[nmatches] = NULL;
+			nmatches++;
+		}
+		if(!strncmp(text, or_prefix, or_prefixlen)){
+			for(int i = 0;
+			    i < sizeof(or_fns) / sizeof(struct or_fn);
+			    i++){
+				if(!strncmp(text + or_prefixlen,
+					    or_fns[i].sym,
+					    len - or_prefixlen)){
+					pfxs[nmatches] = or_prefix;
+					matches[nmatches] = or_fns[i].sym;
+					sfxs[nmatches] = NULL;
+					nmatches++;
+				}
+			}
+			if(!strncmp(text + or_prefixlen,
+				    "/print",
+				    6)){
+				oserepl_rl_compgen_addContextBundleSfxs(text,
+									len,
+									or_prefix,
+									or_prefixlen,
+									"/print",
+									pfxs,
+									matches,
+									sfxs,
+									&nmatches);
+			}
+		}
+		// builtins that take a fixed set of suffixes
+		if(!strncmp(text, "/>", 2)
+		   || !strncmp(text, "/>/", 3)){
+			oserepl_rl_compgen_addContextBundleSfxs(text,
+								len,
+								NULL,
+								0,
+								"/>",
+								pfxs,
+								matches,
+								sfxs,
+								&nmatches);
+		}else if(!strncmp(text, "/<", 2)){
+			if(text[2] == '/'){
+				oserepl_rl_compgen_addContextBundleSfxs(text,
+									len,
+									NULL,
+									0,
+									"/<",
+									pfxs,
+									matches,
+									sfxs,
+									&nmatches);
+			}else if(text[2] == 0){
+				oserepl_rl_compgen_addContextBundleSfxs(text,
+									len,
+									NULL,
+									0,
+									"/<",
+									pfxs,
+									matches,
+									sfxs,
+									&nmatches);
+				oserepl_rl_compgen_addContextBundleSfxs(text,
+									len,
+									NULL,
+									0,
+									"/<<",
+									pfxs,
+									matches,
+									sfxs,
+									&nmatches);
+			}else if(text[2] == '<'){
+				oserepl_rl_compgen_addContextBundleSfxs(text,
+									len,
+									NULL,
+									0,
+									"/<<",
+									pfxs,
+									matches,
+									sfxs,
+									&nmatches);
+			}
+		}else if(!strncmp(text, "/-", 2)
+			 || !strncmp(text, "/-/", 3)){
+			oserepl_rl_compgen_addContextBundleSfxs(text,
+								len,
+								NULL,
+								0,
+								"/-",
+								pfxs,
+								matches,
+								sfxs,
+								&nmatches);
+		}
+
 	}
 	if(curmatch == nmatches){
 		return NULL;
 	}else{
-		char *sym = matches[curmatch++];
-		int symlen = strlen(sym);
-		char *buf = malloc(symlen + 3);
-		sprintf(buf, "/%c%s", tok, sym);
+		const char * const pfx = pfxs[curmatch];
+		const char * const sym = matches[curmatch];
+		const char * const sfx = sfxs[curmatch];
+		curmatch++;
+		const int len = (pfx ? strlen(pfx) : 0)
+			+ (sym ? strlen(sym) : 0)
+			+ (sfx ? strlen(sfx) : 0);
+		char *buf = malloc(len + 1);
+		memset(buf, 0, len + 1);
+		char *bufp = buf;
+		if(pfx){
+			bufp += sprintf(bufp, "%s", pfx);
+		}
+		if(sym){
+			bufp += sprintf(bufp, "%s", sym);
+		}
+		if(sfx){
+			bufp += sprintf(bufp, "%s", sfx);
+		}
 		return buf;
-		//return strdup(matches[curmatch++]);
 	}
 }
 
-char **completer(const char *text, int start, int end)
+static char **oserepl_rl_compcb(const char *text, int start, int end)
 {
 	// Don't do filename completion even if our generator finds no matches.
 	// rl_attempted_completion_over = 1;
 
 	// Note: returning nullptr here will make readline use the default
-	// filename completer.
-	return rl_completion_matches(text, completion_generator);
+	// filename oserepl_rl_compcb.
+	return rl_completion_matches(text, oserepl_rl_compgen);
 }
 
-void rl_cb(char *line)
+static void oserepl_rl_cb(char *line)
 {
 	if(!line){
 		return;
 	}
-
+	or_have_input = 1;
+	
 	int len = strlen(line);
 	if(strlen(line) <= 0){
 		return;
@@ -230,95 +443,15 @@ void rl_cb(char *line)
 		linep++;
 		len_trimmed--;
 	}
-			
-	if(*linep != '/'){
-		switch(*linep){
-		case '?':
-			printf("better ask someone else\n");
-			return;
-		case 'i':
-			printStack(vm_i, "INPUT");
-			return;
-		case 's':
-			printStack(vm_s, "STACK");
-			return;
-		case 'e':
-			printStack(vm_e, "ENV");
-			return;
-		case 'c':
-			printStack(vm_c, "CONTROL");
-			return;
-		case 'd':
-			printStack(vm_d, "DUMP");
-			return;
-		case 'o':
-			printStack(vm_o, "OUTPUT");
-			return;
-		case 't':
-			if(step){
-				step = 0;
-			}else{
-				return;
-			}
-			break;
-		case 'n':
-			if(!step){
-				return;
-			}
-			break;
-		default:
-			return;
-		}
-		free(line);
-		run();
-		sendStacksUDP(udpsock_input,
-			      &sockaddr_send);
-		printStack(vm_s, "STACK");
-	}else{
-		ose_pushMessage(vm_i, line, strlen(line), 0);
-		if(ose_bundleIsEmpty(vm_i) == OSETT_FALSE
-		   || ose_bundleIsEmpty(vm_c) == OSETT_FALSE){
-			;
-		}
-		add_history(line);
-		free(line);
-		run();
-		sendStacksUDP(udpsock_input,
-			      &sockaddr_send);
-		printStack(vm_s, "STACK");
-	}
+
+	add_history(line);
+	ose_pushMessage(vm_i, line, strlen(line), 0);
+	free(line);
 }
 
-char *ose_reader_prompt = "# ";
+// REPL builtin functions accessable with /ose messages
 
-void sig_handler(int signo)
-{
-	switch(signo){
-	case SIGINT:
-		quit++;
-		if(quit > 1){
-			exit(0);
-		}
-		longjmp(repl_jmp_buf, 2);
-	case SIGABRT:
-		repl_assertion_failed = 1;
-		longjmp(repl_jmp_buf, 1);
-	}
-}
-
-void repl_abortOnError(ose_bundle bundle)
-{
-	abort_on_error = (abort_on_error == 0);
-	if(abort_on_error){
-		signal(SIGABRT, SIG_DFL);
-	}else{
-		signal(SIGABRT, sig_handler);
-	}
-	fprintf(stdout, "---abort_on_error %s---\n",
-		abort_on_error ? "on" : "off");
-}
-
-void repl_import(ose_bundle bundle)
+static void oserepl_import(ose_bundle bundle)
 {
 	const char * const path = ose_peekString(vm_s);
 	const int32_t pathlen = strlen(path);
@@ -337,51 +470,143 @@ void repl_import(ose_bundle bundle)
 				path);
 		}ose_end_try;
 		fprintf(stdout, "---loaded %s successfully---\n", path);
-		// ose_rollBottom(vm_s);
-		// ose_drop(vm_s);
 	}
 }
 
-void repl_send(ose_bundle osevm)
+static void oserepl_step(ose_bundle bundle)
 {
-	char *addr = NULL;
-	short port = 0;
-	if(ose_peekMessageArgType(vm_s) == OSETT_STRING){
-		int32_t addrlen = strlen(ose_peekString(vm_s));
-		addr = (char *)calloc(addrlen + 1, 1);
-		ose_popString(vm_s, addr);
+	or_step = (or_step == 0);
+	fprintf(stdout, "---stepping %s---\n", or_step ? "enabled" : "disabled");
+}
+
+static void oserepl_verbose(ose_bundle bundle)
+{
+	or_verbose = (or_verbose == 0);
+	fprintf(stdout, "---verbose %s---\n", or_verbose ? "on" : "off");
+}
+
+static void oserepl_printContextBundle(ose_bundle osevm)
+{
+	const char * const address = ose_peekAddress(vm_c);
+	ose_bundle bundle;
+	if(address[or_prefixlen + 6] == '/'){
+		bundle = ose_enter(osevm, address + or_prefixlen + 6);
 	}else{
-		ose_rassert(0 && "send arg 1 must be a string", 1);
+		bundle = ose_enter(osevm, ose_peekString(vm_s));
+		ose_drop(vm_s);
 	}
-	if(ose_peekMessageArgType(vm_s) == OSETT_INT32){
-		port = ose_popInt32(vm_s);
+	ose_pprintFullBundle(bundle, vm_s, NULL);
+	printf("%s\n", ose_peekString(vm_s));
+	ose_drop(vm_s);
+	fflush(stdout);
+}
+
+static void oserepl_udpport(ose_bundle bundle)
+{
+	const char * const addr = ose_peekAddress(vm_c);
+	const int32_t addrlen = strlen(addr);
+	if(!strncmp(addr + or_prefixlen + 4, "/input", 6)){
+		if(!strncmp(addr + or_prefixlen + 4 + 6 + 5, "/set", 4)){
+			or_udp_port_input = ose_popInt32(vm_s);
+			if(or_udp_socket_input){
+				close(or_udp_socket_input);
+				or_udp_socket_input = oserepl_udp_sock("0.0.0.0",
+								 or_udp_port_input,
+								 &or_udp_sockaddr_in_input);
+			}
+		}else{
+			ose_pushInt32(vm_s, or_udp_port_input);
+		}
+	}else if(!strncmp(addr + or_prefixlen + 4, "/output", 7)){
+		if(!strncmp(addr + or_prefixlen + 4 + 7 + 5, "/set", 4)){
+			or_udp_port_output = ose_popInt32(vm_s);
+			if(or_udp_socket_output){
+				close(or_udp_socket_output);
+				or_udp_socket_output = oserepl_udp_sock(or_udp_addrstr_output,
+								  or_udp_port_output,
+								  &or_udp_sockaddr_in_output);
+			}
+		}else{
+			ose_pushInt32(vm_s, or_udp_port_output);
+		}
+	}else if(addrlen > or_prefixlen + 5){
+		ose_assert(0 && "ose port must be either /input or /output");
 	}else{
-		ose_rassert(0 && "send arg 2 must be a port num (int)", 1);
+		ose_assert(0 && "ose port must be either /input or /output");
 	}
-	struct sockaddr_in sockaddr = sockaddr_init(addr, port);
-	int udpsock = socket(AF_INET, SOCK_DGRAM, 0);
-	bind(udpsock, (struct sockaddr *)&sockaddr, sizeof(struct sockaddr_in));
-	int r = sendto(udpsock,
-		       ose_getBundlePtr(vm_o),
-		       ose_readInt32(vm_o, -4),
+}
+
+static void oserepl_udpaddr(ose_bundle bundle)
+{
+	// const char * const addr = ose_peekAddress(vm_c);
+	// const int32_t addrlen = strlen(addr);
+	const char * const addr = ose_peekString(vm_s);
+	if(or_udp_socket_output){
+		close(or_udp_socket_output);
+	}
+	or_udp_addrstr_output = addr;
+	or_udp_socket_output = oserepl_udp_sock(or_udp_addrstr_output,
+					  or_udp_port_output,
+					  &or_udp_sockaddr_in_output);
+	ose_drop(vm_s);
+}
+
+static void oserepl_setPrefix(ose_bundle bundle)
+{
+	if(ose_peekType(vm_s) == OSETT_MESSAGE
+	   && ose_isStringType(ose_peekMessageArgType(vm_s)) == OSETT_TRUE){
+		free(or_prefix);
+		or_prefix = strdup(ose_peekString(vm_s));
+		or_prefixlen = strlen(or_prefix);
+		ose_drop(vm_s);
+	}else{
+		ose_assert(0 && "prefix must be a string");
+	}
+}
+
+// UDP I/O
+static int oserepl_udp_sock(const char * const addr,
+			    uint16_t port,
+			    struct sockaddr_in *sa)
+{
+	memset(sa, 0, sizeof(struct sockaddr_in));
+	sa->sin_family = AF_INET;
+	sa->sin_addr.s_addr = inet_addr(addr);
+	sa->sin_port = htons(port);
+	int sock = socket(AF_INET, SOCK_DGRAM, 0);
+	bind(sock, (struct sockaddr*)sa, sizeof(struct sockaddr_in));
+	return sock;
+}
+
+static int oserepl_udp_send(ose_bundle bundle)
+{
+	int r = sendto(or_udp_socket_output,
+		       ose_getBundlePtr(bundle),
+		       ose_readInt32(bundle, -4),
 		       0,
-		       (struct sockaddr *)&sockaddr,
+		       (struct sockaddr *)&or_udp_sockaddr_in_output,
 		       sizeof(struct sockaddr_in));
+	return r;
 }
 
-void repl_step(ose_bundle bundle)
+// REPL
+static void oserepl_sigHandler(int signo)
 {
-	step = (step == 0);
-	fprintf(stdout, "---stepping %s---\n", step ? "enabled" : "disabled");
+	switch(signo){
+	case SIGINT:
+		or_quit++;
+		if(or_quit > 1){
+			exit(0);
+		}
+		siglongjmp(or_jmp_buf, 2);
+	case SIGABRT:
+		or_have_input = 0;
+		or_assertion_failed = 1;
+		siglongjmp(or_jmp_buf, 1);
+	}
 }
 
-void repl_verbose(ose_bundle bundle)
-{
-	verbose = (verbose == 0);
-	fprintf(stdout, "---verbose %s---\n", verbose ? "on" : "off");
-}
-
-void repl_init(void)
+static void oserepl_init(void)
 {
 	memset(bytes, 0, MAX_BUNDLE_LEN);
 	bundle = ose_newBundleFromCBytes(MAX_BUNDLE_LEN, bytes);
@@ -394,22 +619,104 @@ void repl_init(void)
 	vm_o = OSEVM_OUTPUT(osevm);
 }
 
+static uint64_t oserepl_run(void)
+{
+	int32_t stepnum = 0;
+	char t = OSETT_TRUE;
+#ifdef OSE_HAVE_HPTIMER
+	uint64_t here = ose_now(or_hptimer);
+#endif
+	while((t = osevm_step(osevm)) == OSETT_TRUE){
+		stepnum++;
+		if(or_step){
+			ose_pprintFullBundle(vm_c, vm_s, "Control");
+			printf("%s\n", ose_peekString(vm_s));
+			ose_drop(vm_s);
+			break;
+		}
+	}
+#ifdef OSE_HAVE_HPTIMER
+	uint64_t there = ose_now(or_hptimer);
+	here = ose_timeToMonotonicNanos(or_hptimer, here);
+	there = ose_timeToMonotonicNanos(or_hptimer, there);
+	return there - here;
+#else
+	return 0;
+#endif
+}
+
 int main(int ac, char **av)
 {
-	// process args
-	for(int i = 1; i < ac; i++){
-		if(!strcmp(av[i], "--verbose")){
-			verbose = 1;
+	or_prefix = strdup("/ose");
+	or_prefixlen = 4;
+	{
+		// process args
+		for(int i = 1; i < ac; i++){
+			if(!strcmp(av[i], "--verbose")){
+				or_verbose = 1;
+			}else if(!strcmp(av[i], "--input-port")){
+				uint16_t ip = (uint16_t)strtol(av[i + 1], NULL, 10);
+				if(ip <= 1024 || ip > 65535){
+					fprintf(stderr,
+						"input port out of range [1025,65535] (%d)\n",
+						ip);
+					fprintf(stderr,
+						"using default value: %d\n",
+						or_udp_port_input);
+				}else{
+					or_udp_port_input = ip;
+				}
+				i++;
+			}else if(!strcmp(av[i], "--output-port")){
+				uint16_t op = (uint16_t)strtol(av[i + 1], NULL, 10);
+				if(op <= 1024 || op > 65535){
+					fprintf(stderr,
+						"output port out of range [1025,65535] (%d)\n",
+						op);
+					fprintf(stderr,
+						"using default value: %d\n",
+						or_udp_port_output);
+				}else{
+					or_udp_port_output = op;
+				}
+				i++;
+			}else if(!strcmp(av[i], "--output-address")){
+				or_udp_addrstr_output = av[i + 1];
+				i++;
+			}else if(!strcmp(av[i], "--udp-output")){
+				or_udp_output = 1;
+			}else if(!strcmp(av[i], "--udp-input")){
+				or_udp_input = 1;
+			}else if(!strcmp(av[i], "--prefix")){
+				or_prefix = av[i + 1];
+				or_prefixlen = strlen(or_prefix);
+				i++;
+			}
 		}
+	}
+	{
+		printf("Ose %s\n", OSE_VERSION);
+		printf("\n");
+		if(or_udp_input){
+			printf("Receiving on UDP port %d\n", or_udp_port_input);
+		}else{
+			printf("UDP input disabled (enable with /ose/input/udp/on)\n");
+		}
+		if(or_udp_output){
+			printf("Sending to %s:%d\n", or_udp_addrstr_output, or_udp_port_output);
+		}else{
+			printf("UDP output disabled (enable with /ose/output/udp/on)\n");
+		}
+		printf("\n");
 	}
 
 	// install signal handler
-	if(signal(SIGINT, sig_handler) == SIG_ERR){
+	if(signal(SIGINT, oserepl_sigHandler) == SIG_ERR){
 		fprintf(stderr,
 			"error installing signal handler to catch SIGINT\n");
 		return 0;
 	}
-	if(signal(SIGABRT, sig_handler) == SIG_ERR){
+	if(signal(SIGABRT, oserepl_sigHandler) == SIG_ERR){
 		fprintf(stderr,
 			"error installing signal handler to catch SIGABRT\n");
 		return 0;
@@ -429,29 +736,37 @@ int main(int ac, char **av)
 
 	// set up ose environment and vm
 	bytes = (char *)malloc(MAX_BUNDLE_LEN);
-	repl_init();
+	oserepl_init();
 
 	// libedit
-	rl_callback_handler_install(ose_reader_prompt, rl_cb);
-	rl_attempted_completion_function = completer;
-	rl_basic_word_break_characters = " \t\n\"\\'`@><=;|&{(";
+	rl_callback_handler_install(or_prompt, oserepl_rl_cb);
+	rl_attempted_completion_function = oserepl_rl_compcb;
+	//rl_basic_word_break_characters = " \t\n\"\\'`@><=;|&{(";
+	rl_basic_word_break_characters = " \t\n\"\\'`@=;|&{(";
 	rl_completion_append_character = 0;
 
-	// set up udp sockets and select
-	sockaddr_input = sockaddr_init("127.0.0.1", PORT_INPUT);
-	sockaddr_send = sockaddr_init("127.0.0.1", PORT_SEND);
-	udpsock_input = setupUDP(&sockaddr_input, PORT_INPUT);
+	or_udp_socket_input = oserepl_udp_sock("0.0.0.0",
+						    or_udp_port_input,
+						    &or_udp_sockaddr_in_input);
+	or_udp_socket_output = oserepl_udp_sock(or_udp_addrstr_output,
+						     or_udp_port_output,
+						     &or_udp_sockaddr_in_output);
+
 	fd_set rset;
 	FD_ZERO(&rset);
-	int maxfdp1 = udpsock_input + 1;
+	int maxfdp1 = or_udp_socket_input + 1;
+
+	or_hptimer = ose_initTimer();
 
 	while(1){
-		switch(setjmp(repl_jmp_buf)){
+		switch(sigsetjmp(or_jmp_buf, 1)){
 		case 1: {
-			if(repl_assertion_failed){
-				repl_assertion_failed = 0;
-				repl_init();
-				rl_callback_read_char();
+			if(or_assertion_failed){
+				or_assertion_failed = 0;
+				oserepl_init();
+				fputs("\r  \r", stdout);
+				rl_on_new_line();
+				rl_forced_update_display();
 			}
 		}
 			break;
@@ -461,38 +776,97 @@ int main(int ac, char **av)
 			break;
 		}
 
-		FD_SET(udpsock_input, &rset);
+		if(or_udp_input){
+			FD_SET(or_udp_socket_input, &rset);
+			maxfdp1 = or_udp_socket_input + 1;
+		}else{
+			maxfdp1 = STDIN_FILENO + 1;
+		}
 		FD_SET(STDIN_FILENO, &rset);
 		int nselect = select(maxfdp1, &rset, NULL, NULL, NULL);
 		if(nselect <= 0){
 			continue;
 		}
 		//////////////////////////////////////////////////
-		// service udp
+		// read
 		//////////////////////////////////////////////////
-		if(FD_ISSET(udpsock_input, &rset)){
-			struct sockaddr_in clientaddr;
-			socklen_t clientaddr_len = sizeof(struct sockaddr_in);;
-			memset(&clientaddr, 0, sizeof(struct sockaddr_in));
-			char buf[1024];
-			int len = recvfrom(udpsock_input, buf, 1024, 0,
-					   (struct sockaddr *)&clientaddr,
-					   &clientaddr_len);
+		if(FD_ISSET(or_udp_socket_input, &rset)){
+			struct sockaddr_in ca;
+			socklen_t ca_len = sizeof(struct sockaddr_in);;
+			memset(&ca, 0, sizeof(struct sockaddr_in));
+			char buf[65536];
+			int len = recvfrom(or_udp_socket_input,
+					   buf, 1024, 0,
+					   (struct sockaddr *)&ca,
+					   &ca_len);
 			if(len > 0){
 				ose_pushBlob(vm_i, len, buf);
 				ose_blobToElem(vm_i);
 				ose_popAllDrop(vm_i);
-				run();
-				sendStacksUDP(udpsock_input,
-					      (struct sockaddr_in *)&clientaddr);
-				ose_clear(vm_o);
-				printStack(vm_s, "STACK");
-				rl_callback_read_char();
+				or_have_input = 1;
+				{
+					// announce that we received a bundle
+					// over udp
+					fputs("\r  \r", stdout);
+					uint32_t a = ntohl(ca.sin_addr.s_addr);
+					printf("Received %d byte bundle from "
+					       "%d.%d.%d.%d:%d\n",
+					       len,
+					       (a & 0xFF000000) >> 24,
+					       (a & 0x00FF0000) >> 16,
+					       (a & 0x0000FF00) >> 8,
+					       a & 0x000000FF,
+					       or_udp_port_input);
+				}
 			}
 		}
 
 		if(FD_ISSET(STDIN_FILENO, &rset)){
 			rl_callback_read_char();
+		}
+
+		int should_print = 0;
+		//////////////////////////////////////////////////
+		// eval
+		//////////////////////////////////////////////////
+		uint64_t elapsed_time = 0;
+		if(or_have_input){
+			fputs("\r                \r", stdout);
+			elapsed_time = oserepl_run();
+			should_print = 1;
+		}
+
+		//////////////////////////////////////////////////
+		// print
+		//////////////////////////////////////////////////
+		if(or_udp_port_output && should_print){
+			oserepl_udp_send(vm_o);
+		}
+		ose_clear(vm_o);
+		
+		if(should_print){
+			printf(ANSI_COLOR_CYAN);
+			ose_pprintFullBundle(vm_s, vm_s, "Stack");
+			printf("%s\n", ose_peekString(vm_s));
+			ose_drop(vm_s);
+			if(or_verbose){
+				int32_t s = ose_readInt32(vm_s, -4);
+				int32_t sa = ose_spaceAvailable(vm_s);
+				printf(ANSI_COLOR_YELLOW);
+				printf("\n");
+				printf("%d%% used, %d bytes free\n",
+				       (int32_t)(s / (s + sa)), sa);
+#ifdef OSE_HAVE_HPTIMER
+				printf("Elapsed time: %lluns, %fms, %fs\n",
+				       elapsed_time,
+				       (double)elapsed_time / 1000000.,
+				       (double)elapsed_time / 1000000000.);
+#endif
+			}
+			printf(ANSI_COLOR_RESET);
+			or_have_input = 0;
+			rl_on_new_line();
+			rl_forced_update_display();
 		}
 	}
  cleanup_and_quit:
@@ -504,86 +878,4 @@ int main(int ac, char **av)
 			histfile, r);
 	}
 	return 0;
-}
-
-void printStack(ose_bundle bundle, char *name)
-{
-	int32_t len = ose_pprintBundle(bundle,
-				       NULL,
-				       0);
-	char buf[len + 1];
-	memset(buf, 0, len + 1);
-	ose_pprintBundle(bundle,
-			 buf,
-			 len + 1);
-	if(verbose){
-		int32_t s = ose_readInt32(bundle, -4);
-		printf(ANSI_COLOR_GREEN
-		       "%s (%d bytes used of %d (%d%%)):\n",
-		       name,
-		       s,
-		       s + ose_spaceAvailable(bundle),
-		       (int)(s / (s + ose_spaceAvailable(bundle))));
-	}else{
-		printf(ANSI_COLOR_GREEN "%s:\n", name);
-	}
-	printf("%s\n" ANSI_COLOR_RESET, buf);
-}
-
-struct sockaddr_in sockaddr_init(char *addr, short port)
-{
-	struct sockaddr_in sa;
-	memset(&sa, 0, sizeof(struct sockaddr_in));
-	sa.sin_family = AF_INET;
-	sa.sin_addr.s_addr = inet_addr(addr);//htonl(INADDR_ANY);
-	sa.sin_port = htons(port);
-	return sa;
-}
-
-int setupUDP(struct sockaddr_in *sa, short port)
-{
-	// memset(sa, 0, sizeof(struct sockaddr_in));
-	// sa->sin_family = AF_INET;
-	// sa->sin_addr.s_addr = inet_addr("127.0.0.1");//htonl(INADDR_ANY);
-	// sa->sin_port = htons(port);
-	int udpsock = socket(AF_INET, SOCK_DGRAM, 0);
-	bind(udpsock,
-	     (struct sockaddr*)sa,
-	     sizeof(struct sockaddr_in));
-	return udpsock;
-}
-
-int sendUDP(ose_bundle bundle, int sock, short port, struct sockaddr_in *addr)
-{
-	addr->sin_port = htons(PORT_SEND);
-	int r = sendto(sock,
-		       ose_getBundlePtr(bundle),
-		       ose_readInt32(bundle, -4),
-		       0,
-		       (struct sockaddr *)addr,
-		       sizeof(struct sockaddr_in));
-	return r;
-}
-
-void sendStacksUDP(int sock, struct sockaddr_in *addr)
-{
-	// sendUDP(vm_o,
-	// 	sock,
-	// 	PORT_SEND,
-	// 	addr);
-}
-
-void run(void)
-{
-	char t = OSETT_TRUE;
-	while((t = osevm_step(osevm)) == OSETT_TRUE){
-		if(step){
-			fprintf(stdout, "con(t)inue, (n)ext\n");
-			break;
-		}
-	}
-	if(step && t == OSETT_FALSE){
-		fprintf(stdout, "---finished---\n");
-	}
-	//osevm_run(osevm);
 }

@@ -203,8 +203,7 @@ struct ose_timetag
 
 #ifdef OSE_DEBUG
 #include <stdio.h>
-void p(ose_bundle bundle, const char * const str);
-void e(ose_bundle bundle, const char * const str);
+void printBundle(ose_bundle bundle, const char * const str);
 
 void pbytes(ose_bundle bundle, int32_t start, int32_t end);
 

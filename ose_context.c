@@ -101,7 +101,7 @@ int32_t ose_pushContextMessage(ose_bundle bundle,
 	return fs;
 }
 
-int32_t ose_spaceAvailable(ose_bundle bundle)
+int32_t ose_spaceAvailable(ose_constbundle bundle)
 {
 	return ose_readInt32(bundle, -8) - ose_readInt32(bundle, -4);
 }
@@ -139,6 +139,7 @@ ose_bundle ose_exit(ose_bundle bundle)
 void ose_addToSize(ose_bundle bundle, int32_t amt)
 {
 	ose_assert(ose_isBundle(bundle) == OSETT_TRUE);
+	//ose_assert(amt >= 0);
 	int32_t os = ose_readInt32(bundle, -4);
 	ose_assert(os >= OSE_BUNDLE_HEADER_LEN);
 	int32_t ns1 = os + amt;
@@ -154,17 +155,50 @@ void ose_addToSize(ose_bundle bundle, int32_t amt)
 	ose_assert(ose_readInt32(bundle, ose_readInt32(bundle, -4)) >= 0);
 }
 
+void ose_incSize(ose_bundle bundle, int32_t amt)
+{
+	ose_assert(ose_isBundle(bundle) == OSETT_TRUE);
+	//ose_assert(amt >= 0);
+	int32_t os = ose_readInt32(bundle, -4);
+	ose_assert(os >= OSE_BUNDLE_HEADER_LEN);
+	int32_t ns1 = os + amt;
+	ose_assert(ns1 >= OSE_BUNDLE_HEADER_LEN);
+	int32_t ns2 = ose_readInt32(bundle, -8) - ns1;
+	ose_assert(ns2 >= 0);
+	ose_writeInt32(bundle, -4, ns1);
+	ose_writeInt32(bundle, ns1, ns2);
+	ose_assert(ose_readInt32(bundle, -4) >= OSE_BUNDLE_HEADER_LEN);
+	ose_assert(ose_readInt32(bundle, ose_readInt32(bundle, -4)) >= 0);
+}
+
+void ose_decSize(ose_bundle bundle, int32_t amt)
+{
+	ose_assert(ose_isBundle(bundle) == OSETT_TRUE);
+	//ose_assert(amt >= 0);
+	int32_t os = ose_readInt32(bundle, -4);
+	ose_assert(os >= OSE_BUNDLE_HEADER_LEN);
+	int32_t ns1 = os - amt;
+	ose_assert(ns1 >= OSE_BUNDLE_HEADER_LEN);
+	int32_t ns2 = ose_readInt32(bundle, -8) - ns1;
+	ose_assert(ns2 >= 0);
+	ose_writeInt32(bundle, os, 0);
+	ose_writeInt32(bundle, -4, ns1);
+	ose_writeInt32(bundle, ns1, ns2);
+	ose_assert(ose_readInt32(bundle, -4) >= OSE_BUNDLE_HEADER_LEN);
+	ose_assert(ose_readInt32(bundle, ose_readInt32(bundle, -4)) >= 0);
+}
+
 void ose_copyElem(ose_constbundle src, ose_bundle dest)
 {
 	ose_assert(ose_bundleHasAtLeastNElems(src, 1) == OSETT_TRUE);
 	const char * const srcp = ose_getBundlePtr(src);
-	int32_t src_offset = ose_getLastBundleElemOffset(src);
-	int32_t src_elem_size = ose_readInt32(src, src_offset) + 4;
+	const int32_t src_offset = ose_getLastBundleElemOffset(src);
+	const int32_t src_elem_size = ose_readInt32(src, src_offset) + 4;
 	char *destp = ose_getBundlePtr(dest);
 	memcpy(destp + ose_readInt32(dest, -4),
 	       srcp + src_offset,
 	       src_elem_size);
-	ose_addToSize(dest, src_elem_size);
+	ose_incSize(dest, src_elem_size);
 }
 
 void ose_moveElem(ose_bundle src, ose_bundle dest)

@@ -36,7 +36,6 @@ extern "C" {
 #include <setjmp.h>
 
 /** @brief Assertion macro. Can be turned off by defining NDEBUG 
- * or undefining OSE_DEBUG
  */
 #define ose_assert(t) assert(t)
 

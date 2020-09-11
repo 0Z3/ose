@@ -182,7 +182,7 @@ int32_t ose_pushContextMessage(ose_bundle bundle,
  * @param bundle The bundle.
  * @returns The number of unused bytes in the bundle.
  */
-int32_t ose_spaceAvailable(ose_bundle bundle);
+int32_t ose_spaceAvailable(ose_constbundle bundle);
 
 
 
@@ -224,6 +224,8 @@ ose_bundle ose_exit(ose_bundle bundle);
  * @param amt The amount to add to (or subtract from) the bundle.
  */
 void ose_addToSize(ose_bundle bundle, int32_t amt);
+void ose_incSize(ose_bundle bundle, int32_t amt);
+void ose_decSize(ose_bundle bundle, int32_t amt);
 
 
 

@@ -19,28 +19,21 @@
   SOFTWARE.
 */
 
-#ifndef OSE_PRINT_H
-#define OSE_PRINT_H
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+int main(int ac, char **av)
+{
+	fprintf(stdout, "#define OSE_LITTLE_ENDIAN 1\n");
+	fprintf(stdout, "#define OSE_BIG_ENDIAN 2\n");
 
-#include "ose_vm.h"
-
-int32_t ose_pprintBundle(ose_bundle bundle,
-			 char *buf,
-			 int32_t buflen);
-
-int32_t ose_pprintFullBundle_impl(ose_constbundle bundle,
-				  char *buf, int32_t buflen,
-				  const char * const name);
-void ose_pprintFullBundle(ose_constbundle src,
-			  ose_bundle dest,
-			  const char * const name);
-
-#ifdef __cplusplus
+	int32_t i = 1;
+	char *s = (char *)&i;
+	if(s[3] == 1){
+		fprintf(stdout, "#define OSE_ENDIAN OSE_BIG_ENDIAN\n");
+	}else{
+		fprintf(stdout, "#define OSE_ENDIAN OSE_LITTLE_ENDIAN\n");
+	}
+	return 0;
 }
-#endif
-
-#endif

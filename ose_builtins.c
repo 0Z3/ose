@@ -443,12 +443,56 @@ void ose_builtin_return(ose_bundle osevm)
 	ose_bundle vm_e = OSEVM_ENV(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
         ose_bundle vm_d = OSEVM_DUMP(osevm);
-	// output
-	// input
-	// stack
-	// environment
-	// control
 
+#ifdef OSE_USE_OPTIMIZED_CODE
+	char *dp = ose_getBundlePtr(vm_d);
+	char *cp = ose_getBundlePtr(vm_c);
+	char *sp = ose_getBundlePtr(vm_s);
+	char *ep = ose_getBundlePtr(vm_e);
+	char *ip = ose_getBundlePtr(vm_i);
+
+	int32_t onm3, onm2, onm1, on, snm3, snm2, snm1, sn;
+	extern void be4(ose_bundle bundle,
+			int32_t *onm3,
+			int32_t *snm3,
+			int32_t *onm2,
+			int32_t *snm2,
+			int32_t *onm1,
+			int32_t *snm1,
+			int32_t *on,
+			int32_t *sn);
+	be4(vm_d, &onm3, &snm3, &onm2, &snm2, &onm1, &snm1, &on, &sn);
+	
+	ose_clear(vm_c);
+	ose_incSize(vm_c, sn - OSE_BUNDLE_HEADER_LEN);
+	memcpy(cp + OSE_BUNDLE_HEADER_LEN,
+	       dp + on + 4 + OSE_BUNDLE_HEADER_LEN,
+	       sn - OSE_BUNDLE_HEADER_LEN);
+
+	ose_incSize(vm_s, snm1 - OSE_BUNDLE_HEADER_LEN);
+	memmove(sp + OSE_BUNDLE_HEADER_LEN + (snm1 - OSE_BUNDLE_HEADER_LEN),
+		sp + OSE_BUNDLE_HEADER_LEN,
+		ose_readInt32(vm_s, -4) - OSE_BUNDLE_HEADER_LEN);
+	memcpy(dp + onm1 + 4 + OSE_BUNDLE_HEADER_LEN,
+	       sp + OSE_BUNDLE_HEADER_LEN,
+	       snm1 - OSE_BUNDLE_HEADER_LEN);
+
+	ose_clear(vm_e);
+	ose_incSize(vm_e, snm2 - OSE_BUNDLE_HEADER_LEN);
+	memcpy(ep + OSE_BUNDLE_HEADER_LEN,
+	       dp + onm2 + 4 + OSE_BUNDLE_HEADER_LEN,
+	       snm2 - OSE_BUNDLE_HEADER_LEN);
+
+	ose_clear(vm_i);
+	ose_incSize(vm_i, snm3 - OSE_BUNDLE_HEADER_LEN);
+	memcpy(ip + OSE_BUNDLE_HEADER_LEN,
+	       dp + onm3 + 4 + OSE_BUNDLE_HEADER_LEN,
+	       snm3 - OSE_BUNDLE_HEADER_LEN);
+
+	int32_t s = snm3 + snm2 + snm1 + sn + 16;
+	memset(dp + onm3, 0, s);
+	ose_decSize(vm_d, s);
+#else
 	// restore control
 	ose_replaceBundle(vm_d, vm_c);
 
@@ -465,4 +509,5 @@ void ose_builtin_return(ose_bundle osevm)
 
 	// restore input
 	ose_replaceBundle(vm_d, vm_i);
+#endif
 }

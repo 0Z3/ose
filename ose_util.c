@@ -398,7 +398,7 @@ int32_t ose_writeStringWithLen(ose_bundle bundle,
 	ose_assert(len >= 0);
 	ose_assert(plen >= 0);
 	ose_assert(plen > len);
-	strncpy(b, s, len);
+	memcpy(b, s, len);
 	for(int i = 0; i < plen - len; i++){
 		b[len + i] = 0;
 	}

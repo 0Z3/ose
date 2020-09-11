@@ -34,6 +34,116 @@
 #include "ose_builtins.h"
 #include "ose_vm.h"
 
+#if defined(OSE_ENDIAN)
+
+#if OSE_ENDIAN == OSE_LITTLE_ENDIAN
+
+#define OSEVM_INTCMP_MASK_1  	0x000000ff
+#define OSEVM_INTCMP_MASK_2  	0x0000ffff
+#define OSEVM_INTCMP_MASK_3  	0x00ffffff
+
+#define OSEVM_TOK_AT	     	0x002f402f
+#define OSEVM_TOK_QUOTE      	0x002f272f
+#define OSEVM_TOK_BANG		0x002f212f
+#define OSEVM_TOK_DOLLAR	0x002f242f
+#define OSEVM_TOK_GT       	0x002f3e2f
+#define OSEVM_TOK_LTLT	     	0x2f3c3c2f
+#define OSEVM_TOK_LT	     	0x002f3c2f
+#define OSEVM_TOK_DASH     	0x002f2d2f
+#define OSEVM_TOK_DOT     	0x002f2e2f
+#define OSEVM_TOK_COLON     	0x002f3a2f
+#define OSEVM_TOK_SCOLON     	0x002f3b2f
+#define OSEVM_TOK_PIPE     	0x002f7c2f
+#define OSEVM_TOK_OPAR     	0x002f282f
+#define OSEVM_TOK_CPAR     	0x002f292f
+#define OSEVM_TOK_i         	0x002f692f
+#define OSEVM_TOK_f         	0x002f662f
+#define OSEVM_TOK_s         	0x002f732f
+#define OSEVM_TOK_b         	0x002f622f
+#define OSEVM_TOK_AMP     	0x002f262f
+
+#define route_init(address, varname)			\
+	struct { int32_t i2, i3, i4; } varname;		\
+ 	do {						\
+ 		varname.i4 = *((int32_t *)address);	\
+ 		varname.i3 = varname.i4 & 0x00ffffff;	\
+ 		varname.i2 = varname.i3 & 0x0000ffff;	\
+ 	} while(0);
+
+#elif OSE_ENDIAN == OSE_BIG_ENDIAN
+
+#define OSEVM_INTCMP_MASK_1  0xff000000
+#define OSEVM_INTCMP_MASK_2  0xffff0000
+#define OSEVM_INTCMP_MASK_3  0xffffff00
+
+#define OSEVM_TOK_AT	     	0x2f402f00
+#define OSEVM_TOK_QUOTE      	0x2f272f00
+#define OSEVM_TOK_BANG		0x2f212f00
+#define OSEVM_TOK_DOLLAR	0x2f242f00
+#define OSEVM_TOK_GT       	0x2f3e2f00
+#define OSEVM_TOK_LTLT	     	0x2f3c3c2f
+#define OSEVM_TOK_LT	     	0x2f3c2f00
+#define OSEVM_TOK_DASH     	0x2f2d2f00
+#define OSEVM_TOK_DOT     	0x2f2e2f00
+#define OSEVM_TOK_COLON     	0x2f3a2f00
+#define OSEVM_TOK_SCOLON     	0x2f3b2f00
+#define OSEVM_TOK_PIPE     	0x2f7c2f00
+#define OSEVM_TOK_OPAR     	0x2f282f00
+#define OSEVM_TOK_CPAR     	0x2f292f00
+#define OSEVM_TOK_i         	0x2f692f00
+#define OSEVM_TOK_f         	0x2f662f00
+#define OSEVM_TOK_s         	0x2f732f00
+#define OSEVM_TOK_b         	0x2f622f00
+#define OSEVM_TOK_AMP     	0x2f262f00
+
+#define route_init(address, varname)			\
+	struct { int32_t i2, i3, i4; } varname;		\
+ 	do {						\
+ 		varname.i4 = *((int32_t *)address);	\
+ 		varname.i3 = varname.i4 & 0xffffff00;	\
+ 		varname.i2 = varname.i3 & 0xffff0000;	\
+ 	} while(0);
+#endif
+
+#define route_pfx_2(var, sym) ((sym) == (var.i4))
+#define route_pfx_1(var, sym) ((sym & OSEVM_INTCMP_MASK_3) == (var.i3))
+#define route_pfx(var, sym, n) (route_pfx_##n((var), (sym)))
+
+#define route_mthd_2(var, sym) ((sym & OSEVM_INTCMP_MASK_3) == (var.i4))
+#define route_mthd_1(var, sym) ((sym & OSEVM_INTCMP_MASK_2) == (var.i4))
+#define route_mthd(var, sym, n) (route_mthd_##n((var), (sym)))
+
+#else
+
+#define route_init(address, varname) const char * const varname = address
+
+#define route_pfx(var, sym, n) (strncmp(var, sym, n + 2) == 0)
+#define route_mthd(var, sym, n) (strncmp(var, sym, n + 1) == 0)
+
+#define OSEVM_TOK_AT		"/@/\0"
+#define OSEVM_TOK_QUOTE		"/'/\0"
+#define OSEVM_TOK_BANG		"/!/\0"
+#define OSEVM_TOK_DOLLAR	"/$/\0"
+#define OSEVM_TOK_GT       	"/>/\0"
+#define OSEVM_TOK_LTLT		"/<</"
+#define OSEVM_TOK_LT	     	"/</\0"
+#define OSEVM_TOK_DASH     	"/-/\0"
+#define OSEVM_TOK_DOT     	"/./\0"
+#define OSEVM_TOK_COLON     	"/:/\0"
+#define OSEVM_TOK_SCOLON     	"/;/\0"
+#define OSEVM_TOK_PIPE     	"/|/\0"
+#define OSEVM_TOK_OPAR     	"/(/\0"
+#define OSEVM_TOK_CPAR     	"/)/\0"
+#define OSEVM_TOK_i         	"/i/\0"
+#define OSEVM_TOK_f         	"/f/\0"
+#define OSEVM_TOK_s         	"/s/\0"
+#define OSEVM_TOK_b         	"/b/\0"
+#define OSEVM_TOK_AMP     	"/&/\0"
+
+#endif
+
+#define route(var, sym, n) (route_mthd(var, sym, n) || route_pfx(var, sym, n))
+
 static void convertKnownStringAddressToAddress(ose_bundle vm_c);
 
 static void popControlToStack(ose_bundle vm_c, ose_bundle vm_s)
@@ -54,12 +164,82 @@ void osevm_assign(ose_bundle osevm)
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_e = OSEVM_ENV(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	const char * const address = ose_peekAddress(vm_c);
+	
 	if(OSEVM_GET_FLAGS(osevm) & OSEVM_FLAG_COMPILE){
 		popControlToStack(vm_c, vm_s);
 		return;
 	}
-	if(!strncmp(address, "/@/", 3)){
+#ifdef OSE_USE_OPTIMIZED_CODE
+	char *eb = ose_getBundlePtr(vm_e);
+	int32_t es = ose_readInt32(vm_e, -4);
+	char *sb = ose_getBundlePtr(vm_s);
+	int32_t ss = ose_readInt32(vm_s, -4);
+	
+	char *addr = ose_peekAddress(vm_c);
+	
+	int addr_is_on_stack = 0;
+	if(addr[2] == '/'){
+		addr += 2;
+	}else{
+		addr_is_on_stack = 1;
+		addr = ose_peekString(vm_s);
+	}
+	int32_t addrlen = strlen(addr);
+	int32_t paddrlen = ose_pnbytes(addrlen);
+
+	int32_t eo = OSE_BUNDLE_HEADER_LEN;
+	int32_t amt = 0;
+	while(eo < es){
+		if(!strcmp(addr, eb + eo + 4)){
+			int32_t ss = ose_readInt32(vm_e, eo);
+			int32_t no = eo + ss + 4;
+			memmove(eb + eo,
+				eb + no,
+				es - no);
+			amt += ss + 4;
+			es -= ss + 4;
+		}
+		eo += ose_readInt32(vm_e, eo) + 4;
+	}
+	memset(eb + es, 0, amt);
+	ose_decSize(vm_e, amt);
+	memcpy(eb + es + 4, addr, addrlen);
+
+	eo = es + 4 + paddrlen;
+	eb[eo] = OSETT_ID;
+	eo++;
+	int32_t so = OSE_BUNDLE_HEADER_LEN;
+	while(so < ss){
+		int32_t to = so + 4 + ose_pstrlen(sb + so + 4);
+		int32_t ntt = strlen(sb + to);
+		memcpy(eb + eo, sb + to + 1, ntt - 1);
+		int32_t pntt = ose_pnbytes(ntt);
+		eo += ntt - 1;
+		// we store the offset of the data section where
+		// the address starts since we'll be deleting this anyway
+		ose_writeInt32(vm_s, so + 4, to + pntt);
+		so += ose_readInt32(vm_s, so) + 4;
+	}
+	while(eo % 4){
+		eo++;
+	}
+	
+	so = OSE_BUNDLE_HEADER_LEN;
+	while(so < ss){
+		int32_t size = ose_readInt32(vm_s, so);
+		// get the offset of the data section we stored earlier
+		int32_t offset = ose_readInt32(vm_s, so + 4);
+		int32_t amt = size - ((offset - so) - 4);
+		memcpy(eb + eo, sb + offset, amt);
+		eo += amt;
+		so += size + 4;
+	}
+	ose_writeInt32(vm_e, es, (eo - es) - 4);
+	ose_incSize(vm_e, eo - es);
+	ose_clear(vm_s);
+#else	
+	const char * const address = ose_peekAddress(vm_c);
+	if(address[2] == '/'){
 		ose_pushString(vm_s, address + 2);
 	}
 	if(ose_bundleIsEmpty(vm_s) == OSETT_TRUE){
@@ -87,6 +267,7 @@ void osevm_assign(ose_bundle osevm)
 	ose_moveStringToAddress(vm_s);
 	ose_moveElem(vm_s, vm_e);
 	ose_clear(vm_s);
+#endif
 }
 
 /**
@@ -103,28 +284,7 @@ void osevm_lookup(ose_bundle osevm)
 		popControlToStack(vm_c, vm_s);
 		return;
 	}	
-	// canonical version:
-	// if(!strncmp(address, "/$/", 3)){
-	// 	ose_pushString(vm_s, address + 2);
-	// }else{
-	// 	;
-	// }
-	// ose_bundleAll(vm_s);
-	// ose_pop(vm_s);
-	// ose_copyBundle(vm_e, vm_s);
-	// ose_swap(vm_s);
-	// ose_push(vm_s);
-	// ose_unpackDrop(vm_s);
-	// ose_pickMatch(vm_s);
-	// ose_rollBottom(vm_s);
-	// ose_swap(vm_s);
-	// ose_push(vm_s);
-	// ose_bundleAll(vm_s);
-	// ose_pop(vm_s);
-	// ose_nip(vm_s);
-	// ose_unpackDrop(vm_s);
-
-	if(!strncmp(address, "/$/", 3)){
+	if(address[2] == '/'){
 		ose_pushString(vm_e, address + 2);
 	}else{
 		ose_pushString(vm_e, ose_peekString(vm_s));
@@ -149,7 +309,7 @@ void osevm_funcall(ose_bundle osevm)
 		popControlToStack(vm_c, vm_s);
 		return;
 	}
-	if(!strncmp(address, "/!/", 3)){
+	if(address[2] == '/'){
 		ose_pushString(vm_s, address + 2);
 	}
 	ose_builtin_apply(osevm);
@@ -206,8 +366,8 @@ void osevm_appendToContextBundle(ose_bundle osevm)
 	}
 	ose_bundle src = vm_s;
 	ose_bundle dest = vm_e;
-	if(address[2] == '/'){
-		dest = ose_enter(osevm, address + 2);
+	if(address[3] == '/'){
+		dest = ose_enter(osevm, address + 3);
 	}
 	ose_appendBundle(src, dest);	
 }
@@ -946,13 +1106,13 @@ void osevm_default(ose_bundle osevm)
 #ifdef OSEVM_HAVE_SIZES
 ose_bundle osevm_init(ose_bundle bundle)
 #else
-ose_bundle osevm_init(ose_bundle bundle,
-		      int32_t input_size,
-		      int32_t stack_size,
-		      int32_t env_size,
-		      int32_t control_size,
-		      int32_t dump_size,
-		      int32_t output_size)
+	ose_bundle osevm_init(ose_bundle bundle,
+			      int32_t input_size,
+			      int32_t stack_size,
+			      int32_t env_size,
+			      int32_t control_size,
+			      int32_t dump_size,
+			      int32_t output_size)
 #endif
 {
 #ifdef OSEVM_HAVE_SIZES
@@ -1047,12 +1207,11 @@ static void applyControl(ose_bundle osevm, char *address)
         ose_bundle vm_d = OSEVM_DUMP(osevm);
 	ose_bundle vm_o = OSEVM_OUTPUT(osevm);
 
-	// pop control, push to stack, and execute
-	int32_t addresslen = strlen(address);
+	route_init(address, a);
 
 	int32_t flags = OSEVM_GET_FLAGS(osevm);
 	if(flags & OSEVM_FLAG_COMPILE){
-		if(!strcmp(address, "/)")){
+		if(route_mthd(a, OSEVM_TOK_CPAR, 1)){
 			ose_try{
 				OSEVM_ENDDEFUN(osevm);
 			}ose_catch(1){
@@ -1062,22 +1221,12 @@ static void applyControl(ose_bundle osevm, char *address)
 				;
 			}ose_end_try;
 			return;
-		// }else{
-		// 	ose_try{
-		// 		OSEVM_DEFAULT(osevm);
-		// 	}ose_catch(1){
-		// 		;
-		// 		// debug
-		// 	}ose_finally{
-		// 		;
-		// 	}ose_end_try;
-		// 	return;
 		}
 	}
 
-	if(!strcmp(address, OSE_BUNDLE_ID)){
+	if(!strncmp(address, OSE_BUNDLE_ID, OSE_BUNDLE_ID_LEN)){
 		ose_copyElem(vm_c, vm_s);
-	}else if(!strncmp(address, "/@", 2)){
+	}else if(route(a, OSEVM_TOK_AT, 1)){
 		ose_try{
 			OSEVM_ASSIGN(osevm);
 		}ose_catch(1){
@@ -1086,7 +1235,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/$", 2)){
+	}else if(route(a, OSEVM_TOK_DOLLAR, 1)){
 		ose_try{
 			OSEVM_LOOKUP(osevm);
 		}ose_catch(1){
@@ -1095,7 +1244,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/!", 2)){
+	}else if(route(a, OSEVM_TOK_BANG, 1)){
 		ose_try{
 			OSEVM_FUNCALL(osevm);
 		}ose_catch(1){
@@ -1104,7 +1253,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/'/", 3)){
+	}else if(route_pfx(a, OSEVM_TOK_QUOTE, 1)){
 		ose_try{
 			OSEVM_QUOTE(osevm);
 		}ose_catch(1){
@@ -1113,7 +1262,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/>", 2)){
+	}else if(route(a, OSEVM_TOK_GT, 1)){
 		ose_try{
 			OSEVM_COPYCONTEXTBUNDLE(osevm);
 		}ose_catch(1){
@@ -1122,7 +1271,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/<<", 3)){
+	}else if(route(a, OSEVM_TOK_LTLT, 2)){
 		ose_try{
 			OSEVM_APPENDTOCONTEXTBUNDLE(osevm);
 		}ose_catch(1){
@@ -1131,7 +1280,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/<", 2)){
+	}else if(route(a, OSEVM_TOK_LT, 1)){
 		ose_try{
 			OSEVM_REPLACECONTEXTBUNDLE(osevm);
 		}ose_catch(1){
@@ -1140,7 +1289,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/-", 2)){
+	}else if(route(a, OSEVM_TOK_DASH, 1)){
 		ose_try{
 			OSEVM_MOVEELEMTOCONTEXTBUNDLE(osevm);
 		}ose_catch(1){
@@ -1149,7 +1298,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/.", 2)){
+	}else if(route(a, OSEVM_TOK_DOT, 1)){
 		ose_try{
 			OSEVM_EXEC(osevm);
 		}ose_catch(1){
@@ -1158,7 +1307,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/|", 2)){
+	}else if(route(a, OSEVM_TOK_PIPE, 1)){
 		ose_try{
 			OSEVM_EXECINCURRENTCONTEXT(osevm);
 		}ose_catch(1){
@@ -1167,7 +1316,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/:", 2)){
+	}else if(route(a, OSEVM_TOK_COLON, 1)){
 		ose_try{
 			OSEVM_APPLY(osevm);
 		}ose_catch(1){
@@ -1176,7 +1325,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/;", 2)){
+	}else if(route(a, OSEVM_TOK_SCOLON, 1)){
 		ose_try{
 			OSEVM_RETURN(osevm);
 		}ose_catch(1){
@@ -1185,7 +1334,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/(", 2)){
+	}else if(route(a, OSEVM_TOK_OPAR, 1)){
 		ose_try{
 			OSEVM_DEFUN(osevm);
 		}ose_catch(1){
@@ -1194,7 +1343,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/i", 2)){
+	}else if(route(a, OSEVM_TOK_i, 1)){
 		ose_try{
 			OSEVM_TOINT32(osevm);
 		}ose_catch(1){
@@ -1203,7 +1352,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/f", 2)){
+	}else if(route(a, OSEVM_TOK_f, 1)){
 		ose_try{
 			OSEVM_TOFLOAT(osevm);
 		}ose_catch(1){
@@ -1212,7 +1361,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/s", 2)){
+	}else if(route(a, OSEVM_TOK_s, 1)){
 		ose_try{
 			OSEVM_TOSTRING(osevm);
 		}ose_catch(1){
@@ -1221,7 +1370,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/b", 2)){
+	}else if(route(a, OSEVM_TOK_b, 1)){
 		ose_try{
 			OSEVM_TOBLOB(osevm);
 		}ose_catch(1){
@@ -1230,7 +1379,7 @@ static void applyControl(ose_bundle osevm, char *address)
 		}ose_finally{
 			;
 		}ose_end_try;
-	}else if(!strncmp(address, "/&", 2)){
+	}else if(route(a, OSEVM_TOK_AMP, 1)){
 		ose_try{
 			OSEVM_APPENDBYTE(osevm);
 		}ose_catch(1){
@@ -1255,58 +1404,154 @@ static void convertKnownStringAddressToAddress(ose_bundle vm_c)
 {
 	if(ose_isStringType(ose_peekMessageArgType(vm_c))
 	   == OSETT_TRUE){
-		char *str = ose_peekString(vm_c);
-		if(!strcmp(str, "/@")
-		   || !strncmp(str, "/@/", 3)
-		   || !strncmp(str, "/'/", 3)
-		   || !strcmp(str, "/!")
-		   || !strncmp(str, "/!/", 3)
-		   || !strcmp(str, "/$")
-		   || !strncmp(str, "/$/", 3)
-		   || !strcmp(str, "/>")
-		   || !strncmp(str, "/>/", 3)
-		   || !strcmp(str, "/<<")
-		   || !strncmp(str, "/<</", 4)
-		   || !strcmp(str, "/<")
-		   || !strncmp(str, "/</", 3)
-		   || !strcmp(str, "/-")
-		   || !strncmp(str, "/-/", 3)
-		   || !strcmp(str, "/.")
-		   || !strncmp(str, "/./", 3)
-		   || !strcmp(str, "/:")
-		   || !strncmp(str, "/:/", 3)
-		   || !strcmp(str, "/;")
-		   || !strncmp(str, "/;/", 3)
-		   || !strcmp(str, "/|")
-		   || !strncmp(str, "/|/", 3)
-		   || !strcmp(str, "/(")
-		   || !strncmp(str, "/(/", 3)
-		   || !strcmp(str, "/)")
-		   || !strncmp(str, "/)/", 3)
-		   || !strncmp(str, "/i/", 3)
-		   || !strcmp(str, "/i")
-		   || !strncmp(str, "/f/", 3)
-		   || !strcmp(str, "/f")
-		   || !strncmp(str, "/s/", 3)
-		   || !strcmp(str, "/s")
-		   || !strncmp(str, "/b/", 3)
-		   || !strcmp(str, "/b")
-		   || !strcmp(str, "/&")
-		   || !strncmp(str, "/&/", 3)){
+		char *address = ose_peekString(vm_c);
+		route_init(address, ac);
+		if(route(ac, OSEVM_TOK_AT, 1)
+		   || route_pfx(ac, OSEVM_TOK_QUOTE, 1)
+		   || route(ac, OSEVM_TOK_BANG, 1)
+		   || route(ac, OSEVM_TOK_DOLLAR, 1)
+		   || route(ac, OSEVM_TOK_GT, 1)
+		   || route(ac, OSEVM_TOK_LTLT, 2)
+		   || route(ac, OSEVM_TOK_LT, 1)
+		   || route(ac, OSEVM_TOK_DASH, 1)
+		   || route(ac, OSEVM_TOK_DOT, 1)
+		   || route(ac, OSEVM_TOK_COLON, 1)
+		   || route(ac, OSEVM_TOK_SCOLON, 1)
+		   || route(ac, OSEVM_TOK_PIPE, 1)
+		   || route(ac, OSEVM_TOK_OPAR, 1)
+		   || route(ac, OSEVM_TOK_CPAR, 1)
+		   || route(ac, OSEVM_TOK_i, 1)
+		   || route(ac, OSEVM_TOK_f, 1)
+		   || route(ac, OSEVM_TOK_s, 1)
+		   || route(ac, OSEVM_TOK_b, 1)
+		   || route(ac, OSEVM_TOK_AMP, 1)
+		   || OSEVM_ISKNOWNADDRESS(address) != 0){
 			ose_moveStringToAddress(vm_c);
 		}
+	}
+}
+
+static int isKnownAddress(const char * const address)
+{
+	route_init(address, ac);
+	if(route(ac, OSEVM_TOK_AT, 1)
+	   || route_pfx(ac, OSEVM_TOK_QUOTE, 1)
+	   || route(ac, OSEVM_TOK_BANG, 1)
+	   || route(ac, OSEVM_TOK_DOLLAR, 1)
+	   || route(ac, OSEVM_TOK_GT, 1)
+	   || route(ac, OSEVM_TOK_LTLT, 2)
+	   || route(ac, OSEVM_TOK_LT, 1)
+	   || route(ac, OSEVM_TOK_DASH, 1)
+	   || route(ac, OSEVM_TOK_DOT, 1)
+	   || route(ac, OSEVM_TOK_COLON, 1)
+	   || route(ac, OSEVM_TOK_SCOLON, 1)
+	   || route(ac, OSEVM_TOK_PIPE, 1)
+	   || route(ac, OSEVM_TOK_OPAR, 1)
+	   || route(ac, OSEVM_TOK_CPAR, 1)
+	   || route(ac, OSEVM_TOK_i, 1)
+	   || route(ac, OSEVM_TOK_f, 1)
+	   || route(ac, OSEVM_TOK_s, 1)
+	   || route(ac, OSEVM_TOK_b, 1)
+	   || route(ac, OSEVM_TOK_AMP, 1)
+	   || OSEVM_ISKNOWNADDRESS(address) != 0){
+		return 1;
+	}else{
+		return 0;
 	}
 }
 
 static void popAllControl(ose_bundle osevm)
 {
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	// load an element from the input to
-	// the control, and unpack it
-	const char * const address = ose_peekAddress(vm_c);
-	if(!strcmp(address, OSE_BUNDLE_ID)){
+
+#ifdef OSE_USE_OPTIMIZED_CODE
+
+	const int32_t cs = ose_readInt32(vm_c, -4);
+	if(cs == OSE_BUNDLE_HEADER_LEN){
 		return;
-	}else if(strcmp(address, OSE_ADDRESS_ANONVAL)){
+	}
+	int32_t o = OSE_BUNDLE_HEADER_LEN;
+	int32_t s = ose_readInt32(vm_c, o);
+	while(o + s + 4 < cs){
+		o += s + 4;
+		int32_t s = ose_readInt32(vm_c, o);
+	}
+	char *b = ose_getBundlePtr(vm_c);
+	const char * const addr = b + o + 4;
+	if(!strncmp(addr, OSE_BUNDLE_ID, OSE_BUNDLE_ID_LEN)){
+		return;
+	}
+	const int32_t addrlen = strlen(addr);
+	const int32_t paddrlen = ose_pnbytes(addrlen);
+	const int32_t to = o + 4 + paddrlen;
+	const char * const tt = b + to;
+	const int32_t ttlen = strlen(tt);
+	const int32_t pttlen = ose_pnbytes(ttlen);
+	const int32_t po = to + pttlen;
+	const char * const payload = b + po;
+	*((int32_t *)(b + o + s + 4)) = 0;
+	int32_t *sizes = (int32_t *)(b + o + s + 4);
+	int32_t *offsets = (sizes + (4 * (ttlen - 1)));
+	int32_t *knownaddresses = (offsets + (4 * (ttlen - 1)));
+	char *p = (char *)(knownaddresses + (4 * (ttlen - 1)));
+	char *pstart = p;
+	int32_t offset = po;
+	for(int i = 0; i < ttlen - 1; i++){
+		char typetag = tt[i + 1];
+		int32_t itemsize = ose_getTypedDatumSize(typetag, b + offset);
+		sizes[i] = itemsize;
+		offsets[i] = offset;
+		if(ose_isStringType(typetag) == OSETT_TRUE){
+			knownaddresses[i] = isKnownAddress(b + offset);
+		}else{
+			knownaddresses[i] = 0;
+		}
+	}
+	for(int i = ttlen - 2; i >= 0; i--){
+		int32_t size = sizes[i];
+		int32_t offset = offsets[i];
+		int32_t knownaddress = knownaddresses[i];
+		if(knownaddress){
+			*((int32_t *)p) = ose_htonl(size + 4);
+			memcpy(p + 4, b + offset, size);
+			memcpy(p + 4 + size,
+			       OSE_EMPTY_TYPETAG_STRING,
+			       OSE_EMPTY_TYPETAG_STRING_LEN);
+			p += 4 + size + OSE_EMPTY_TYPETAG_STRING_LEN;
+		}else{
+			*((int32_t *)p) = ose_htonl(size + 8);
+			p[8] = OSETT_ID;
+			p[9] = tt[i + 1];
+			memcpy(p + 12, b + offset, size);
+			p += 4 + 4 + 4 + size;
+		}
+	}
+	if(strcmp(addr, OSE_ADDRESS_ANONVAL)){
+		if(isKnownAddress(addr)){
+			*((int32_t *)p) = ose_htonl(paddrlen + 4);
+			memcpy(p + 4, addr, paddrlen);
+			memcpy(p + 4 + paddrlen,
+			       OSE_EMPTY_TYPETAG_STRING,
+			       OSE_EMPTY_TYPETAG_STRING_LEN);
+			p += 4 + paddrlen + OSE_EMPTY_TYPETAG_STRING_LEN;
+		}else{
+			*((int32_t *)p) = ose_htonl(paddrlen + 8);
+			p[8] = OSETT_ID;
+			p[9] = OSETT_STRING;
+			memcpy(p + 12, addr, paddrlen);
+			p += 4 + 4 + 4 + paddrlen;
+		}
+	}
+	memmove(b + o, pstart, p - pstart);
+	memset(p - (pstart - (b + o)), 0, pstart - (b + o));
+	int32_t amt = (p - pstart) - (s + 4);
+	ose_incSize(vm_c, amt);
+
+#else
+	const char * const address = ose_peekAddress(vm_c);
+	if(!strncmp(address, OSE_BUNDLE_ID, OSE_BUNDLE_ID_LEN)){
+		return;
+	}else if(strncmp(address, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_SIZE)){
 		ose_pushString(vm_c, OSE_ADDRESS_ANONVAL);
 		ose_push(vm_c);
 		ose_swapStringToAddress(vm_c);
@@ -1319,6 +1564,7 @@ static void popAllControl(ose_bundle osevm)
 		ose_swap(vm_c);
 	}
 	ose_drop(vm_c);
+#endif
 }
 
 void osevm_preInput(ose_bundle osevm)

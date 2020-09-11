@@ -19,53 +19,49 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "ose_conf.h"
-#include "ose.h"
+#ifndef OSE_TIME_H
+#define OSE_TIME_H
 
-#ifdef OSE_NEED_HTONL
-int32_t htonl(int32_t x)
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define OSE_HAVE_HPTIMER
+
+#ifdef __APPLE__
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+#include <unistd.h>
+typedef struct ose_hptimer
 {
-	const int32_t one = 1;
-	const char test = *((char *)&one);
-	if(test == 0){
-		return x;
-	}else{
-		return OSE_BYTE_SWAP32(x);
-	}
+	mach_timebase_info_data_t tb;
+	uint64_t bias;
+} ose_hptimer;
+
+#elif defined(__unix__)
+#include <unistd.h>
+#ifdef _POSIX_VERSION
+
+typedef struct ose_hptimer
+{
+	uint64_t bias;
+} ose_hptimer;
+#endif
+
+#else
+
+#undef OSE_HAVE_HPTIMER
+typedef struct ose_hptimer {} ose_hptimer;
+
+#endif
+
+typedef struct ose_hptimer ose_hptimer;
+ose_hptimer ose_initTimer(void);
+uint64_t ose_now(ose_hptimer t);
+uint64_t ose_timeToMonotonicNanos(ose_hptimer t, uint64_t tt);
+
+#ifdef __cplusplus
 }
 #endif
 
-#ifdef OSE_NEED_NTOHL
-int32_t ntohl(int32_t x)
-{
-	const int32_t one = 1;
-	const char test = *((char *)&one);
-	if(test == 0){
-		return x;
-	}else{
-		return OSE_BYTE_SWAP32(x);
-	}
-}
-#endif
-
-#ifdef OSE_DEBUG
-#include <stdio.h>
-#include <string.h>
-#include "ose_print.h"
-void printBundle(ose_bundle bundle, const char * const str)
-{
-	char buf[8192];
-	memset(buf, 0, 8192);
-	ose_pprintBundle(bundle, buf, 8192);
-	printf("\n%s>>>>>\n%s\n%s<<<<<\n", str, buf, str);
-}
-void pbytes(ose_bundle bundle, int32_t start, int32_t end)
-{
-	char *b = ose_getBundlePtr(bundle);
-	for(int32_t i = start; i < end; i++){
-		printf("%d: %c %d\n", i,
-		       (unsigned char)b[i],
-		       (unsigned char)b[i]);
-	}
-}
 #endif

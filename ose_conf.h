@@ -36,6 +36,8 @@ SOFTWARE.
 extern "C" {
 #endif
 
+#include "sys/ose_endian.h"
+
 /**
  * The Arduino IDE doesn't let you predefine with a -D switch, so
  * we require and include a header for Arduino projects.
@@ -204,6 +206,10 @@ static const int32_t OSE_ADDRESS_ANONVAL_SIZE = OSE_ADDRESS_ANONVAL_NBYTES
 
 #ifdef OSE_CONF_SYMTAB_FNSYMS
 #define OSE_SYMTAB_FNSYMS
+#endif
+
+#ifdef OSE_CONF_USE_OPTIMIZED_CODE
+#define OSE_USE_OPTIMIZED_CODE
 #endif
 	
 #endif // __DOXYGEN__

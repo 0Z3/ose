@@ -148,7 +148,10 @@ ose_bundle osevm_init(ose_bundle bundle,
 #define OSEVM_SET_CACHE_VALUE(osevm, idx, val) \
 	(ose_assert((idx) < OSEVM_CACHE_SIZE),				\
 	 ose_writeInt32(osevm, OSEVM_CACHE_OFFSET_0 + (4 * (idx)), val))
-	
+
+/**********************************************************************
+ * Hooks
+ **********************************************************************/
 void osevm_assign(ose_bundle osevm);
 #ifndef OSEVM_ASSIGN
 #define OSEVM_ASSIGN osevm_assign
@@ -315,6 +318,13 @@ void osevm_postControl(ose_bundle osevm);
 #define OSEVM_POSTCONTROL osevm_postControl
 #else
 extern void OSEVM_POSTCONTROL (ose_bundle osevm);
+#endif
+
+#define osevm_isKnownAddress(str) 0
+#ifndef OSEVM_ISKNOWNADDRESS
+#define OSEVM_ISKNOWNADDRESS osevm_isKnownAddress
+#else
+extern int OSEVM_ISKNOWNADDRESS (const char * const address);
 #endif
 
 void osevm_run(ose_bundle bundle);
