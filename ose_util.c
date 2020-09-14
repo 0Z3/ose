@@ -314,6 +314,8 @@ char ose_getBundleElemType(ose_constbundle bundle, const int32_t offset)
 // the read and write functions intentionally do not assert offset >= 0 as they
 // may be used to read and write to locations "behind" the current bundle.
 ////////////////////////////////////////////////////////////////////////////////
+
+#ifdef OSE_DEBUG
 char ose_readByte(ose_constbundle bundle, const int32_t offset)
 {
 	const char *b = ose_getBundlePtr(bundle);
@@ -321,7 +323,9 @@ char ose_readByte(ose_constbundle bundle, const int32_t offset)
 	b += offset;
 	return *b;
 }
+#endif
 
+#ifdef OSE_DEBUG
 int32_t ose_writeByte(ose_bundle bundle, const int32_t offset, const char i)
 {
 	char *b = ose_getBundlePtr(bundle);
@@ -330,7 +334,9 @@ int32_t ose_writeByte(ose_bundle bundle, const int32_t offset, const char i)
 	*b = i;
 	return 1;
 }
+#endif
 
+#ifdef OSE_DEBUG
 int32_t ose_readInt32(ose_constbundle bundle, const int32_t offset)
 {
 	const char *b = ose_getBundlePtr(bundle);
@@ -338,7 +344,9 @@ int32_t ose_readInt32(ose_constbundle bundle, const int32_t offset)
 	b += offset;
 	return ose_ntohl(*((int32_t *)b));
 }
+#endif
 
+#ifdef OSE_DEBUG
 int32_t ose_writeInt32(ose_bundle bundle, const int32_t offset, const int32_t i)
 {
 	const char *b = ose_getBundlePtr(bundle);
@@ -347,6 +355,7 @@ int32_t ose_writeInt32(ose_bundle bundle, const int32_t offset, const int32_t i)
 	*((int32_t *)b) = ose_htonl(i);
 	return 4;
 }
+#endif
 
 float ose_readFloat(ose_constbundle bundle, const int32_t offset)
 {
@@ -362,6 +371,7 @@ int32_t ose_writeFloat(ose_bundle bundle, const int32_t offset, const float f)
 	return 4;
 }
 
+#ifdef OSE_DEBUG
 char *ose_readString(ose_bundle bundle, const int32_t offset)
 {
 	char *b = ose_getBundlePtr(bundle);
@@ -369,7 +379,9 @@ char *ose_readString(ose_bundle bundle, const int32_t offset)
 	b += offset;
 	return b;
 }
+#endif
 
+#ifdef OSE_DEBUG
 int32_t ose_getStringLen(ose_constbundle bundle, const int32_t offset)
 {
 	const char *b = ose_getBundlePtr(bundle);
@@ -377,15 +389,19 @@ int32_t ose_getStringLen(ose_constbundle bundle, const int32_t offset)
 	b += offset;
 	return strlen(b);
 }
+#endif
 
+#ifdef OSE_DEBUG
 int32_t ose_getPaddedStringLen(ose_constbundle bundle, const int32_t offset)
 {
 	const char * const b = ose_getBundlePtr(bundle);
 	ose_assert(b);
 	return ose_pstrlen(b + offset);
 }
+#endif
 
-int32_t ose_writeStringWithLen(ose_bundle bundle,
+#ifdef OSE_DEBUG
+int32_t ose_writeString(ose_bundle bundle,
 			       const int32_t offset,
 			       const char * const s,
 			       const int32_t len,
@@ -404,19 +420,9 @@ int32_t ose_writeStringWithLen(ose_bundle bundle,
 	}
 	return plen;
 }
+#endif
 
-int32_t ose_writeString(ose_bundle bundle,
-			const int32_t offset,
-			const char * const s)
-{
-	ose_assert(s);
-	const int32_t len = strlen(s);
-	const int32_t plen = ose_pnbytes(len);
-	return ose_writeStringWithLen(bundle,
-				      offset,
-				      s, len, plen);
-}
-
+#ifdef OSE_DEBUG
 char *ose_readBlob(ose_bundle bundle, const int32_t offset)
 {
 	char *b = ose_getBundlePtr(bundle);
@@ -429,6 +435,7 @@ int32_t ose_readBlobSize(ose_constbundle bundle, const int32_t offset)
 {
 	return ose_readInt32(bundle, offset);
 }
+#endif
 
 int32_t ose_getBlobPaddingForNBytes(const int32_t n)
 {
@@ -946,7 +953,7 @@ int32_t ose_vwriteMessage(ose_bundle bundle,
 	int32_t tto = _tto;
 	int32_t plo = _plo;
 
-	ose_writeStringWithLen(bundle, o + 4, address, addresslen, alenp);
+	ose_writeString(bundle, o + 4, address, addresslen, alenp);
 	ose_writeByte(bundle, tto++, OSETT_ID);
 
 	int32_t s;
@@ -977,7 +984,7 @@ int32_t ose_vwriteMessage(ose_bundle bundle,
 			const int32_t sl = strlen(v);
 			const int32_t psl = ose_pnbytes(sl);
 			ose_writeByte(bundle, tto++, OSETT_STRING);
-			plo += ose_writeStringWithLen(bundle, plo, v, sl, psl);
+			plo += ose_writeString(bundle, plo, v, sl, psl);
 			break;
 		}
 		default:
@@ -999,7 +1006,7 @@ int32_t ose_vwriteMessage(ose_bundle bundle,
 			const int32_t sl = strlen(v);
 			const int32_t psl = ose_pnbytes(sl);
 			ose_writeByte(bundle, tto++, OSETT_STRING);
-			plo += ose_writeStringWithLen(bundle, plo, v, sl, psl);
+			plo += ose_writeString(bundle, plo, v, sl, psl);
 			break;
 		}
 #endif

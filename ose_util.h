@@ -107,25 +107,46 @@ int32_t ose_getBundleElemElemCount(ose_constbundle bundle, int32_t offset);
 ose_bool ose_bundleHasAtLeastNElems(ose_constbundle bundle, int32_t n);
 char ose_getBundleElemType(ose_constbundle bundle, int32_t offset);
 
+#ifdef OSE_DEBUG
 char ose_readByte(ose_constbundle bundle, int32_t offset);
 int32_t ose_writeByte(ose_bundle bundle, int32_t offset, char i);
 int32_t ose_readInt32(ose_constbundle bundle, int32_t offset);
 int32_t ose_writeInt32(ose_bundle bundle, int32_t offset, int32_t i);
-#define ose_addToInt32(b, offset, amt) \
-	ose_writeInt32((b), (offset), ose_readInt32((b), (offset)) + (amt))
 float ose_readFloat(ose_constbundle bundle, int32_t offset);
 int32_t ose_writeFloat(ose_bundle bundle, int32_t offset, float f);
+#else
+#define ose_readByte(b, o) (ose_getBundlePtr(b)[o])
+#define ose_writeByte(b, o, v) (ose_getBundlePtr(b)[o] = v, 1)
+#define ose_readInt32(b, o) (ose_ntohl(*((int32_t *)(ose_getBundlePtr(b) + o))))
+#define ose_writeInt32(b, o, v) (*((int32_t *)(ose_getBundlePtr(b) + o)) = ose_htonl(v), 4)
+#endif
+#define ose_addToInt32(b, offset, amt) \
+	ose_writeInt32((b), (offset), ose_readInt32((b), (offset)) + (amt))
+float ose_readFloat(ose_constbundle bundle, const int32_t offset);
+int32_t ose_writeFloat(ose_bundle bundle, const int32_t offset, const float f);
+#ifdef OSE_DEBUG
 char *ose_readString(ose_bundle bundle, int32_t offset);
 int32_t ose_getStringLen(ose_constbundle bundle, int32_t offset);
 int32_t ose_getPaddedStringLen(ose_constbundle bundle, int32_t offset);
-int32_t ose_writeStringWithLen(ose_bundle bundle,
-			       int32_t offset,
-			       const char * const s,
-			       int32_t slen,
-			       int32_t slen_padded);
-int32_t ose_writeString(ose_bundle bundle, int32_t offset, const char * const s);
+int32_t ose_writeString(ose_bundle bundle,
+			int32_t offset,
+			const char * const s,
+			int32_t slen,
+			int32_t slen_padded);
+#else
+#define ose_readString(b, o) (ose_getBundlePtr(b) + o)
+#define ose_getStringLen(b, o) (strlen(ose_getBundlePtr(b) + o))
+#define ose_getPaddedStringLen(b, o) (ose_pstrlen(ose_getBundlePtr(b) + o))
+#define ose_writeString(b, o, s, slen, slen_padded)		\
+	(memcpy(ose_getBundlePtr(b) + o, s, slen), slen_padded)
+#endif
+#ifdef OSE_DEBUG
 char *ose_readBlob(ose_bundle bundle, int32_t offset);
 int32_t ose_readBlobSize(ose_constbundle bundle, int32_t offset);
+#else
+#define ose_readBlob(b, o) (ose_readString(b, o))
+#define ose_readBlobSize(b, o) (ose_readInt32(b, o))
+#endif
 
 
 
