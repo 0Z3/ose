@@ -279,7 +279,7 @@ void osevm_lookup(ose_bundle osevm, char *address)
 	if(OSEVM_GET_FLAGS(osevm) & OSEVM_FLAG_COMPILE){
 		popControlToStack(vm_c, vm_s);
 		return;
-	}	
+	}
 	if(address[2] == '/'){
 		ose_pushString(vm_e, address + 2);
 	}else{
@@ -439,7 +439,7 @@ void osevm_exec(ose_bundle osevm, char *address)
 			ose_pushBundle(vm_s);
 			ose_pushString(vm_s, address + 2);
 			ose_push(vm_s);
-			ose_pushMessage(vm_s, "/!/exec", 8, 0);
+			ose_pushMessage(vm_s, "/!/exec", 7, 0);
 			ose_moveElem(vm_s, vm_c);
 			ose_swap(vm_c);
 			ose_moveElem(vm_s, vm_c);

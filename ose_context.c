@@ -188,23 +188,19 @@ void ose_decSize(ose_bundle bundle, int32_t amt)
 	ose_assert(ose_readInt32(bundle, ose_readInt32(bundle, -4)) >= 0);
 }
 
-void ose_copyElem(ose_constbundle src, ose_bundle dest)
+void ose_copyElemAtOffset(int32_t srcoffset,
+			  ose_constbundle src,
+			  ose_bundle dest)
 {
 	ose_assert(ose_bundleHasAtLeastNElems(src, 1) == OSETT_TRUE);
 	const char * const srcp = ose_getBundlePtr(src);
-	const int32_t src_offset = ose_getLastBundleElemOffset(src);
-	const int32_t src_elem_size = ose_readInt32(src, src_offset) + 4;
+	//const int32_t src_offset = ose_getLastBundleElemOffset(src);
+	const int32_t src_elem_size = ose_readInt32(src, srcoffset) + 4;
 	char *destp = ose_getBundlePtr(dest);
 	memcpy(destp + ose_readInt32(dest, -4),
-	       srcp + src_offset,
+	       srcp + srcoffset,
 	       src_elem_size);
 	ose_incSize(dest, src_elem_size);
-}
-
-void ose_moveElem(ose_bundle src, ose_bundle dest)
-{
-	ose_copyElem(src, dest);
-	ose_drop(src);
 }
 
 void ose_copyBundle(ose_constbundle src, ose_bundle dest)
@@ -215,7 +211,7 @@ void ose_copyBundle(ose_constbundle src, ose_bundle dest)
 	ose_assert(ds >= OSE_BUNDLE_HEADER_LEN);
 	int32_t ss = ose_readInt32(src, -4);
 	ose_assert(ss >= OSE_BUNDLE_HEADER_LEN);
-	ose_addToSize(dest, ss + 4);
+	ose_incSize(dest, ss + 4);
 	memcpy(ose_getBundlePtr(dest) + ds,
 	       ose_getBundlePtr(src) - 4,
 	       ss + 4);

@@ -166,46 +166,91 @@ void ose_builtin_exec(ose_bundle osevm)
 	ose_copyBundle(vm_i, vm_d);
 	ose_clear(vm_i);
 
-	int32_t n = ose_getBundleElemCount(vm_s);
-	// if(1){//n >= 2){
-	// 	if(n >= 2){
-	// 		ose_pushString(vm_i, "/!/copy/bundle");
-	// 		ose_pushString(vm_i, "/s//ee");
-	// 		ose_pushString(vm_i, "/s//ss");
-	// 	}else{
-	// 		ose_pushString(vm_i, "/!/copy/bundle");
-	// 		ose_pushString(vm_i, "/s//ee");
-	// 		ose_pushString(vm_i, "/s//ss");
-	// 	}
-	// }
-
+	// int32_t n = ose_getBundleElemCount(vm_s);
 	// move bundle on the stack to input
-	ose_moveElem(vm_s, vm_i);
-	if(ose_peekType(vm_i) == OSETT_MESSAGE){
-		if(ose_peekMessageArgType(vm_i) == OSETT_BLOB){
-			// need a test here to make sure
-			// the blob contains a bundle member
-			if(1){
-				ose_blobToElem(vm_i);
-				ose_popAllDrop(vm_i);
-			}
-		}
-	}else{
-		ose_popAllDrop(vm_i);
+	// ose_moveElem(vm_s, vm_i);
+	// if(ose_peekType(vm_i) == OSETT_MESSAGE){
+	// 	if(ose_peekMessageArgType(vm_i) == OSETT_BLOB){
+	// 		// need a test here to make sure
+	// 		// the blob contains a bundle member
+	// 		if(1){
+	// 			ose_blobToElem(vm_i);
+	// 			ose_popAllDrop(vm_i);
+	// 		}
+	// 	}
+	// }else{
+	// 	ose_popAllDrop(vm_i);
+	// }
+	int32_t n = 0;
+
+	// move the contents of the bundle on the stack to the input,
+	// and unpack it in reverse order
+	char *sp = ose_getBundlePtr(vm_s);
+	char *ip = ose_getBundlePtr(vm_i);
+	int32_t stackoffset = OSE_BUNDLE_HEADER_LEN;
+	int32_t stacksize = ose_readInt32(vm_s, -4);
+	ose_assert(stackoffset < stacksize);
+	int32_t s = ose_readInt32(vm_s, stackoffset);
+	n++;
+	int32_t onm1 = stackoffset;
+	int32_t snm1 = s;
+	while(stackoffset + s + 4 < stacksize){
+		onm1 = stackoffset;
+		snm1 = s;
+		stackoffset += s + 4;
+		s = ose_readInt32(vm_s, stackoffset);
+		n++;	
 	}
+
+	int32_t o1, o2;
+	if(!strncmp(sp + stackoffset + 4,
+		    OSE_BUNDLE_ID,
+		    OSE_BUNDLE_ID_LEN)){
+		// bundle
+		o1 = stackoffset + 4 + OSE_BUNDLE_HEADER_LEN;
+	}else{
+		// message
+		int32_t to, ntt, lto, po, lpo;
+		ose_getNthPayloadItem(vm_s, 1, stackoffset,
+				      &to, &ntt, &lto, &po, &lpo);
+		if(ose_readByte(vm_s, lto) == OSETT_BLOB){
+			s = ose_readInt32(vm_s, lpo);
+			o1 = lpo + 4 + OSE_BUNDLE_HEADER_LEN;
+		}else{
+			// this can potentially enter compiled
+			// native code
+		}
+	}
+	ose_incSize(vm_i, s - OSE_BUNDLE_HEADER_LEN);
+	o2 = ose_readInt32(vm_i, -4);
+	int32_t end = o1 + s - OSE_BUNDLE_HEADER_LEN;;
+	while(o1 < end){
+		int32_t ss = ose_readInt32(vm_s, o1);
+		o2 -= ss + 4;
+		memcpy(ip + o2, sp + o1, ss + 4);
+		o1 += ss + 4;
+	}
+	ose_dropAtOffset(vm_s, stackoffset);
 
 	// copy environment to dump
 	ose_copyBundle(vm_e, vm_d);
 	if(n >= 2){
 		ose_clear(vm_e);
-		if(ose_peekType(vm_s) == OSETT_MESSAGE){
-			if(ose_peekMessageArgType(vm_s) == OSETT_BLOB){
+		//if(ose_peekType(vm_s) == OSETT_MESSAGE){
+		if(strncmp(sp + onm1 + 4, OSE_BUNDLE_ID, OSE_BUNDLE_ID_LEN)){
+		        if(ose_peekMessageArgType(vm_s) == OSETT_BLOB){
 				ose_blobToElem(vm_s);
+				snm1 = ose_readInt32(vm_s, onm1);
 			}else{
 				ose_assert(0 && "second argument to exec, the environment, must be a blob or a bundle.");
 			}
 		}
-		ose_replaceBundle(vm_s, vm_e);
+		// ose_replaceBundle(vm_s, vm_e);
+		ose_incSize(vm_e, snm1 - OSE_BUNDLE_HEADER_LEN);
+		memcpy(ose_getBundlePtr(vm_e) + OSE_BUNDLE_HEADER_LEN,
+		       sp + onm1 + 4 + OSE_BUNDLE_HEADER_LEN,
+		       snm1 - OSE_BUNDLE_HEADER_LEN);
+		ose_dropAtOffset(vm_s, onm1);
 	}else{
 		;
 	}
@@ -225,14 +270,65 @@ void ose_builtin_if(ose_bundle osevm)
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_e = OSEVM_ENV(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	ose_pushInt32(vm_s, 0);
-	ose_neq(vm_s);
-	ose_roll(vm_s);
-	ose_drop(vm_s);
-	ose_copyBundle(vm_e, vm_s);
-	ose_swap(vm_s);
-	ose_pushMessage(vm_c, "/!/exec", 7, 0);
-	ose_swap(vm_c);
+	// ose_pushInt32(vm_s, 0);
+	// ose_neq(vm_s);
+	// ose_roll(vm_s);
+	// ose_drop(vm_s);
+	// ose_copyBundle(vm_e, vm_s);
+	// ose_swap(vm_s);
+	// ose_pushMessage(vm_c, "/!/exec", 7, 0);
+	// ose_swap(vm_c);
+	char *sp = ose_getBundlePtr(vm_s);
+	extern void be3(ose_bundle,
+			int32_t*, int32_t*,
+			int32_t*, int32_t*,
+			int32_t*, int32_t*);
+	int32_t onm2, snm2, onm1, snm1, on, sn;
+	be3(vm_s, &onm2, &snm2, &onm1, &snm1, &on, &sn);
+	int32_t esize = ose_readInt32(vm_e, -4);
+	if(ose_readInt32(vm_s, ose_readInt32(vm_s, -4) - 4) == 0){
+		// false
+		int32_t sum = snm1 + sn + 8;
+		if((esize + 4) < sum){
+			memset(sp + onm1, 0, sum);
+			ose_decSize(vm_s, sum - (esize + 4));
+		}else{
+			ose_incSize(vm_s, (esize + 4) - sum);
+		}
+		memmove(sp + onm2 + esize + 4, sp + onm2, snm2 + 4);
+		memcpy(sp + onm2, ose_getBundlePtr(vm_e) - 4, esize + 4);
+	}else{
+		// true
+		if(esize != snm2){
+			int32_t diff = (esize - snm2);
+			memmove(sp + (onm1 + diff), sp + onm1, snm1 + 4);
+			onm1 += diff;
+			memset(sp + on + diff, 0, sn + 4 - diff);
+			ose_addToSize(vm_s, -(sn + 4 - diff));
+		}else{
+			memset(sp + on, 0, sn + 4);
+			ose_decSize(vm_s, sn + 4);
+		}
+		memcpy(sp + onm2, ose_getBundlePtr(vm_e) - 4, esize + 4);
+	}
+	int32_t con = ose_readInt32(vm_c, -4);
+	int32_t conm1 = ose_getLastBundleElemOffset(vm_c);
+	char *cp = ose_getBundlePtr(vm_c);
+	ose_incSize(vm_c, 16);
+	memmove(cp + con, cp + conm1, con - conm1);
+	ose_writeInt32(vm_c, conm1, 12);
+	cp[conm1 + 4] = '/';
+	cp[conm1 + 5] = '!';
+	cp[conm1 + 6] = '/';
+	cp[conm1 + 7] = 'e';
+	cp[conm1 + 8] = 'x';
+	cp[conm1 + 9] = 'e';
+	cp[conm1 + 10] = 'c';
+	cp[conm1 + 11] = 0;
+	cp[conm1 + 12] = OSETT_ID;
+	cp[conm1 + 13] = 0;
+	cp[conm1 + 14] = 0;
+	cp[conm1 + 15] = 0;
 }
 
 void ose_builtin_dotimes(ose_bundle osevm)
@@ -343,61 +439,107 @@ void ose_builtin_apply(ose_bundle osevm)
 		char elemtype = ose_peekType(vm_s);
 		if(elemtype == OSETT_BUNDLE){
 			// move input to dump
-			ose_bundleAll(vm_i);
-			ose_moveElem(vm_i, vm_d);
+			ose_copyBundle(vm_i, vm_d);
+			ose_clear(vm_i);
 
 			// move bundle on the stack to input
-			ose_moveElem(vm_s, vm_i);
-			if(ose_peekType(vm_i) == OSETT_MESSAGE){
-				if(ose_peekMessageArgType(vm_i) == OSETT_BLOB){
-					// need a test here to make sure
-					// the blob contains a bundle member
-					if(1){
-						ose_blobToElem(vm_i);
-						ose_popAllDrop(vm_i);
-					}
+			// ose_moveElem(vm_s, vm_i);
+			// if(ose_peekType(vm_i) == OSETT_MESSAGE){
+			// 	if(ose_peekMessageArgType(vm_i) == OSETT_BLOB){
+			// 		// need a test here to make sure
+			// 		// the blob contains a bundle member
+			// 		if(1){
+			// 			ose_blobToElem(vm_i);
+			// 			ose_popAllDrop(vm_i);
+			// 		}
+			// 	}
+			// }else{
+			// 	ose_popAllDrop(vm_i);
+			// }
+			{
+				// move the contents of the bundle on the stack to the input,
+				// and unpack it in reverse order
+				char *sp = ose_getBundlePtr(vm_s);
+				char *ip = ose_getBundlePtr(vm_i);
+				int32_t stackoffset = OSE_BUNDLE_HEADER_LEN;
+				int32_t stacksize = ose_readInt32(vm_s, -4);
+				ose_assert(stackoffset < stacksize);
+				int32_t s = ose_readInt32(vm_s, stackoffset);
+				// int32_t onm1 = stackoffset;
+				// int32_t snm1 = s;
+				while(stackoffset + s + 4 < stacksize){
+					// onm1 = stackoffset;
+					// snm1 = s;
+					stackoffset += s + 4;
+					s = ose_readInt32(vm_s, stackoffset);
 				}
-			}else{
-				ose_popAllDrop(vm_i);
+
+				int32_t o1, o2;
+				// if(!strncmp(sp + stackoffset + 4,
+				// 	    OSE_BUNDLE_ID,
+				// 	    OSE_BUNDLE_ID_LEN)){
+					// bundle
+					o1 = stackoffset + 4 + OSE_BUNDLE_HEADER_LEN;
+				// }else{
+				// 	// message
+				// 	int32_t to, ntt, lto, po, lpo;
+				// 	ose_getNthPayloadItem(vm_s, 1, stackoffset,
+				// 			      &to, &ntt, &lto, &po, &lpo);
+				// 	if(ose_readByte(vm_s, lto) == OSETT_BLOB){
+				// 		s = ose_readInt32(vm_s, lpo);
+				// 		o1 = lpo + 4 + OSE_BUNDLE_HEADER_LEN;
+				// 	}else{
+				// 		// this can potentially enter compiled
+				// 		// native code
+				// 	}
+				// }
+				ose_incSize(vm_i, s - OSE_BUNDLE_HEADER_LEN);
+				o2 = ose_readInt32(vm_i, -4);
+				int32_t end = o1 + s - OSE_BUNDLE_HEADER_LEN;;
+				while(o1 < end){
+					int32_t ss = ose_readInt32(vm_s, o1);
+					o2 -= ss + 4;
+					memcpy(ip + o2, sp + o1, ss + 4);
+					o1 += ss + 4;
+				}
+				ose_dropAtOffset(vm_s, stackoffset);
 			}
 
 			// copy environment to dump
-			ose_bundleAll(vm_e);
-			ose_copyElem(vm_e, vm_d);
-			ose_unpackDrop(vm_e);
+			ose_copyBundle(vm_e, vm_d);
 
 			// move stack to dump
-			// ose_bundleAll(vm_s);
-			// ose_moveElem(vm_s, vm_d);
 			ose_pushBundle(vm_d);
 
 			// move control to dump
 			ose_drop(vm_c);
-			ose_bundleAll(vm_c);
-			ose_moveElem(vm_c, vm_d);
-			//ose_pushBundle(vm_d);		
+			ose_copyBundle(vm_c, vm_d);
+			ose_clear(vm_c);
 			break;
 		}else if(elemtype == OSETT_MESSAGE){
-			char itemtype = ose_peekMessageArgType(vm_s);
+			int32_t o = ose_getLastBundleElemOffset(vm_s);
+			int32_t to, ntt, lto, po, lpo;
+			ose_getNthPayloadItem(vm_s, 1, o,
+					      &to, &ntt, &lto, &po, &lpo);
+			//char itemtype = ose_peekMessageArgType(vm_s);
+			char itemtype = ose_getBundlePtr(vm_s)[lto];
+			const char * const p = ose_getBundlePtr(vm_s) + lpo;
 			if(ose_isStringType(itemtype) == OSETT_TRUE){
-				const char * const s = ose_peekString(vm_s);
-				// lookup in env
-				// fix this--it does two lookups with matches
-				// this should call the lookup function
-				int32_t o = ose_getFirstOffsetForMatch(vm_e, s);
-				if(o >= OSE_BUNDLE_HEADER_LEN){
-					ose_pushString(vm_e, s);
-					ose_drop(vm_s);
-					ose_pickMatch(vm_e);
-					ose_drop(vm_e);
-					ose_moveElem(vm_e, vm_s);
+				int32_t mo = ose_getFirstOffsetForMatch(vm_e, p);
+				if(mo >= OSE_BUNDLE_HEADER_LEN){
+					//ose_pushString(vm_e, p);
+					ose_dropAtOffset(vm_s, o);
+					//ose_pickMatch(vm_e);
+					//ose_drop(vm_e);
+					//ose_moveElem(vm_e, vm_s);
+					ose_copyElemAtOffset(mo, vm_e, vm_s);
 					continue;
 				}
 				// if it wasn't present in env, lookup in symtab
 				else{
-					ose_fn f = ose_symtab_lookup_fn(s);
+					ose_fn f = ose_symtab_lookup_fn(p);
 					if(f){
-						ose_drop(vm_s);
+						ose_dropAtOffset(vm_s, o);
 						f(osevm);
 						break;
 					}else{
@@ -405,7 +547,6 @@ void ose_builtin_apply(ose_bundle osevm)
 					}
 				}
 			}else if(itemtype == OSETT_BLOB){
-				const char * const p = ose_peekBlob(vm_s);
 				int32_t len = ose_ntohl(*((int32_t *)p));
 				if(len > OSE_BUNDLE_HEADER_LEN
 				   && !strncmp(OSE_BUNDLE_ID, p + 4, 7)){

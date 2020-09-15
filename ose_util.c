@@ -27,19 +27,6 @@
 #include "ose_util.h"
 //#include "ose_context.h"
 
-// returns 4 for n = 0
-int32_t ose_pnbytes(const int32_t n)
-{
-	ose_assert(n >= 0);
-	return (n + 4) & 0xfffffffc;
-}
-
-int32_t ose_pstrlen(const char * const s)
-{
-	ose_assert(s);
-	return ose_pnbytes(strlen(s));
-}
-
 ose_bool ose_isAddressChar(const char c)
 {
 	if(c < 32){

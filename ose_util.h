@@ -45,8 +45,10 @@ extern "C" {
  * @param n Number of bytes.
  * @returns The closest multiple of 4 greater than n.
  */
-int32_t ose_pnbytes(int32_t n);
-int32_t ose_pstrlen(const char * const s);
+// int32_t ose_pnbytes(int32_t n);
+// int32_t ose_pstrlen(const char * const s);
+#define ose_pnbytes(n) (((n) + 4) & 0xfffffffc)
+#define ose_pstrlen(s) ose_pnbytes(strlen(s))
 
 ose_bool ose_isAddressChar(char c);
 ose_bool ose_isKnownTypetag(char typetag);

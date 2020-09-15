@@ -63,7 +63,7 @@ void pbytes(ose_bundle bundle, int32_t start, int32_t end)
 {
 	char *b = ose_getBundlePtr(bundle);
 	for(int32_t i = start; i < end; i++){
-		printf("%d: %c %d\n", i,
+		fprintf(stderr, "%d: %c %d\n", i,
 		       (unsigned char)b[i],
 		       (unsigned char)b[i]);
 	}

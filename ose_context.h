@@ -314,8 +314,17 @@ void ose_replaceBundleElemInDestAddr(ose_bundle src,
 void ose_copyBundle(ose_constbundle src, ose_bundle dest);
 void ose_appendBundle(ose_bundle src, ose_bundle dest);
 void ose_replaceBundle(ose_bundle src, ose_bundle dest);
-void ose_copyElem(ose_constbundle src, ose_bundle dest);
-void ose_moveElem(ose_bundle src, ose_bundle dest);
+void ose_copyElemAtOffset(int32_t srcoffset,
+			  ose_constbundle src,
+			  ose_bundle dest);
+#define ose_copyElem(src, dest)						\
+	ose_copyElemAtOffset(ose_getLastBundleElemOffset(src), src, dest)
+#define ose_moveElem(src, dest)					\
+	{							\
+		int32_t o = ose_getLastBundleElemOffset(src);	\
+		ose_copyElemAtOffset(o, src, dest);		\
+		ose_dropAtOffset(src, o);			\
+	}
 
 
 

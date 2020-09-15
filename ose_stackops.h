@@ -742,6 +742,7 @@ void ose_2swap(ose_bundle bundle);
  * @brief Drop the top element on the stack.
  * @f$\mathrm{DROP}(S(E_1)) \Rightarrow S'@f$
  */
+void ose_dropAtOffset(ose_bundle bundle, int32_t offset);
 void ose_drop(ose_bundle bundle);
 
 
