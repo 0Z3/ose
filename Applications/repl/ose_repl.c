@@ -726,12 +726,12 @@ int main(int ac, char **av)
 	char histfile[strlen(homedir) + 6];
 	sprintf(histfile, "%s/.ose", homedir);
 	int r = read_history(histfile);
-	if(r){
-		fprintf(stderr,
-			"ose: couldn't read history file: "
-			"read_history(%s) returned %d\n",
-			histfile, r);
-	}
+	// if(r){
+	// 	fprintf(stderr,
+	// 		"ose: couldn't read history file: "
+	// 		"read_history(%s) returned %d\n",
+	// 		histfile, r);
+	// }
 
 	// set up ose environment and vm
 	bytes = (char *)malloc(MAX_BUNDLE_LEN);

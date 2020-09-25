@@ -914,6 +914,8 @@ void ose_popAllDrop(ose_bundle bundle);
 void ose_popAllBundle(ose_bundle bundle);
 void ose_popAllDropBundle(ose_bundle bundle);
 void ose_push(ose_bundle bundle);
+void ose_split(ose_bundle bundle);
+void ose_join(ose_bundle bundle);
 void ose_unpack(ose_bundle bundle);
 void ose_unpackDrop(ose_bundle bundle);
 void ose_unpackBundle(ose_bundle bundle);

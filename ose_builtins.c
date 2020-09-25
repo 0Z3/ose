@@ -72,12 +72,14 @@ OSE_BUILTIN_DEFN(bundleFromBottom)
 OSE_BUILTIN_DEFN(bundleFromTop)
 OSE_BUILTIN_DEFN(clear)
 OSE_BUILTIN_DEFN(clearPayload)
+OSE_BUILTIN_DEFN(join)
 OSE_BUILTIN_DEFN(pop)
 OSE_BUILTIN_DEFN(popAll)
 OSE_BUILTIN_DEFN(popAllDrop)
 OSE_BUILTIN_DEFN(popAllBundle)
 OSE_BUILTIN_DEFN(popAllDropBundle)
 OSE_BUILTIN_DEFN(push)
+OSE_BUILTIN_DEFN(split)
 OSE_BUILTIN_DEFN(unpack)
 OSE_BUILTIN_DEFN(unpackDrop)
 OSE_BUILTIN_DEFN(unpackBundle)
@@ -270,65 +272,65 @@ void ose_builtin_if(ose_bundle osevm)
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_e = OSEVM_ENV(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	// ose_pushInt32(vm_s, 0);
-	// ose_neq(vm_s);
-	// ose_roll(vm_s);
-	// ose_drop(vm_s);
-	// ose_copyBundle(vm_e, vm_s);
-	// ose_swap(vm_s);
-	// ose_pushMessage(vm_c, "/!/exec", 7, 0);
-	// ose_swap(vm_c);
-	char *sp = ose_getBundlePtr(vm_s);
-	extern void be3(ose_bundle,
-			int32_t*, int32_t*,
-			int32_t*, int32_t*,
-			int32_t*, int32_t*);
-	int32_t onm2, snm2, onm1, snm1, on, sn;
-	be3(vm_s, &onm2, &snm2, &onm1, &snm1, &on, &sn);
-	int32_t esize = ose_readInt32(vm_e, -4);
-	if(ose_readInt32(vm_s, ose_readInt32(vm_s, -4) - 4) == 0){
-		// false
-		int32_t sum = snm1 + sn + 8;
-		if((esize + 4) < sum){
-			memset(sp + onm1, 0, sum);
-			ose_decSize(vm_s, sum - (esize + 4));
-		}else{
-			ose_incSize(vm_s, (esize + 4) - sum);
-		}
-		memmove(sp + onm2 + esize + 4, sp + onm2, snm2 + 4);
-		memcpy(sp + onm2, ose_getBundlePtr(vm_e) - 4, esize + 4);
-	}else{
-		// true
-		if(esize != snm2){
-			int32_t diff = (esize - snm2);
-			memmove(sp + (onm1 + diff), sp + onm1, snm1 + 4);
-			onm1 += diff;
-			memset(sp + on + diff, 0, sn + 4 - diff);
-			ose_addToSize(vm_s, -(sn + 4 - diff));
-		}else{
-			memset(sp + on, 0, sn + 4);
-			ose_decSize(vm_s, sn + 4);
-		}
-		memcpy(sp + onm2, ose_getBundlePtr(vm_e) - 4, esize + 4);
-	}
-	int32_t con = ose_readInt32(vm_c, -4);
-	int32_t conm1 = ose_getLastBundleElemOffset(vm_c);
-	char *cp = ose_getBundlePtr(vm_c);
-	ose_incSize(vm_c, 16);
-	memmove(cp + con, cp + conm1, con - conm1);
-	ose_writeInt32(vm_c, conm1, 12);
-	cp[conm1 + 4] = '/';
-	cp[conm1 + 5] = '!';
-	cp[conm1 + 6] = '/';
-	cp[conm1 + 7] = 'e';
-	cp[conm1 + 8] = 'x';
-	cp[conm1 + 9] = 'e';
-	cp[conm1 + 10] = 'c';
-	cp[conm1 + 11] = 0;
-	cp[conm1 + 12] = OSETT_ID;
-	cp[conm1 + 13] = 0;
-	cp[conm1 + 14] = 0;
-	cp[conm1 + 15] = 0;
+	ose_pushInt32(vm_s, 0);
+	ose_neq(vm_s);
+	ose_roll(vm_s);
+	ose_drop(vm_s);
+	ose_copyBundle(vm_e, vm_s);
+	ose_swap(vm_s);
+	ose_pushMessage(vm_c, "/!/exec", 7, 0);
+	ose_swap(vm_c);
+	// char *sp = ose_getBundlePtr(vm_s);
+	// extern void be3(ose_bundle,
+	// 		int32_t*, int32_t*,
+	// 		int32_t*, int32_t*,
+	// 		int32_t*, int32_t*);
+	// int32_t onm2, snm2, onm1, snm1, on, sn;
+	// be3(vm_s, &onm2, &snm2, &onm1, &snm1, &on, &sn);
+	// int32_t esize = ose_readInt32(vm_e, -4);
+	// if(ose_readInt32(vm_s, ose_readInt32(vm_s, -4) - 4) == 0){
+	// 	// false
+	// 	int32_t sum = snm1 + sn + 8;
+	// 	if((esize + 4) < sum){
+	// 		memset(sp + onm1, 0, sum);
+	// 		ose_decSize(vm_s, sum - (esize + 4));
+	// 	}else{
+	// 		ose_incSize(vm_s, (esize + 4) - sum);
+	// 	}
+	// 	memmove(sp + onm2 + esize + 4, sp + onm2, snm2 + 4);
+	// 	memcpy(sp + onm2, ose_getBundlePtr(vm_e) - 4, esize + 4);
+	// }else{
+	// 	// true
+	// 	if(esize != snm2){
+	// 		int32_t diff = (esize - snm2);
+	// 		memmove(sp + (onm1 + diff), sp + onm1, snm1 + 4);
+	// 		onm1 += diff;
+	// 		memset(sp + on + diff, 0, sn + 4 - diff);
+	// 		ose_addToSize(vm_s, -(sn + 4 - diff));
+	// 	}else{
+	// 		memset(sp + on, 0, sn + 4);
+	// 		ose_decSize(vm_s, sn + 4);
+	// 	}
+	// 	memcpy(sp + onm2, ose_getBundlePtr(vm_e) - 4, esize + 4);
+	// }
+	// int32_t con = ose_readInt32(vm_c, -4);
+	// int32_t conm1 = ose_getLastBundleElemOffset(vm_c);
+	// char *cp = ose_getBundlePtr(vm_c);
+	// ose_incSize(vm_c, 16);
+	// memmove(cp + con, cp + conm1, con - conm1);
+	// ose_writeInt32(vm_c, conm1, 12);
+	// cp[conm1 + 4] = '/';
+	// cp[conm1 + 5] = '!';
+	// cp[conm1 + 6] = '/';
+	// cp[conm1 + 7] = 'e';
+	// cp[conm1 + 8] = 'x';
+	// cp[conm1 + 9] = 'e';
+	// cp[conm1 + 10] = 'c';
+	// cp[conm1 + 11] = 0;
+	// cp[conm1 + 12] = OSETT_ID;
+	// cp[conm1 + 13] = 0;
+	// cp[conm1 + 14] = 0;
+	// cp[conm1 + 15] = 0;
 }
 
 void ose_builtin_dotimes(ose_bundle osevm)
@@ -337,6 +339,9 @@ void ose_builtin_dotimes(ose_bundle osevm)
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	int32_t n = ose_popInt32(vm_s);
 	if(n > 0){
+		if(strcmp(ose_peekAddress(vm_c), "/!/dotimes")){
+			ose_pushString(vm_c, "/dotimes");
+		}
 		ose_pushInt32(vm_c, n - 1);
 		ose_copyElem(vm_s, vm_c);
 		ose_pushMessage(vm_c, "/!/exec", 7, 0);

@@ -115,7 +115,8 @@ typedef void (*ose_fn)(ose_bundle);
 #define OSE_BUNDLE_HEADER_LEN (OSE_BUNDLE_ID_LEN + OSE_TIMETAG_LEN)
 
 #define OSE_EMPTY_TYPETAG_STRING ",\0\0\0"
-#define OSE_EMPTY_TYPETAG_STRING_LEN 4
+#define OSE_EMPTY_TYPETAG_STRING_LEN 1
+#define OSE_EMPTY_TYPETAG_STRING_SIZE 4
 
 // OSC 1.0 types
 #define OSETT_ID ','

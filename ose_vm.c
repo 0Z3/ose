@@ -169,7 +169,7 @@ void osevm_assign(ose_bundle osevm, char *address)
 		popControlToStack(vm_c, vm_s);
 		return;
 	}
-#ifdef OSE_USE_OPTIMIZED_CODE
+#ifdef OSE_SKIP//OSE_USE_OPTIMIZED_CODE
 	char *eb = ose_getBundlePtr(vm_e);
 	int32_t es = ose_readInt32(vm_e, -4);
 	char *sb = ose_getBundlePtr(vm_s);
@@ -1495,8 +1495,8 @@ static void popAllControl(ose_bundle osevm)
 			memcpy(p + 4, b + offset, size);
 			memcpy(p + 4 + size,
 			       OSE_EMPTY_TYPETAG_STRING,
-			       OSE_EMPTY_TYPETAG_STRING_LEN);
-			p += 4 + size + OSE_EMPTY_TYPETAG_STRING_LEN;
+			       OSE_EMPTY_TYPETAG_STRING_SIZE);
+			p += 4 + size + OSE_EMPTY_TYPETAG_STRING_SIZE;
 		}else{
 			*((int32_t *)p) = ose_htonl(size + 8);
 			p[8] = OSETT_ID;
@@ -1511,8 +1511,8 @@ static void popAllControl(ose_bundle osevm)
 			memcpy(p + 4, addr, paddrlen);
 			memcpy(p + 4 + paddrlen,
 			       OSE_EMPTY_TYPETAG_STRING,
-			       OSE_EMPTY_TYPETAG_STRING_LEN);
-			p += 4 + paddrlen + OSE_EMPTY_TYPETAG_STRING_LEN;
+			       OSE_EMPTY_TYPETAG_STRING_SIZE);
+			p += 4 + paddrlen + OSE_EMPTY_TYPETAG_STRING_SIZE;
 		}else{
 			*((int32_t *)p) = ose_htonl(paddrlen + 8);
 			p[8] = OSETT_ID;
