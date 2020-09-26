@@ -34,6 +34,8 @@ extern "C" {
 #include <inttypes.h>
 #include "ose_conf.h"
 
+extern const char * const ose_version;
+
 #if defined (__unix__) || ( defined (__APPLE__) && defined (__MACH__) )
 #include <arpa/inet.h>
 #elif defined (_WIN32) || defined (_WIN64)

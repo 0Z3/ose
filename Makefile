@@ -13,9 +13,10 @@ ADDITIONAL_LIBOSE_CFILES=ose_print.c
 ######################################################################
 
 CFLAGS_RELEASE=$(ADDITIONAL_CFLAGS) \
-	-Wall -I. -O3 -DOSE_USE_OPTIMIZED_CODE
+	-Wall -I. -O3 -DOSE_USE_OPTIMIZED_CODE -DOSE_VERSION=\"$(GIT_VERSION)\"
 CFLAGS_DEBUG=$(ADDITIONAL_CFLAGS) \
-	-Wall -I. -DOSE_CONF_DEBUG -O0 -glldb -fsanitize=undefined
+	-Wall -I. -DOSE_CONF_DEBUG -O0 -glldb -fsanitize=undefined \
+	-DOSE_VERSION=\"$(GIT_VERSION)\"
 
 ######################################################################
 # files
@@ -36,7 +37,7 @@ LANG_CFILES=ose_print.c
 LANG_HFILES=ose_print.h
 
 
-all: ose
+all: ose libose libosevm
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(HOOKS) $(BUNDLE_SIZES) -c $<
@@ -66,18 +67,20 @@ REPL_HOOKS= \
 ose: CFLAGS=$(CFLAGS_RELEASE)
 ose: LDFLAGS=-lm -rdynamic
 ose: HOOKS=$(REPL_HOOKS)
-ose: $(REPL_CFILES) $(REPL_HFILES) version.h
-	$(CC) $(CFLAGS) $(LDFLAGS) -o ose \
+ose: CMD=$(CC) $(CFLAGS) $(LDFLAGS) -o ose \
 	$(HOOKS) \
 	$(REPL_CFILES) Applications/repl/ose_repl.c -ledit -ldl
+ose: $(REPL_CFILES) $(REPL_HFILES) Applications/repl/ose_repl.c
+	$(CMD)
 
 debug: CFLAGS=$(CFLAGS_DEBUG)
 debug: LDFLAGS=-lm -rdynamic
 debug: HOOKS=$(REPL_HOOKS)
-debug: $(REPL_CFILES) $(REPL_HFILES) version.h
-	$(CC) $(CFLAGS) $(LDFLAGS) -o ose \
+debug: CMD=$(CC) $(CFLAGS) $(LDFLAGS) -o ose \
 	$(HOOKS) \
 	$(REPL_CFILES) Applications/repl/ose_repl.c -ledit -ldl
+debug: $(REPL_CFILES) $(REPL_HFILES) Applications/repl/ose_repl.c
+	$(CMD)
 
 ######################################################################
 # Libs
@@ -85,19 +88,18 @@ debug: $(REPL_CFILES) $(REPL_HFILES) version.h
 LIBOSE_CFILES=$(CORE_CFILES) $(ADDITIONAL_LIBOSE_CFILES)
 LIBOSE_HFILES=$(CORE_HFILES) sys/ose_endian.h
 libose: CFLAGS=$(CFLAGS_RELEASE) -c
-libose: $(LIBOSE_CFILES) $(LIBOSE_HFILES) version.h
-	$(CC) $(CFLAGS) \
-	$(LIBOSE_CFILES)
+libose:	CMD=$(CC) $(CFLAGS) $(LIBOSE_CFILES)
+libose: $(LIBOSE_CFILES) $(LIBOSE_HFILES)
+	$(CMD)
 	ar rc libose.a *.o
 	rm -rf *.o
 
 LIBOSEVM_CFILES=$(VM_CFILES)
 LIBOSEVM_HFILES=$(VM_HFILES)
 libosevm: CFLAGS=$(CFLAGS_RELEASE) -c
-libosevm: $(LIBOSEVM_CFILES) $(LIBOSEVM_HFILES) version.h
-	$(CC) $(CFLAGS) \
-	$(HOOKS) \
-	$(LIBOSEVM_CFILES)
+libosevm: CMD=$(CC) $(CFLAGS) $(HOOKS) $(LIBOSEVM_CFILES)
+libosevm: $(LIBOSEVM_CFILES) $(LIBOSEVM_HFILES)
+	$(CMD)
 	ar rc libosevm.a *.o
 	rm -rf *.o
 
@@ -158,9 +160,10 @@ js: js/libose.js
 ######################################################################
 # Derived files
 ######################################################################
-version.h: FORCE
-	echo "#define OSE_VERSION \""`git describe --long --dirty=" *BUILT AGAINST UNTRACKED CHANGES*"` $(MAKECMDGOALS)\" > ose_version.h
-FORCE:
+# version.h: FORCE
+# 	echo "#define OSE_VERSION \""`git describe --long --dirty=" *BUILT AGAINST UNTRACKED CHANGES*"` $(MAKECMDGOALS)\" > ose_version.h
+# FORCE:
+GIT_VERSION := "$(shell git describe --dirty --always --tags) ($(MAKECMDGOALS))"
 
 sys/ose_endianchk: CC=clang
 sys/ose_endianchk: sys/ose_endianchk.c
@@ -207,4 +210,4 @@ test: $(TESTS) test/common.h test/ut_common.h
 ######################################################################
 .PHONY: clean
 clean:
-	rm -rf ose *.dSYM $(TESTDIR)/*.dSYM $(TESTS) docs js/libose.js js/libose.wasm osec sys/ose_endianchk sys/ose_endian.h ose_version.h *.o sys/*.o *.a
+	rm -rf ose *.dSYM $(TESTDIR)/*.dSYM $(TESTS) docs js/libose.js js/libose.wasm osec sys/ose_endianchk sys/ose_endian.h *.o sys/*.o *.a

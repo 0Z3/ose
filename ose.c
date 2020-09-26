@@ -22,6 +22,8 @@ SOFTWARE.
 #include "ose_conf.h"
 #include "ose.h"
 
+const char * const ose_version = OSE_VERSION;
+
 #ifdef OSE_NEED_HTONL
 int32_t htonl(int32_t x)
 {

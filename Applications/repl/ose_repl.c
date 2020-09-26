@@ -44,7 +44,6 @@
 #include "ose_print.h"
 #include "sys/ose_load.h"
 #include "sys/ose_time.h"
-#include "ose_version.h"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -701,7 +700,7 @@ int main(int ac, char **av)
 		}
 	}
 	{
-		printf("Ose %s\n", OSE_VERSION);
+		printf("Ose %s\n", ose_version);
 		printf("\n");
 		if(or_udp_input){
 			printf("Receiving on UDP port %d\n", or_udp_port_input);

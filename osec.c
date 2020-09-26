@@ -195,10 +195,8 @@ void osec_finishMain(ose_bundle osevm)
  * hooks
  **************************************************/
 	
-void osec_assign(ose_bundle osevm)
+void osec_assign(ose_bundle osevm, char *address)
 {
-	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	const char * const address = ose_peekAddress(vm_c);
 	int32_t pass = OSEC_GETPASS(osevm);
 	int32_t scope = OSEC_GETSCOPE(osevm);
 	if((pass == OSEC_PASS1 && scope == OSEC_SCOPE_NAMEDFN)
@@ -210,14 +208,12 @@ void osec_assign(ose_bundle osevm)
 	}
 }
 
-void osec_lookup(ose_bundle osevm)
+void osec_lookup(ose_bundle osevm, char *address)
 {
 }
 
-void osec_funcall(ose_bundle osevm)
+void osec_funcall(ose_bundle osevm, char *address)
 {
-	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	const char * const address = ose_peekAddress(vm_c);
 	int32_t pass = OSEC_GETPASS(osevm);
 	int32_t scope = OSEC_GETSCOPE(osevm);
 	if((pass == OSEC_PASS1 && scope == OSEC_SCOPE_NAMEDFN)
@@ -243,46 +239,44 @@ void osec_funcall(ose_bundle osevm)
 	}
 }
 
-void osec_quote(ose_bundle osevm)
+void osec_quote(ose_bundle osevm, char *address)
 {
 }
 
-void osec_copyContextBundle(ose_bundle osevm)
+void osec_copyContextBundle(ose_bundle osevm, char *address)
 {
 }
 
-void osec_appendToContextBundle(ose_bundle osevm)
+void osec_appendToContextBundle(ose_bundle osevm, char *address)
 {
 }
 
-void osec_replaceContextBundle(ose_bundle osevm)
+void osec_replaceContextBundle(ose_bundle osevm, char *address)
 {
 }
 
-void osec_moveElemToContextBundle(ose_bundle osevm)
+void osec_moveElemToContextBundle(ose_bundle osevm, char *address)
 {
 }
 
-void osec_exec(ose_bundle osevm)
+void osec_exec(ose_bundle osevm, char *address)
 {
 }
 
-void osec_execInCurrentContext(ose_bundle osevm)
+void osec_execInCurrentContext(ose_bundle osevm, char *address)
 {
 }
 
-void osec_apply(ose_bundle osevm)
+void osec_apply(ose_bundle osevm, char *address)
 {
 }
 
-void osec_return(ose_bundle osevm)
+void osec_return(ose_bundle osevm, char *address)
 {
 }
 
-void osec_defun(ose_bundle osevm)
+void osec_defun(ose_bundle osevm, char *address)
 {
-	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	const char * const address = ose_peekAddress(vm_c);
 	OSEVM_SET_FLAG_COMPILE(osevm);
 	if(address[2] == '/'){
 		// named function, handle on first pass
@@ -318,9 +312,9 @@ void osec_defun(ose_bundle osevm)
 	}
 }
 
-void osec_endDefun(ose_bundle osevm)
+void osec_endDefun(ose_bundle osevm, char *address)
 {
-	int32_t pass = OSEC_GETPASS(osevm);
+	//int32_t pass = OSEC_GETPASS(osevm);
 	int32_t scope = OSEC_GETSCOPE(osevm);
 	OSEVM_UNSET_FLAG_COMPILE(osevm);
 	OSEC_SETSCOPE(osevm, OSEC_SCOPE_GLOBAL);
@@ -344,7 +338,7 @@ void osec_endDefun(ose_bundle osevm)
 	}
 }
 
-void osec_toInt32(ose_bundle osevm)
+void osec_toInt32(ose_bundle osevm, char *address)
 {
 	int32_t pass = OSEC_GETPASS(osevm);
 	int32_t scope = OSEC_GETSCOPE(osevm);
@@ -363,7 +357,7 @@ void osec_toInt32(ose_bundle osevm)
 	}
 }
 
-void osec_toFloat(ose_bundle osevm)
+void osec_toFloat(ose_bundle osevm, char *address)
 {
 	int32_t pass = OSEC_GETPASS(osevm);
 	int32_t scope = OSEC_GETSCOPE(osevm);
@@ -382,7 +376,7 @@ void osec_toFloat(ose_bundle osevm)
 	}
 }
 
-void osec_toString(ose_bundle osevm)
+void osec_toString(ose_bundle osevm, char *address)
 {
 	int32_t pass = OSEC_GETPASS(osevm);
 	int32_t scope = OSEC_GETSCOPE(osevm);
@@ -401,12 +395,10 @@ void osec_toString(ose_bundle osevm)
 	}
 }
 
-void osec_toBlob(ose_bundle osevm)
+void osec_toBlob(ose_bundle osevm, char *address)
 {
 	int32_t pass = OSEC_GETPASS(osevm);
 	int32_t scope = OSEC_GETSCOPE(osevm);
-	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-	const char * const address = ose_peekAddress(vm_c);
 	if((pass == OSEC_PASS1 && scope == OSEC_SCOPE_NAMEDFN)
 	   || (pass == OSEC_PASS2 && scope == OSEC_SCOPE_ANONFN)
 	   || (pass == OSEC_PASS3 && (scope == OSEC_SCOPE_GLOBAL))){
@@ -438,11 +430,11 @@ void osec_toBlob(ose_bundle osevm)
 	}
 }
 
-void osec_appendByte(ose_bundle osevm)
+void osec_appendByte(ose_bundle osevm, char *address)
 {
 }
 
-void osec_default(ose_bundle osevm)
+void osec_default(ose_bundle osevm, char *address)
 {
 }
 
@@ -479,7 +471,7 @@ void osec_postControl(ose_bundle osevm)
 int main(int ac, char **av)
 {
 	char *input_filename = NULL;
-	int lang = OSEC_LANG_C;
+	//int lang = OSEC_LANG_C;
 	char *output_filename = "out.c";
 	// process args
 	for(int i = 1; i < ac; i++){
@@ -501,13 +493,13 @@ int main(int ac, char **av)
 	bytes = (char *)malloc(MAX_BUNDLE_LEN);
 	memset(bytes, 0, MAX_BUNDLE_LEN);
 	bundle = ose_newBundleFromCBytes(MAX_BUNDLE_LEN, bytes);
-	osevm = osevm_init(bundle,
-			   1000000,
-			   1000000,
-			   1000000,
-			   1000000,
-			   1000000,
-			   1000000);
+	osevm = osevm_init(bundle);/* , */
+			   /* 1000000, */
+			   /* 1000000, */
+			   /* 1000000, */
+			   /* 1000000, */
+			   /* 1000000, */
+			   /* 1000000); */
 	vm_i = OSEVM_INPUT(osevm);
 	vm_s = OSEVM_STACK(osevm);
 	vm_e = OSEVM_ENV(osevm);
