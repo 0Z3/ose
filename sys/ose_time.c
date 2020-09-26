@@ -60,7 +60,7 @@ uint64_t ose_timeToMonotonicNanos(ose_hptimer t, uint64_t tt)
 
 ose_hptimer ose_initTimer(void)
 {
-	ose_hptimer t;
+	ose_hptimer t = {0};
 	t.bias = ose_now(t);
 	return t;
 }
