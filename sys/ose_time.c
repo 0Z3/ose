@@ -53,7 +53,8 @@ uint64_t ose_timeToMonotonicNanos(ose_hptimer t, uint64_t tt)
 	return (high << 32) + high_rem + low;
 }
 
-#elif defined(__unix__)
+#elif defined(__unix__) \
+	&& defined(__STDC_VERSION__) && __STDC_VERSION__ > 199901L
 #include <unistd.h>
 #ifdef _POSIX_VERSION
 #include <time.h>

@@ -30,6 +30,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <editline/readline.h>
 
@@ -75,6 +76,13 @@ static int or_udp_output = 0;
 
 /* Signaling and control */
 static jmp_buf or_jmp_buf;
+#if __STDC_VERSION__ < 199901L
+/* There seems to not be a portable way to get the behavior of sigsetjmpp
+   on C89 systems. We can check some of them and set the proper flags,
+   but for now, we just hope for the best */
+#define sigsetjmp(jb, i) setjmp(jb)
+#define siglongjmp(jb, i) longjmp(jb, 1)
+#endif
 static volatile sig_atomic_t or_assertion_failed = 0;
 static volatile sig_atomic_t or_quit = 0;
 static volatile int or_have_input = 0;
@@ -753,8 +761,10 @@ int main(int ac, char **av)
 	fd_set rset;
 	FD_ZERO(&rset);
 	int maxfdp1 = or_udp_socket_input + 1;
-
+	
+#ifdef OSE_HAVE_HPTIMER
 	or_hptimer = ose_initTimer();
+#endif
 
 	while(1){
 		switch(sigsetjmp(or_jmp_buf, 1)){

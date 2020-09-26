@@ -38,7 +38,8 @@ typedef struct ose_hptimer_
 	uint64_t bias;
 } ose_hptimer;
 
-#elif defined(__unix__)
+#elif defined(__unix__) \
+	&& defined(__STDC_VERSION__) && __STDC_VERSION__ > 199901L
 #include <unistd.h>
 #ifdef _POSIX_VERSION
 
