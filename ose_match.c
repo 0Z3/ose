@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-//#define OSE_MATCH_LOGSTATE
+/* #define OSE_MATCH_LOGSTATE */
 #define OSE_MATCH_RANGE_CAN_BE_NEGATIVE
 
 static int ose_match_range(const char *pattern, const char *address);
@@ -143,20 +143,20 @@ int ose_match_pattern(const char *pattern,
 		      int *pattern_offset,
 		      int *address_offset)
 {
-	// loosen these restrictions as ose (osc also) doesn't require
-	// an address to begin with a slash.
-	// if(*pattern != '/' && *pattern != '#'){
-	// 	OSE_MATCH_RETURN_FAILURE(OSE_MATCH_ERROR_PATTERN_NO_LEADING_SLASH);
-	// }
-	// if(*address != '/' && *address != '#'){
-	// 	OSE_MATCH_RETURN_FAILURE(OSE_MATCH_ERROR_ADDRESS_NO_LEADING_SLASH);
-	// }
-	// this was a hack to speed things up in the case of a fast success.
-	// most of the time it made things worse
-	// if(!strcmp(address, pattern)){
-	// 	OSE_MATCH_RETURN_SUCCESS((OSE_MATCH_PATTERN_COMPLETE
-	// 				  | OSE_MATCH_ADDRESS_COMPLETE));
-	// }
+	/* loosen these restrictions as ose (osc also) doesn't require */
+	/* an address to begin with a slash. */
+	/* if(*pattern != '/' && *pattern != '#'){ */
+	/* 	OSE_MATCH_RETURN_FAILURE(OSE_MATCH_ERROR_PATTERN_NO_LEADING_SLASH); */
+	/* } */
+	/* if(*address != '/' && *address != '#'){ */
+	/* 	OSE_MATCH_RETURN_FAILURE(OSE_MATCH_ERROR_ADDRESS_NO_LEADING_SLASH); */
+	/* } */
+	/* this was a hack to speed things up in the case of a fast success. */
+	/* most of the time it made things worse */
+	/* if(!strcmp(address, pattern)){ */
+	/* 	OSE_MATCH_RETURN_SUCCESS((OSE_MATCH_PATTERN_COMPLETE */
+	/* 				  | OSE_MATCH_ADDRESS_COMPLETE)); */
+	/* } */
 	*pattern_offset = 0;
 	*address_offset = 0;
 
@@ -249,13 +249,13 @@ int ose_match_pattern(const char *pattern,
 
 		switch(p){
 		case '/':
-			// we already checked to see if a is a '/' or a '\0',
-			// so just pop and continue;
+			/* we already checked to see if a is a '/' or a '\0', */
+			/* so just pop and continue; */
 			OSE_MATCH_POP();
 			break;
 		case '\0':
-			// we know a is not a '/' or a '\0',
-			// so just pop and continue;
+			/* we know a is not a '/' or a '\0', */
+			/* so just pop and continue; */
 			OSE_MATCH_POP();
 			break;
 		case '?':
@@ -271,9 +271,9 @@ int ose_match_pattern(const char *pattern,
 				break;
 			case 1:
 				sp->a++;
-				// if the first char inside the opening square
-				// bracket is a closing square bracket, it's
-				// treated as a normal char, so skip over it
+				/* if the first char inside the opening square */
+				/* bracket is a closing square bracket, it's */
+				/* treated as a normal char, so skip over it */
 				if(pattern[sp->p + 1] == ']'){
 					sp->p += 2;
 				}
@@ -339,8 +339,8 @@ int ose_match_pattern(const char *pattern,
 			OSE_MATCH_RETURN_FAILURE(OSE_MATCH_ERROR_UNMATCHED_RIGHT_SQUARE_BRACKET);
 		case '*': {
 			while(pattern[sp->p + 1] == '*'){
-				// avoid all kinds of extra backtracking with
-				// multiple stars
+				/* avoid all kinds of extra backtracking with */
+				/* multiple stars */
 				sp->p++;
 			}
 			if(pattern[sp->p + 1] == '\0'
@@ -381,7 +381,7 @@ int ose_match_pattern(const char *pattern,
 			break;
 		}
 	}
-	// unreachable
+	/* unreachable */
 }
 
 static int ose_match_range(const char *pattern, const char *address)
@@ -395,8 +395,8 @@ static int ose_match_range(const char *pattern, const char *address)
 	}
 	int matched = !val;
 
-	// we're on the first character inside the square brackets
-	// if it's a - or a ], it gets treated as a normal character
+	/* we're on the first character inside the square brackets */
+	/* if it's a - or a ], it gets treated as a normal character */
 	if(*p == ']'){
 		if(*p == *address){
 			return val;

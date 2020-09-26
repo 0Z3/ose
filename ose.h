@@ -118,14 +118,14 @@ typedef void (*ose_fn)(ose_bundle);
 #define OSE_EMPTY_TYPETAG_STRING_LEN 1
 #define OSE_EMPTY_TYPETAG_STRING_SIZE 4
 
-// OSC 1.0 types
+/* OSC 1.0 types */
 #define OSETT_ID ','
 #define OSETT_INT32 'i'
 #define OSETT_FLOAT 'f'
 #define OSETT_STRING 's'
 #define OSETT_BLOB 'b'
 
-// extended types
+/* extended types */
 #ifdef OSE_PROVIDE_TYPE_SYMBOL
 #define OSETT_SYMBOL 'S'
 #endif
@@ -177,9 +177,9 @@ struct ose_timetag
 #define OSETT_CFUNCTION 'l'
 #endif
 
-// non-osc data types
-// these are never written into a bundle
-// (unless they are defined above)
+/* non-osc data types
+   these are never written into a bundle
+   (unless they are defined above) */
 #ifndef OSETT_TRUE
 #define OSETT_TRUE 'T'
 #endif

@@ -32,7 +32,7 @@ extern "C" {
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 #include <unistd.h>
-typedef struct ose_hptimer
+typedef struct ose_hptimer_
 {
 	mach_timebase_info_data_t tb;
 	uint64_t bias;
@@ -42,7 +42,7 @@ typedef struct ose_hptimer
 #include <unistd.h>
 #ifdef _POSIX_VERSION
 
-typedef struct ose_hptimer
+typedef struct ose_hptimer_
 {
 	uint64_t bias;
 } ose_hptimer;
@@ -51,11 +51,10 @@ typedef struct ose_hptimer
 #else
 
 #undef OSE_HAVE_HPTIMER
-typedef struct ose_hptimer {} ose_hptimer;
+typedef struct ose_hptimer_ {} ose_hptimer;
 
 #endif
 
-typedef struct ose_hptimer ose_hptimer;
 ose_hptimer ose_initTimer(void);
 uint64_t ose_now(ose_hptimer t);
 uint64_t ose_timeToMonotonicNanos(ose_hptimer t, uint64_t tt);

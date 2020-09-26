@@ -89,4 +89,4 @@ int ose_match_pattern(const char *pattern,
 }
 #endif
 
-#endif // __OSE_MATCH_H__
+#endif /* __OSE_MATCH_H__ */

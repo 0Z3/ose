@@ -1,88 +1,111 @@
-all: ose
+######################################################################
+# The following variables can be customized here, or when invoking
+# `make`, to suit your needs.
+# 
+# Other variables may be found in ose_conf.h
+######################################################################
+CC=clang
+ADDITIONAL_CFLAGS=
+ADDITIONAL_LIBOSE_CFILES=ose_print.c
 
-TESTDIR=./test
-UNITTESTS=$(TESTDIR)/ut_ose_util $(TESTDIR)/ut_ose_stackops
-TESTS=$(UNITTESTS)
+######################################################################
+# Vars
+######################################################################
 
-ALLTYPES=-DOSE_CONF_PROVIDE_TYPE_SYMBOL \
--DOSE_CONF_PROVIDE_TYPE_DOUBLE \
--DOSE_CONF_PROVIDE_TYPE_INT8 \
--DOSE_CONF_PROVIDE_TYPE_UINT8 \
--DOSE_CONF_PROVIDE_TYPE_UINT32 \
--DOSE_CONF_PROVIDE_TYPE_INT64 \
--DOSE_CONF_PROVIDE_TYPE_UINT64 \
--DOSE_CONF_PROVIDE_TYPE_TIMETAG \
--DOSE_CONF_PROVIDE_TYPE_TRUE \
--DOSE_CONF_PROVIDE_TYPE_FALSE \
--DOSE_CONF_PROVIDE_TYPE_NULL \
--DOSE_CONF_PROVIDE_TYPE_INFINITUM
+CFLAGS_RELEASE=$(ADDITIONAL_CFLAGS) \
+	-Wall -I. -O3 -DOSE_USE_OPTIMIZED_CODE
+CFLAGS_DEBUG=$(ADDITIONAL_CFLAGS) \
+	-Wall -I. -DOSE_CONF_DEBUG -O0 -glldb -fsanitize=undefined
 
+######################################################################
+# files
+######################################################################
 CORE_CFILES=ose.c ose_util.c ose_stackops.c ose_context.c ose_match.c ose_assert.c
 CORE_HFILES=ose.h ose_conf.h ose_util.h ose_stackops.h ose_context.h ose_match.h ose_assert.h
-SYS_CFILES=sys/ose_load.c
-SYS_HFILES=sys/ose_load.h sys/ose_endian.h
+
+SYS_CFILES=sys/ose_load.c sys/ose_time.c
+SYS_HFILES=sys/ose_load.h sys/ose_time.h sys/ose_endian.h
+
 BUILTINS_CFILES=ose_builtins.c
 BUILTINS_HFILES=ose_builtins.h
+
 VM_CFILES=ose_symtab.c ose_vm.c $(BUILTINS_CFILES)
 VM_HFILES=ose_symtab.h ose_vm.h $(BUILTINS_HFILES)
+
 LANG_CFILES=ose_print.c
 LANG_HFILES=ose_print.h
-TEST_CFILES=ut_ose_util.c ut_ose_stackops.c
-TEST_HFILES=ut_ose_util.h ut_ose_stackops.h
 
 
-CFLAGS_RELEASE=-I. -O3 -rdynamic -lm -DNDEBUG -DOSE_USE_OPTIMIZED_CODE -glldb
-CFLAGS_DEBUG=-I. -DOSE_CONF_DEBUG -O0 -glldb -fsanitize=undefined -rdynamic -lm
+all: ose
 
-sys/ose_endianchk: CC=clang
-sys/ose_endianchk: sys/ose_endianchk.c
-	$(CC) -o sys/ose_endianchk sys/ose_endianchk.c
+%.o: %.c
+	$(CC) $(CFLAGS) $(HOOKS) $(BUNDLE_SIZES) -c $<
 
-sys/ose_endian.h: sys/ose_endianchk
-	sys/ose_endianchk > sys/ose_endian.h
+sys/%.o: sys/%.c
+	$(CC) $(CFLAGS) $(HOOKS) $(BUNDLE_SIZES) -c -o $@ $<
 
-ose_symtab.c: ose_symtab.gperf
-	gperf ose_symtab.gperf > ose_symtab.c
 
-REPL_BUNDLE_SIZE=131072
-REPL_CFILES=$(CORE_CFILES) $(SYS_CFILES) $(VM_CFILES) $(LANG_CFILES)\
-Applications/repl/ose_repl.c
+
+######################################################################
+# REPL
+######################################################################
+REPL_CFILES=$(CORE_CFILES) $(SYS_CFILES) $(VM_CFILES) $(LANG_CFILES)
 REPL_HFILES=$(CORE_HFILES) $(SYS_HFILES) $(VM_HFILES) $(LANG_HFILES)
-REPL_HOOKS=-DOSEVM_PREINPUT=oserepl_preInput \
--DOSEVM_POSTINPUT=oserepl_postInput \
--DOSEVM_PRECONTROL=oserepl_preControl \
--DOSEVM_POSTCONTROL=oserepl_postControl \
--DOSEVM_DEFUN=oserepl_defun \
--DOSEVM_ENDDEFUN=oserepl_endDefun \
--DOSEVM_DEFAULT=oserepl_default \
--DOSEVM_DEFAULT=oserepl_default \
--DOSEVM_ISKNOWNADDRESS=oserepl_isKnownAddress
-ose: CC=clang
+
+REPL_HOOKS= \
+	-DOSEVM_PREINPUT=oserepl_preInput \
+	-DOSEVM_POSTINPUT=oserepl_postInput \
+	-DOSEVM_PRECONTROL=oserepl_preControl \
+	-DOSEVM_POSTCONTROL=oserepl_postControl \
+	-DOSEVM_DEFUN=oserepl_defun \
+	-DOSEVM_ENDDEFUN=oserepl_endDefun \
+	-DOSEVM_DEFAULT=oserepl_default \
+	-DOSEVM_DEFAULT=oserepl_default \
+	-DOSEVM_ISKNOWNADDRESS=oserepl_isKnownAddress
+
 ose: CFLAGS=$(CFLAGS_RELEASE)
+ose: LDFLAGS=-lm -rdynamic
+ose: HOOKS=$(REPL_HOOKS)
 ose: $(REPL_CFILES) $(REPL_HFILES) version.h
-	$(CC) $(CFLAGS) -o ose \
-	$(REPL_HOOKS) \
-	-DOSE_CONF_VM_INPUT_SIZE=$(REPL_BUNDLE_SIZE) \
-	-DOSE_CONF_VM_STACK_SIZE=$(REPL_BUNDLE_SIZE) \
-	-DOSE_CONF_VM_ENV_SIZE=$(REPL_BUNDLE_SIZE) \
-	-DOSE_CONF_VM_CONTROL_SIZE=$(REPL_BUNDLE_SIZE) \
-	-DOSE_CONF_VM_DUMP_SIZE=$(REPL_BUNDLE_SIZE) \
-	-DOSE_CONF_VM_OUTPUT_SIZE=$(REPL_BUNDLE_SIZE) \
-	$(REPL_CFILES) sys/ose_time.c -ledit -ldl
+	$(CC) $(CFLAGS) $(LDFLAGS) -o ose \
+	$(HOOKS) \
+	$(REPL_CFILES) Applications/repl/ose_repl.c -ledit -ldl
 
-debug: CC=clang
 debug: CFLAGS=$(CFLAGS_DEBUG)
+debug: LDFLAGS=-lm -rdynamic
+debug: HOOKS=$(REPL_HOOKS)
 debug: $(REPL_CFILES) $(REPL_HFILES) version.h
-	$(CC) $(CFLAGS) -o ose \
-	$(REPL_HOOKS) \
-	-DOSE_CONF_VM_INPUT_SIZE=$(REPL_BUNDLE_SIZE) \
-	-DOSE_CONF_VM_STACK_SIZE=$(REPL_BUNDLE_SIZE) \
-	-DOSE_CONF_VM_ENV_SIZE=$(REPL_BUNDLE_SIZE) \
-	-DOSE_CONF_VM_CONTROL_SIZE=$(REPL_BUNDLE_SIZE) \
-	-DOSE_CONF_VM_DUMP_SIZE=$(REPL_BUNDLE_SIZE) \
-	-DOSE_CONF_VM_OUTPUT_SIZE=$(REPL_BUNDLE_SIZE) \
-	$(REPL_CFILES) sys/ose_time.c -ledit -ldl
+	$(CC) $(CFLAGS) $(LDFLAGS) -o ose \
+	$(HOOKS) \
+	$(REPL_CFILES) Applications/repl/ose_repl.c -ledit -ldl
 
+######################################################################
+# Libs
+######################################################################
+LIBOSE_CFILES=$(CORE_CFILES) $(ADDITIONAL_LIBOSE_CFILES)
+LIBOSE_HFILES=$(CORE_HFILES) sys/ose_endian.h
+libose: CFLAGS=$(CFLAGS_RELEASE) -c
+libose: $(LIBOSE_CFILES) $(LIBOSE_HFILES) version.h
+	$(CC) $(CFLAGS) \
+	$(LIBOSE_CFILES)
+	ar rc libose.a *.o
+	rm -rf *.o
+
+LIBOSEVM_CFILES=$(VM_CFILES)
+LIBOSEVM_HFILES=$(VM_HFILES)
+libosevm: CFLAGS=$(CFLAGS_RELEASE) -c
+libosevm: $(LIBOSEVM_CFILES) $(LIBOSEVM_HFILES) version.h
+	$(CC) $(CFLAGS) \
+	$(HOOKS) \
+	$(LIBOSEVM_CFILES)
+	ar rc libosevm.a *.o
+	rm -rf *.o
+
+
+
+######################################################################
+# Ose Compiler
+######################################################################
 OSEC_CFILES=$(CORE_CFILES) $(SYS_CFILES) $(VM_CFILES) $(LANG_CFILES) osec.c
 OSEC_HFILES=$(CORE_HFILES) $(SYS_HFILES) $(VM_HFILES) $(LANG_HFILES)
 osec: CC=clang
@@ -117,6 +140,9 @@ osec: $(OSEC_CFILES) $(OSEC_HFILES)
 	-DOSE_CONF_SYMTAB_FNSYMS \
 	$(OSEC_CFILES)
 
+######################################################################
+# JS
+######################################################################
 JS_CFILES=$(CORE_CFILES) $(VM_CFILES) $(LANG_CFILES) js/osejs.c
 JS_HFILES=$(CORE_HFILES) $(VM_HFILES) $(LANG_HFILES)
 EMSCRIPTEN_EXPORTED_FUNCTIONS=$(shell cat js/osejs_export.mk)
@@ -129,19 +155,56 @@ js/libose.js: $(JS_CFILES) $(JS_HFILES) js/osejs_export.mk js/ose.js js/osevm.js
 .PHONY: js
 js: js/libose.js
 
+######################################################################
+# Derived files
+######################################################################
 version.h: FORCE
 	echo "#define OSE_VERSION \""`git describe --long --dirty=" *BUILT AGAINST UNTRACKED CHANGES*"` $(MAKECMDGOALS)\" > ose_version.h
-
 FORCE:
+
+sys/ose_endianchk: CC=clang
+sys/ose_endianchk: sys/ose_endianchk.c
+	$(CC) -o sys/ose_endianchk sys/ose_endianchk.c
+
+sys/ose_endian.h: sys/ose_endianchk
+	sys/ose_endianchk > sys/ose_endian.h
+
+ose_symtab.c: ose_symtab.gperf
+	gperf ose_symtab.gperf > ose_symtab.c
+
+######################################################################
+# Tests
+######################################################################
+TEST_CFILES=ut_ose_util.c ut_ose_stackops.c
+TEST_HFILES=ut_ose_util.h ut_ose_stackops.h
+
+TESTDIR=./test
+UNITTESTS=$(TESTDIR)/ut_ose_util $(TESTDIR)/ut_ose_stackops
+TESTS=$(UNITTESTS)
 
 $(TESTDIR)/%: CFLAGS=$(CFLAGS_DEBUG)
 $(TESTDIR)/%: $(CORE_CFILES) $(CORE_HFILES) $(TESTDIR)/%.c $(TESTDIR)/common.h
-	clang $(CFLAGS) $(ALLTYPES) -o $@ \
+	clang $(CFLAGS) -o $@ \
+	-DOSE_CONF_PROVIDE_TYPE_SYMBOL \
+	-DOSE_CONF_PROVIDE_TYPE_DOUBLE \
+	-DOSE_CONF_PROVIDE_TYPE_INT8 \
+	-DOSE_CONF_PROVIDE_TYPE_UINT8 \
+	-DOSE_CONF_PROVIDE_TYPE_UINT32 \
+	-DOSE_CONF_PROVIDE_TYPE_INT64 \
+	-DOSE_CONF_PROVIDE_TYPE_UINT64 \
+	-DOSE_CONF_PROVIDE_TYPE_TIMETAG \
+	-DOSE_CONF_PROVIDE_TYPE_TRUE \
+	-DOSE_CONF_PROVIDE_TYPE_FALSE \
+	-DOSE_CONF_PROVIDE_TYPE_NULL \
+	-DOSE_CONF_PROVIDE_TYPE_INFINITUM \
 	$(CORE_CFILES) ose_print.c $@.c
 
 .PHONY: test
 test: $(TESTS) test/common.h test/ut_common.h
 
+######################################################################
+# Clean
+######################################################################
 .PHONY: clean
 clean:
-	rm -rf ose *.dSYM $(TESTDIR)/*.dSYM $(TESTS) docs js/libose.js js/libose.wasm osec sys/ose_endianchk sys/ose_endian.h ose_version.h
+	rm -rf ose *.dSYM $(TESTDIR)/*.dSYM $(TESTS) docs js/libose.js js/libose.wasm osec sys/ose_endianchk sys/ose_endian.h ose_version.h *.o sys/*.o *.a

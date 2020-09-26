@@ -156,7 +156,7 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
 #line 107 "ose_symtab.gperf"
     {"/size/tt", OSE_SYMTAB_VALUE(ose_builtin_sizeTT)},
     {""}, {""},
-#line 86 "ose_symtab.gperf"
+#line 87 "ose_symtab.gperf"
     {"/split", OSE_SYMTAB_VALUE(ose_builtin_split)},
 #line 105 "ose_symtab.gperf"
     {"/sizes/elems", OSE_SYMTAB_VALUE(ose_builtin_sizesElems)},
@@ -228,11 +228,11 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
 #line 58 "ose_symtab.gperf"
     {"/drop", OSE_SYMTAB_VALUE(ose_builtin_drop)},
     {""}, {""},
-#line 81 "ose_symtab.gperf"
+#line 82 "ose_symtab.gperf"
     {"/pop/all", OSE_SYMTAB_VALUE(ose_builtin_popAll)},
-#line 80 "ose_symtab.gperf"
+#line 81 "ose_symtab.gperf"
     {"/pop", OSE_SYMTAB_VALUE(ose_builtin_pop)},
-#line 83 "ose_symtab.gperf"
+#line 84 "ose_symtab.gperf"
     {"/pop/all/bundle", OSE_SYMTAB_VALUE(ose_builtin_popAllBundle)},
 #line 120 "ose_symtab.gperf"
     {"/decat/blob/fromstart", OSE_SYMTAB_VALUE(ose_builtin_decatenateBlobFromStart)},
@@ -241,7 +241,7 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {"/tt", OSE_SYMTAB_VALUE(ose_builtin_copyTTToBlob)},
 #line 119 "ose_symtab.gperf"
     {"/decat/blob/fromend", OSE_SYMTAB_VALUE(ose_builtin_decatenateBlobFromEnd)},
-#line 84 "ose_symtab.gperf"
+#line 85 "ose_symtab.gperf"
     {"/pop/all/drop/bundle", OSE_SYMTAB_VALUE(ose_builtin_popAllDropBundle)},
 #line 182 "ose_symtab.gperf"
     {"/apply", OSE_SYMTAB_VALUE(ose_builtin_apply)},
@@ -256,7 +256,7 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {""},
 #line 64 "ose_symtab.gperf"
     {"/pick/bottom", OSE_SYMTAB_VALUE(ose_builtin_pickBottom)},
-#line 82 "ose_symtab.gperf"
+#line 83 "ose_symtab.gperf"
     {"/pop/all/drop", OSE_SYMTAB_VALUE(ose_builtin_popAllDrop)},
 #line 154 "ose_symtab.gperf"
     {"/eql", OSE_SYMTAB_VALUE(ose_builtin_eql)},
@@ -280,7 +280,7 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {"/is/type/unit", OSE_SYMTAB_VALUE(ose_builtin_isUnitType)},
 #line 167 "ose_symtab.gperf"
     {"/is/type/float", OSE_SYMTAB_VALUE(ose_builtin_isFloatType)},
-#line 85 "ose_symtab.gperf"
+#line 86 "ose_symtab.gperf"
     {"/push", OSE_SYMTAB_VALUE(ose_builtin_push)},
     {""},
 #line 99 "ose_symtab.gperf"
@@ -348,7 +348,7 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
 #line 168 "ose_symtab.gperf"
     {"/is/type/numeric", OSE_SYMTAB_VALUE(ose_builtin_isNumericType)},
     {""}, {""}, {""},
-#line 87 "ose_symtab.gperf"
+#line 80 "ose_symtab.gperf"
     {"/join", OSE_SYMTAB_VALUE(ose_builtin_join)},
     {""},
 #line 124 "ose_symtab.gperf"
@@ -459,7 +459,6 @@ int ose_symtab_len(void)
 char *ose_symtab_getNthSym(int n)
 {
 	int c = 0, i = 0;
-	//for(int i = MIN_HASH_VALUE; i < MAX_HASH_VALUE; i++){
 	while(c < TOTAL_KEYWORDS){
 		char *name = _ose_symtab_wordlist[i++].name;
 		if(strlen(name) >= MIN_WORD_LENGTH){

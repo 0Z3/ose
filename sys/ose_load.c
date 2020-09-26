@@ -50,8 +50,6 @@ void ose_loadLib(ose_bundle bundle, const char * const name)
 
 void ose_readFile(ose_bundle bundle, const char * const name)
 {
-	char *b = ose_getBundlePtr(bundle);
-	ose_assert(b);
 	FILE *fp = fopen(name, "rb");
 	ose_rassert(fp, 1);
 	const int maxlen = 256;

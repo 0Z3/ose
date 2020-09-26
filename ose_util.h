@@ -45,8 +45,6 @@ extern "C" {
  * @param n Number of bytes.
  * @returns The closest multiple of 4 greater than n.
  */
-// int32_t ose_pnbytes(int32_t n);
-// int32_t ose_pstrlen(const char * const s);
 #define ose_pnbytes(n) (((n) + 4) & 0xfffffffc)
 #define ose_pstrlen(s) ose_pnbytes(strlen(s))
 
@@ -232,7 +230,6 @@ int32_t ose_getBundleElemTTOffset(ose_constbundle bundle, int32_t elemoffset);
 int32_t ose_getBundleElemPayloadOffset(ose_constbundle bundle,
 				       int32_t elemoffset);
 
-// not implemented or tested yet:
 int32_t ose_getFirstOffsetForMatch(ose_constbundle bundle,
 				   const char * const addr);
 int32_t ose_getFirstOffsetForPMatch(ose_constbundle bundle,

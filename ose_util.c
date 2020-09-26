@@ -25,7 +25,6 @@
 #include "ose.h"
 #include "ose_assert.h"
 #include "ose_util.h"
-//#include "ose_context.h"
 
 ose_bool ose_isAddressChar(const char c)
 {
@@ -37,7 +36,7 @@ ose_bool ose_isAddressChar(const char c)
 	case '#':
 	case '*':
 	case ',':
-		//case '/':
+	/* case '/': */
 	case '?':
 	case '[':
 	case ']':
@@ -287,7 +286,7 @@ char ose_getBundleElemType(ose_constbundle bundle, const int32_t offset)
 {
 	const char * const b = ose_getBundlePtr(bundle);
 	ose_assert(b);
-	const int32_t s = ose_readInt32(bundle, -4);
+	const int32_t s = ose_readInt32(bundle, -4);(void)s;
 	ose_assert(s >= OSE_BUNDLE_HEADER_LEN);
 	ose_assert(offset < s);
 	if(isBundle(b + offset + 4) == OSETT_TRUE){
@@ -297,10 +296,10 @@ char ose_getBundleElemType(ose_constbundle bundle, const int32_t offset)
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// the read and write functions intentionally do not assert offset >= 0 as they
-// may be used to read and write to locations "behind" the current bundle.
-////////////////////////////////////////////////////////////////////////////////
+/**********************************************************************
+ * the read and write functions intentionally do not assert offset >= 0 as they
+ * may be used to read and write to locations "behind" the current bundle.
+ **********************************************************************/
 
 #ifdef OSE_DEBUG
 char ose_readByte(ose_constbundle bundle, const int32_t offset)
@@ -450,7 +449,7 @@ char *ose_readBlobPayload(ose_bundle bundle, const int32_t offset)
 	char *b = ose_getBundlePtr(bundle);
 	ose_assert(b);
 	b += offset;
-	const int32_t s = ose_readInt32(bundle, offset);
+	const int32_t s = ose_readInt32(bundle, offset);(void)s;
 	ose_assert(s > 0);
 	return b + 4;
 }
@@ -581,9 +580,6 @@ ose_fn ose_readCFn(ose_constbundle bundle, const int32_t offset)
 	ose_assert(b);
 	b += offset;
 	int32_t a = ose_readInt32(bundle, offset);
-	// while((uintptr_t)b % sizeof(intptr_t)){
-	// 	b++;
-	// }
 	intptr_t i = 0;
 	i = *((intptr_t *)(b + 4 + a));
 	ose_fn f = (ose_fn)i;
@@ -603,9 +599,6 @@ int32_t ose_writeCFn(ose_bundle bundle,
 		a++;
 	}
 	*((int32_t *)b) = ose_htonl(a);
-	// while((uintptr_t)b % sizeof(intptr_t)){
-	// 	b++;
-	// }
 	*((intptr_t *)(b + 4 + a)) = (intptr_t)fn;
 	return OSE_INTPTR2;
 }
@@ -629,10 +622,6 @@ void ose_alignCFn(ose_bundle bundle, const int32_t offset)
 void ose_callCFn(ose_bundle bundle, const int32_t offset, ose_bundle arg)
 {
 	ose_alignCFn(bundle, offset);
-	char *b = ose_getBundlePtr(bundle);
-	// intptr_t i = 0;
-	// i = *((intptr_t *)(b + offset + n));
-	// ose_fn f = (ose_fn)i;
 	ose_fn f = ose_readCFn(bundle, offset);
 	f(arg);
 }
@@ -663,9 +652,9 @@ int32_t ose_getBundleElemAddressOffset(ose_constbundle bundle,
 {
 	ose_assert(ose_isBundle(bundle) == OSETT_TRUE);
 	ose_assert(elemoffset >= OSE_BUNDLE_HEADER_LEN);
-	const int32_t bs = ose_readInt32(bundle, -4);
+	const int32_t bs = ose_readInt32(bundle, -4);(void)bs;
 	ose_assert(elemoffset < bs);
-	const int32_t ms = ose_readInt32(bundle, elemoffset);
+	const int32_t ms = ose_readInt32(bundle, elemoffset);(void)ms;
 	ose_assert(ms > 0);
 	return elemoffset + 4;
 }
@@ -674,8 +663,8 @@ int32_t ose_getBundleElemTTOffset(ose_constbundle bundle,
 				  const int32_t elemoffset)
 {
 	const int32_t ao = ose_getBundleElemAddressOffset(bundle, elemoffset);
-	const int32_t bs = ose_readInt32(bundle, -4);
-	const int32_t ms = ose_readInt32(bundle, elemoffset);
+	const int32_t bs = ose_readInt32(bundle, -4);(void)bs;
+	const int32_t ms = ose_readInt32(bundle, elemoffset);(void)ms;
 	const int32_t to = ao + ose_getPaddedStringLen(bundle, ao);
 	ose_assert(to < bs);
 	ose_assert(to - elemoffset < ms + 4);
@@ -686,8 +675,8 @@ int32_t ose_getBundleElemPayloadOffset(ose_constbundle bundle,
 				       const int32_t elemoffset)
 {
 	const int32_t to = ose_getBundleElemTTOffset(bundle, elemoffset);
-	const int32_t bs = ose_readInt32(bundle, -4);
-	const int32_t ms = ose_readInt32(bundle, elemoffset);
+	const int32_t bs = ose_readInt32(bundle, -4);(void)bs;
+	const int32_t ms = ose_readInt32(bundle, elemoffset);(void)ms;
 	int32_t po = 0;
 	if(ose_getBundleElemType(bundle, elemoffset) == OSETT_BUNDLE){
 		po = to + OSE_TIMETAG_LEN;
@@ -791,11 +780,11 @@ int32_t ose_getPayloadItemSize(ose_constbundle bundle,
 {
 	ose_assert(ose_isBundle(bundle) == OSETT_TRUE);
 	ose_assert(payload_offset >= OSE_BUNDLE_HEADER_LEN);
-	const int32_t bs = ose_readInt32(bundle, -4);
+	const int32_t bs = ose_readInt32(bundle, -4);(void)bs;
 	ose_assert(payload_offset < bs);
 	const char * const b = ose_getBundlePtr(bundle);
-	// a NULL pointer is fine to pass to ose_getTypedDatumSize, but here,
-	// we have to add an offset, so b has to not be NULL
+	/* a NULL pointer is fine to pass to ose_getTypedDatumSize, but here,
+	   we have to add an offset, so b has to not be NULL */
 	ose_assert(b);
 	const int32_t s = ose_getTypedDatumSize(typetag, b + payload_offset);
 	return s;
@@ -869,17 +858,17 @@ int32_t ose_getPayloadItemLength(ose_constbundle bundle,
 {
 	ose_assert(ose_isBundle(bundle) == OSETT_TRUE);
 	ose_assert(payload_offset >= OSE_BUNDLE_HEADER_LEN);
-	const int32_t bs = ose_readInt32(bundle, -4);
+	const int32_t bs = ose_readInt32(bundle, -4);(void)bs;
 	ose_assert(payload_offset < bs);
 	const char * const b = ose_getBundlePtr(bundle);
-	// a NULL pointer is fine to pass to ose_getTypedDatumSize, but here,
-	// we have to add an offset, so b has to not be NULL
+	/* a NULL pointer is fine to pass to ose_getTypedDatumSize, but here,
+	   we have to add an offset, so b has to not be NULL */
 	ose_assert(b);
 	const int32_t s = ose_getTypedDatumLength(typetag, b + payload_offset);
 	return s;
 }
 
-// n = 1 => rightmost item
+/* n = 1 => rightmost item */
 void ose_getNthPayloadItem(ose_constbundle bundle,
 			   const int32_t n,
 			   const int32_t o,
@@ -892,9 +881,9 @@ void ose_getNthPayloadItem(ose_constbundle bundle,
 	ose_assert(ose_isBundle(bundle) == OSETT_TRUE);
 	ose_assert(n > 0);
 	ose_assert(o >= OSE_BUNDLE_HEADER_LEN);
-	const int32_t bundlesize = ose_readInt32(bundle, -4);
+	const int32_t bundlesize = ose_readInt32(bundle, -4);(void)bundlesize;
 	ose_assert(bundlesize >= OSE_BUNDLE_HEADER_LEN);
-	const int32_t elemsize = ose_readInt32(bundle, o);
+	const int32_t elemsize = ose_readInt32(bundle, o);(void)elemsize;
 	ose_assert(elemsize >= 0);
 	ose_assert(elemsize + 4 <= bundlesize - OSE_BUNDLE_HEADER_LEN);
 	int32_t to = o + 4 + ose_getPaddedStringLen(bundle, o + 4);
@@ -906,9 +895,6 @@ void ose_getNthPayloadItem(ose_constbundle bundle,
 	*_to = to;
 	*_po = po;
 	*_ntt = ntt;
-	//to++;
-	//char c;
-	//while((c = ose_readByte(bundle, to + n))){
 	for(int i = 0; i < ntt - n; i++){
 		const char c = ose_readByte(bundle, to);
 		const int32_t s = ose_getPayloadItemSize(bundle, c, po);

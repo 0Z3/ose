@@ -26,9 +26,6 @@ SOFTWARE.
 extern "C" {
 #endif
 
-// this function is defined in ose_symtab.c
-//void (*ose_builtin_lookup(char *str))(ose_bundle);
-
 #define OSE_BUILTIN_DECL(name)			\
 	void ose_builtin_##name(ose_bundle bundle);
 

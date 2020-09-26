@@ -214,7 +214,6 @@ int ose_symtab_len(void)
 char *ose_symtab_getNthSym(int n)
 {
 	int c = 0, i = 0;
-	//for(int i = MIN_HASH_VALUE; i < MAX_HASH_VALUE; i++){
 	while(c < TOTAL_KEYWORDS){
 		char *name = _ose_symtab_wordlist[i++].name;
 		if(strlen(name) >= MIN_WORD_LENGTH){

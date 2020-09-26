@@ -63,7 +63,6 @@ static void ose_over_impl(ose_bundle bundle,
 			  int32_t snm1,
 			  int32_t on,
 			  int32_t sn);
-static void dropArg(ose_bundle bundle);
 void be1(ose_bundle bundle, int32_t *on, int32_t *sn);
 void be2(ose_bundle bundle,
 	 int32_t *onm1,
@@ -168,7 +167,7 @@ void ose_pushBlob(ose_bundle bundle,
 {
 	ose_assert(ose_isBundle(bundle) == OSETT_TRUE);
 	ose_assert(blobsize >= 0);
-	// blob can be NULL
+	/* blob can be NULL */
 	char *b = ose_getBundlePtr(bundle);
 	const int32_t o = ose_readInt32(bundle, -4);
 	ose_assert(o >= OSE_BUNDLE_HEADER_LEN);
@@ -519,7 +518,7 @@ struct ose_timetag ose_peekTimetag(const ose_bundle bundle)
 }
 #endif
 
-// no peek functions for unit types
+/* no peek functions for unit types */
 
 int32_t ose_popInt32(ose_bundle bundle)
 {
@@ -627,7 +626,7 @@ struct ose_timetag ose_popTimetag(ose_bundle bundle)
 }
 #endif
 
-// no pop functions for unit types
+/* no pop functions for unit types */
 
 /**************************************************
  * Stack Operations
@@ -808,7 +807,6 @@ static void pick(ose_bundle bundle, int32_t *_o1, int32_t *_o2, int32_t *_s)
 
 void ose_pick(ose_bundle bundle)
 {
-	char *b = ose_getBundlePtr(bundle);
 	int32_t o1 = 0, o2 = 0, s = 0;
 	pick(bundle, &o1, &o2, &s);
 	ose_incSize(bundle, s + 4);
@@ -1135,7 +1133,6 @@ void ose_pop(ose_bundle bundle)
 		int32_t s = ose_readInt32(bundle, o);
 		if(s <= 16){
 			ose_decSize(bundle, 20);
-			char *b = b;
 			memset(b + o, 0, 20);
 		}else{
 			int32_t oo = o + 20;
@@ -1308,8 +1305,8 @@ void ose_push(ose_bundle bundle)
 				}
 				ose_writeByte(bundle, tto1 + ntt1, OSETT_BLOB);
 				int32_t bloblen = ose_readInt32(bundle, o2);
-				// no need to pad since it's already
-				// 4-byte aligned
+				/* no need to pad since it's already
+				   4-byte aligned */
 				int32_t pbloblen = bloblen;
 				ose_addToInt32(bundle, o1, pbloblen + 4);
 				if(pbloblen > bloblen){
@@ -1367,7 +1364,7 @@ void ose_splitBundle(ose_bundle bundle, const int32_t offset, const int32_t n)
 		ss = ose_readInt32(bundle, oo);
 	}
 	if(i != n){
-		// n is apparently greater than the number of elems.
+		/* n is apparently greater than the number of elems. */
 	}
 	ose_incSize(bundle, OSE_BUNDLE_HEADER_LEN + 4);
 	char *b = ose_getBundlePtr(bundle);
@@ -1401,7 +1398,7 @@ void ose_splitMessage(ose_bundle bundle, int32_t offset, int32_t n)
 		ton++;
 	}
 	if(i != n){
-		// n is apparently greater than the number of elems.
+		/* n is apparently greater than the number of elems. */
 	}
 
 	int32_t msg1_ntt = i, msg2_ntt = (ntt - 1) - i;
@@ -1421,10 +1418,8 @@ void ose_splitMessage(ose_bundle bundle, int32_t offset, int32_t n)
 	}
 	int32_t msg1_nttp = ose_pnbytes(msg1_ntt + 1);
 	int32_t msg2_nttp = ose_pnbytes(msg2_ntt + 1);
-	int32_t msg1_size = (to - (offset + 4)) + msg1_nttp + (pon - po);
 	int32_t msg2_size = OSE_ADDRESS_ANONVAL_SIZE + msg2_nttp
 		+ (s - (pon - (offset + 4)));
-	//ose_incSize(bundle, (msg1_size + msg2_size + 4) - s);
 	ose_incSize(bundle, msg2_size + 4);
 
 	int32_t msg2_offset = offset + s + 4;
@@ -1435,8 +1430,8 @@ void ose_splitMessage(ose_bundle bundle, int32_t offset, int32_t n)
 	memcpy(b + msg2_ttoffset + 1, b + ton, msg2_ntt);
 	memcpy(b + msg2_poffset, b + pon, s - (pon - (offset + 4)));
 
-	for(int i = 0; i < msg1_nttp - msg1_ntt; i++){
-		ose_writeByte(bundle, ton + i, 0);
+	for(int j = 0; j < msg1_nttp - msg1_ntt; j++){
+		ose_writeByte(bundle, ton + j, 0);
 	}
 	memmove(b + to + msg1_nttp, b + po, (msg2_offset + 4 + msg2_size) - po);
 
@@ -1791,7 +1786,6 @@ static void blobToType(ose_bundle bundle, char typetag)
 	ose_getNthPayloadItem(bundle, 1, o, &to, &ntt, &lto, &po, &lpo);
 	ose_assert(ose_readByte(bundle, lto) == OSETT_BLOB);
 	ose_writeByte(bundle, lto, typetag);
-	int32_t bs = ose_readInt32(bundle, lpo);
 	int32_t pbs = ose_getPaddedBlobSize(bundle, lpo);
 	char *b = ose_getBundlePtr(bundle);
 	memmove(b + lpo, b + lpo + 4, pbs);
@@ -1882,26 +1876,27 @@ void ose_copyPayloadToBlob(ose_bundle bundle)
 
 }
 
-// take a string at the top of the stack (top arg of the top message) and
-// make it the address of the message:
+/*
+take a string at the top of the stack (top arg of the top message) and
+make it the address of the message:
 
-// #bundle
-//  ...
-//  /foo ... "/bar"
-//  toAddress
+#bundle
+ ...
+ /foo ... "/bar"
+ toAddress
 
-// |
-// V
+|
+V
 
-// #bundle
-//  ...
-//  /bar ...
+#bundle
+ ...
+ /bar ...
+*/
 static void swapStringToAddress(ose_bundle bundle)
 {
 	ose_assert(ose_bundleHasAtLeastNElems(bundle, 1) == OSETT_TRUE);
 	int32_t so = ose_getLastBundleElemOffset(bundle);
 	int32_t s = ose_readInt32(bundle, so);
-	int32_t ao = so + 4;
 	int32_t len1 = ose_getPaddedStringLen(bundle, so + 4);
 	int32_t to, ntt, lto, po, lpo;
 	ose_getNthPayloadItem(bundle, 1, so, &to, &ntt, &lto, &po, &lpo);
@@ -1915,7 +1910,8 @@ static void swapStringToAddress(ose_bundle bundle)
 	len1 /= 4;
 	len2 /= 4;
 	int32_t *bb = (int32_t *)b;
-	for(int i = 0; i < s / 2; i++){
+	int i = 0;
+	for(i = 0; i < s / 2; i++){
 		int32_t c = __builtin_bswap32(bb[o + i]);
 		bb[o + i] = __builtin_bswap32(bb[(o + s - 1) - i]);
 		bb[(o + s - 1) - i] = c;
@@ -1923,7 +1919,7 @@ static void swapStringToAddress(ose_bundle bundle)
 	if(s % 2){
 		bb[o + s / 2] = __builtin_bswap32(bb[o + s / 2]);
 	}
-	for(int i = 0; i < len2 / 2; i++){
+	for(i = 0; i < len2 / 2; i++){
 		int32_t c = __builtin_bswap32(bb[o + i]);
 		bb[o + i] = __builtin_bswap32(bb[(o + len2 - 1) - i]);
 		bb[(o + len2 - 1) - i] = c;
@@ -1932,7 +1928,7 @@ static void swapStringToAddress(ose_bundle bundle)
 		bb[o + len2 / 2] = __builtin_bswap32(bb[o + len2 / 2]);
 	}
 	int32_t len3 = s - (len1 + len2);
-	for(int i = 0; i < len3 / 2; i++){
+	for(i = 0; i < len3 / 2; i++){
 		int32_t c = __builtin_bswap32(bb[o + len2 + i]);
 		bb[o + len2 + i] = __builtin_bswap32(bb[(o + len2 + len3 - 1) - i]);
 		bb[(o + len2 + len3 - 1) - i] = c;
@@ -1940,7 +1936,7 @@ static void swapStringToAddress(ose_bundle bundle)
 	if(len3 % 2){
 		bb[o + len2 + len3 / 2] = __builtin_bswap32(bb[o + len2 + len3 / 2]);
 	}
-	for(int i = 0; i < len1 / 2; i++){
+	for(i = 0; i < len1 / 2; i++){
 		int32_t c = __builtin_bswap32(bb[o + len2 + len3 + i]);
 		bb[o + len2 + len3 + i] = __builtin_bswap32(bb[(o + len2 + len3 + len1 - 1) - i]);
 		bb[(o + len2 + len3 + len1 - 1) - i] = c;
@@ -1950,27 +1946,27 @@ static void swapStringToAddress(ose_bundle bundle)
 	}
 
 	
-	// int32_t old_alen = to - ao;
-	// //char *b = ose_getBundlePtr(bundle);
-	// to = lto;
-	// po = lpo;
-	// int32_t new_alen = ose_getPaddedStringLen(bundle, po);
-	// int32_t omn = old_alen - new_alen;
-	// int32_t nmo = new_alen - old_alen;
-	// if(new_alen == old_alen){
-	// 	memcpy(b + ao, b + po, new_alen);
-	// }else if(new_alen < old_alen){
-	// 	memcpy(b + ao, b + po, new_alen);
-	// 	memmove(b + ao + new_alen, b + ao + old_alen, s - old_alen);
-	// 	memset(b + s + + 4 - (omn), 0, omn);
-	// 	ose_addToInt32(bundle, so, nmo);
-	// 	ose_addToSize(bundle, nmo);
-	// }else{
-	// 	memcpy(b + ao + new_alen, b + ao + old_alen, s - old_alen);
-	// 	memcpy(b + ao, b + po + (nmo), new_alen);
-	// 	ose_addToInt32(bundle, so, nmo);
-	// 	ose_addToSize(bundle, nmo);
-	// }
+	/* int32_t old_alen = to - ao; */
+	/* /\* char *b = ose_getBundlePtr(bundle); *\/ */
+	/* to = lto; */
+	/* po = lpo; */
+	/* int32_t new_alen = ose_getPaddedStringLen(bundle, po); */
+	/* int32_t omn = old_alen - new_alen; */
+	/* int32_t nmo = new_alen - old_alen; */
+	/* if(new_alen == old_alen){ */
+	/* 	memcpy(b + ao, b + po, new_alen); */
+	/* }else if(new_alen < old_alen){ */
+	/* 	memcpy(b + ao, b + po, new_alen); */
+	/* 	memmove(b + ao + new_alen, b + ao + old_alen, s - old_alen); */
+	/* 	memset(b + s + + 4 - (omn), 0, omn); */
+	/* 	ose_addToInt32(bundle, so, nmo); */
+	/* 	ose_addToSize(bundle, nmo); */
+	/* }else{ */
+	/* 	memcpy(b + ao + new_alen, b + ao + old_alen, s - old_alen); */
+	/* 	memcpy(b + ao, b + po + (nmo), new_alen); */
+	/* 	ose_addToInt32(bundle, so, nmo); */
+	/* 	ose_addToSize(bundle, nmo); */
+	/* } */
 }
 
 void ose_swapStringToAddress(ose_bundle bundle)
@@ -2132,8 +2128,8 @@ void ose_joinStrings(ose_bundle bundle)
 
 void ose_moveStringToAddress(ose_bundle bundle)
 {
-	// swapStringToAddress(bundle);
-	// dropArg(bundle);
+	/* swapStringToAddress(bundle); */
+	/* dropArg(bundle); */
 	ose_assert(ose_isBundle(bundle) == OSETT_TRUE);
 	ose_assert(ose_bundleHasAtLeastNElems(bundle, 1) == OSETT_TRUE);
 	int32_t on = 0, sn = 0;
@@ -2197,7 +2193,6 @@ void ose_splitStringFromEnd(ose_bundle bundle)
         onm1 = nm1_lpo;
 	on = n_lpo;
 	ose_over(bundle);
-	//ose_swap(bundle);
 	char *b = ose_getBundlePtr(bundle);
 	char *str = b + onm1;
 	char *sep = b + on;
@@ -2219,7 +2214,6 @@ void ose_splitStringFromEnd(ose_bundle bundle)
 	}
 	ose_pushInt32(bundle, slen - n);
 	ose_decatenateStringFromEnd(bundle);
-	//slen -= n;
 	ose_rot(bundle);
 	ose_drop(bundle);
 	ose_pop(bundle);
@@ -2248,7 +2242,6 @@ void ose_splitStringFromStart(ose_bundle bundle)
         onm1 = nm1_lpo;
 	on = n_lpo;
 	ose_over(bundle);
-	//ose_swap(bundle);
 	char *b = ose_getBundlePtr(bundle);
 	char *str = b + onm1;
 	char *sep = b + on;
@@ -2272,7 +2265,6 @@ void ose_splitStringFromStart(ose_bundle bundle)
 	}
 	ose_pushInt32(bundle, slen - n);
 	ose_decatenateStringFromEnd(bundle);
-	//slen -= n;
 	ose_rot(bundle);
 	ose_drop(bundle);
 	ose_pop(bundle);
@@ -2464,8 +2456,8 @@ static void ose_replace_impl(ose_bundle bundle,
 			o += s + 4;
 		}
 	}
-	// clean up the end of the bundle and adjust the
-	// size of the sub bundle and the main bundle
+	/* clean up the end of the bundle and adjust the */
+	/* size of the sub bundle and the main bundle */
 	end += 4 + src_size;
 	int32_t s = ose_readInt32(bundle, -4);
 	memset(b + end, 0, s - end);
@@ -2476,8 +2468,7 @@ static void ose_replace_impl(ose_bundle bundle,
 void ose_replace(ose_bundle bundle)
 {
 	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 2) == OSETT_TRUE, 1);
-	int32_t s = ose_readInt32(bundle, -4);
-	int32_t on, sn, onm1, snm1, onm2, snm2;
+	int32_t on, sn, onm1, snm1;
 	be2(bundle, &onm1, &snm1, &on, &sn);
 	ose_rassert(ose_getBundleElemType(bundle, onm1) == OSETT_BUNDLE, 1);
 	ose_rassert(ose_getBundleElemType(bundle, on) == OSETT_MESSAGE, 1);
@@ -2487,7 +2478,6 @@ void ose_replace(ose_bundle bundle)
 void ose_assign(ose_bundle bundle)
 {
 	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 3) == OSETT_TRUE, 1);
-	int32_t s = ose_readInt32(bundle, -4);
 	int32_t on, sn, onm1, snm1, onm2, snm2;
 	be3(bundle, &onm2, &snm2, &onm1, &snm1, &on, &sn);
 	ose_rassert(ose_getBundleElemType(bundle, onm2) == OSETT_BUNDLE, 1);
@@ -2522,7 +2512,6 @@ void ose_assign(ose_bundle bundle)
 void ose_lookup(ose_bundle bundle)
 {
 	ose_rassert(ose_bundleHasAtLeastNElems(bundle, 2) == OSETT_TRUE, 1);
-	int32_t s = ose_readInt32(bundle, -4);
 	int32_t on, sn, onm1, snm1;
 	be2(bundle, &onm1, &snm1, &on, &sn);
 	ose_rassert(ose_getBundleElemType(bundle, onm1) == OSETT_BUNDLE, 1);
@@ -2532,8 +2521,6 @@ void ose_lookup(ose_bundle bundle)
 	ose_rassert(ose_isStringType(ose_readByte(bundle, lto)) == OSETT_TRUE, 1);
 
 	char *b = ose_getBundlePtr(bundle);
-	const char addylen = strlen(b + lpo);
-	const char paddylen = ose_pnbytes(addylen);
 
 	int32_t o = onm1 + 4 + OSE_BUNDLE_HEADER_LEN;
 	while(o < on){
@@ -2555,8 +2542,7 @@ void ose_lookup(ose_bundle bundle)
 
 void ose_makeBlob(ose_bundle bundle)
 {
-	char t = ose_peekMessageArgType(bundle);
-	ose_assert(t == OSETT_INT32);
+	ose_assert(ose_peekMessageArgType(bundle) == OSETT_INT32);
 	int32_t s = ose_popInt32(bundle);
 	int32_t sp = s;
 	if(sp <= 0){
@@ -2565,7 +2551,6 @@ void ose_makeBlob(ose_bundle bundle)
 	while(sp % 4){
 		sp++;
 	}
-	int32_t o = ose_readInt32(bundle, -4);
 	ose_pushBlob(bundle, s, NULL);
 }
 
@@ -2584,27 +2569,6 @@ void ose_pushBundle(ose_bundle bundle)
 
 void ose_add(ose_bundle bundle)
 {
-	// ose_countElems(bundle);
-	// int32_t n = ose_popInt32(bundle);
-	// ose_rassert(n >= 2, 1);
-	// char t1 = ose_peekMessageArgType(bundle);
-	// ose_assert(ose_isNumericType(t1) == OSETT_TRUE);
-	// ose_swap(bundle);
-	// char t2 = ose_peekMessageArgType(bundle);
-	// ose_assert(ose_isNumericType(t2) == OSETT_TRUE);
-	// ose_assert(t1 == t2);
-	// switch(t1){
-	// case OSETT_INT32: {
-	// 	int32_t v2 = ose_popInt32(bundle);
-	// 	int32_t v1 = ose_popInt32(bundle);
-	// 	ose_pushInt32(bundle, v1 + v2);
-	// }
-	// 	break;
-	// case OSETT_FLOAT: {
-	// 	float v2 = ose_popFloat(bundle);
-	// 	float v1 = ose_popFloat(bundle);
-	// 	ose_pushFloat(bundle, v1 + v2);
-	// }
 	int32_t onm1, snm1, on, sn;
 	be2(bundle, &onm1, &snm1, &on, &sn);
 	int32_t nm1to, nm1ntt, nm1lto, nm1po, nm1lpo;
@@ -2613,7 +2577,7 @@ void ose_add(ose_bundle bundle)
 			      &nm1to, &nm1ntt, &nm1lto, &nm1po, &nm1lpo);
 	ose_getNthPayloadItem(bundle, 1, on,
 			      &nto, &nntt, &nlto, &npo, &nlpo);
-	char t2 = ose_readByte(bundle, nm1lto);
+	char t2 = ose_readByte(bundle, nm1lto); (void)t2;
 	ose_assert(ose_isNumericType(t2) == OSETT_TRUE);
 	char t1 = ose_readByte(bundle, nlto);
 	ose_assert(ose_isNumericType(t1) == OSETT_TRUE);
@@ -2676,7 +2640,7 @@ void ose_sub(ose_bundle bundle)
 	char t1 = ose_peekMessageArgType(bundle);
 	ose_assert(ose_isNumericType(t1) == OSETT_TRUE);
 	ose_swap(bundle);
-	char t2 = ose_peekMessageArgType(bundle);
+	char t2 = ose_peekMessageArgType(bundle);(void)t2;
 	ose_assert(ose_isNumericType(t2) == OSETT_TRUE);
 	ose_assert(t1 == t2);
 	switch(t1){
@@ -2736,7 +2700,7 @@ void ose_mul(ose_bundle bundle)
 	char t1 = ose_peekMessageArgType(bundle);
 	ose_assert(ose_isNumericType(t1) == OSETT_TRUE);
 	ose_swap(bundle);
-	char t2 = ose_peekMessageArgType(bundle);
+	char t2 = ose_peekMessageArgType(bundle);(void)t2;
 	ose_assert(ose_isNumericType(t2) == OSETT_TRUE);
 	ose_assert(t1 == t2);
 	switch(t1){
@@ -2796,7 +2760,7 @@ void ose_div(ose_bundle bundle)
 	char t1 = ose_peekMessageArgType(bundle);
 	ose_assert(ose_isNumericType(t1) == OSETT_TRUE);
 	ose_swap(bundle);
-	char t2 = ose_peekMessageArgType(bundle);
+	char t2 = ose_peekMessageArgType(bundle);(void)t2;
 	ose_assert(ose_isNumericType(t2) == OSETT_TRUE);
 	ose_assert(t1 == t2);
 	switch(t1){
@@ -2853,25 +2817,6 @@ void ose_div(ose_bundle bundle)
 
 void ose_mod(ose_bundle bundle)
 {
-	// char t1 = ose_peekMessageArgType(bundle);
-	// ose_assert(ose_isNumericType(t1) == OSETT_TRUE);
-	// ose_swap(bundle);
-	// char t2 = ose_peekMessageArgType(bundle);
-	// ose_assert(ose_isNumericType(t2) == OSETT_TRUE);
-	// ose_assert(t1 == t2);
-	// switch(t1){
-	// case OSETT_INT32: {
-	// 	int32_t v2 = ose_popInt32(bundle);
-	// 	int32_t v1 = ose_popInt32(bundle);
-	// 	ose_pushInt32(bundle, v1 % v2);
-	// }
-	// 	break;
-	// case OSETT_FLOAT: {
-	// 	float v2 = ose_popFloat(bundle);
-	// 	float v1 = ose_popFloat(bundle);
-	// 	ose_pushFloat(bundle, fmodf(v1, v2));
-	// }
-	// 	break;
 	int32_t onm1, snm1, on, sn;
 	be2(bundle, &onm1, &snm1, &on, &sn);
 	int32_t nm1to, nm1ntt, nm1lto, nm1po, nm1lpo;
@@ -2880,7 +2825,7 @@ void ose_mod(ose_bundle bundle)
 			      &nm1to, &nm1ntt, &nm1lto, &nm1po, &nm1lpo);
 	ose_getNthPayloadItem(bundle, 1, on,
 			      &nto, &nntt, &nlto, &npo, &nlpo);
-	char t2 = ose_readByte(bundle, nm1lto);
+	char t2 = ose_readByte(bundle, nm1lto);(void)t2;
 	ose_assert(ose_isNumericType(t2) == OSETT_TRUE);
 	char t1 = ose_readByte(bundle, nlto);
 	ose_assert(ose_isNumericType(t1) == OSETT_TRUE);
@@ -2943,7 +2888,7 @@ void ose_pow(ose_bundle bundle)
 	char t1 = ose_peekMessageArgType(bundle);
 	ose_assert(ose_isNumericType(t1) == OSETT_TRUE);
 	ose_swap(bundle);
-	char t2 = ose_peekMessageArgType(bundle);
+	char t2 = ose_peekMessageArgType(bundle);(void)t2;
 	ose_assert(ose_isNumericType(t2) == OSETT_TRUE);
 	ose_assert(t1 == t2);
 	switch(t1){
@@ -3243,27 +3188,4 @@ void be4(ose_bundle bundle,
 	*snm1 = s3;
 	*on = o4;
 	*sn = s4;
-}
-
-static void dropArg(ose_bundle bundle)
-{
-	char *b = ose_getBundlePtr(bundle);
-	int32_t o = ose_getLastBundleElemOffset(bundle);
-	int32_t to, ntt, lto, po, lpo;
-	ose_getNthPayloadItem(bundle, 1, o, &to, &ntt, &lto, &po, &lpo);
-	int32_t s = ose_readInt32(bundle, o) - (lpo - (o + 4));
-	memset(b + lpo, 0, s);
-	ose_writeByte(bundle, lto, 0);
-	if(ose_pnbytes(ntt) != ose_pnbytes(ntt - 1)){
-		memmove(b + to + ntt,
-			b + to + ntt + 4,
-			(lpo + s) - (to + ntt + 4));
-	        s += 4;
-		lpo -= 4;
-	}
-	if(s){
-		memset(b + lpo, 0, s);
-	}
-	ose_addToInt32(bundle, o, -s);
-	ose_decSize(bundle, s);
 }

@@ -31,6 +31,7 @@ ose_hptimer ose_initTimer(void)
 {
 	ose_hptimer t;
 	kern_return_t mti_status = mach_timebase_info(&(t.tb));
+	(void)mti_status;
 	ose_assert(mti_status == KERN_SUCCESS);
 	t.bias = mach_absolute_time();
 	return t;

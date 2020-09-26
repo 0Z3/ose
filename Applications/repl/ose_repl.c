@@ -61,11 +61,11 @@
  * Global vars
  **********************************************************************/
 
-// Data and pointers for the main bundle and vm
+/* Data and pointers for the main bundle and vm */
 static char *bytes;
 static ose_bundle bundle, osevm, vm_i, vm_s, vm_e, vm_c, vm_d, vm_o;
 
-// REPL options
+/* REPL options */
 static int or_verbose = 0;
 static int or_step = 0;
 static char *or_prefix = NULL;
@@ -73,14 +73,14 @@ static int32_t or_prefixlen = 0;
 static int or_udp_input = 0;
 static int or_udp_output = 0;
 
-// Signaling and control
+/* Signaling and control */
 static jmp_buf or_jmp_buf;
 static volatile sig_atomic_t or_assertion_failed = 0;
 static volatile sig_atomic_t or_quit = 0;
 static volatile int or_have_input = 0;
 
-// If we have access to a high precision timer, 
-// we use it to time the run() operation
+/* If we have access to a high precision timer,  */
+/* we use it to time the run() operation */
 #ifdef OSE_HAVE_HPTIMER
 static ose_hptimer or_hptimer;
 #endif
@@ -89,7 +89,7 @@ static char *or_prompt_normal = "# ";
 static char *or_prompt_compile = "(compile)# ";
 static char *or_prompt = "# ";
 
-// UDP I/O
+/* UDP I/O */
 static int or_udp_socket_input, or_udp_socket_output;
 static struct sockaddr_in or_udp_sockaddr_in_input;
 static struct sockaddr_in or_udp_sockaddr_in_output;
@@ -101,7 +101,7 @@ static uint16_t or_udp_port_output = 10073;
  * Forward decls
  **********************************************************************/
 
-// REPL builtins accessable with /ose messages
+/* REPL builtins accessable with /ose messages */
 static void oserepl_import(ose_bundle osevm);
 static void oserepl_step(ose_bundle bundle);
 static void oserepl_verbose(ose_bundle bundle);
@@ -127,7 +127,7 @@ static struct or_fn
 	      {"/setprefix", oserepl_setPrefix},
 };
 
-// editline / readline
+/* editline / readline */
 static void oserepl_rl_compgen_addContextBundleSfxs(const char * const text,
 						    const int textlen,
 						    const char * const pfx,
@@ -141,13 +141,13 @@ static char *oserepl_rl_compgen(const char *text, int state);
 static char **oserepl_rl_compcb(const char *text, int start, int end);
 static void oserepl_rl_cb(char *line);
 
-// UDP I/O
+/* UDP I/O */
 static int oserepl_udp_sock(const char * const addr,
 			    uint16_t port,
 			    struct sockaddr_in *sa);
 static int oserepl_udp_send(ose_bundle bundle);
 
-// REPL
+/* REPL */
 static void oserepl_sigHandler(int signo);
 static uint64_t oserepl_run(void);
 static void oserepl_init(void);
@@ -157,7 +157,7 @@ int main(int ac, char **av);
  * Implementation
  **********************************************************************/
 
-// REPL hooks
+/* REPL hooks */
 void oserepl_preInput(ose_bundle osevm)
 {
 }
@@ -216,7 +216,7 @@ int oserepl_isKnownAddress(const char * const address)
 	}
 }
 
-// editline / readline
+/* editline / readline */
 static void oserepl_rl_compgen_addContextBundleSfxs(const char * const text,
 						    const int textlen,
 						    const char * const pfx,
@@ -229,7 +229,6 @@ static void oserepl_rl_compgen_addContextBundleSfxs(const char * const text,
 {
 	const int32_t s = ose_readInt32(osevm, -4);
 	int32_t o = OSE_BUNDLE_HEADER_LEN;
-	int32_t symlen = strlen(sym);
 	while(o < s){
 		const int32_t ss =
 			ose_readInt32(osevm, o);
@@ -318,7 +317,7 @@ static char *oserepl_rl_compgen(const char *text, int state)
 									&nmatches);
 			}
 		}
-		// builtins that take a fixed set of suffixes
+		/* builtins that take a fixed set of suffixes */
 		if(!strncmp(text, "/>", 2)
 		   || !strncmp(text, "/>/", 3)){
 			oserepl_rl_compgen_addContextBundleSfxs(text,
@@ -413,11 +412,11 @@ static char *oserepl_rl_compgen(const char *text, int state)
 
 static char **oserepl_rl_compcb(const char *text, int start, int end)
 {
-	// Don't do filename completion even if our generator finds no matches.
-	// rl_attempted_completion_over = 1;
+	/* Don't do filename completion even if our generator finds no matches. */
+	/* rl_attempted_completion_over = 1; */
 
-	// Note: returning nullptr here will make readline use the default
-	// filename oserepl_rl_compcb.
+	/* Note: returning nullptr here will make readline use the default */
+	/* filename oserepl_rl_compcb. */
 	return rl_completion_matches(text, oserepl_rl_compgen);
 }
 
@@ -435,7 +434,7 @@ static void oserepl_rl_cb(char *line)
 	
 	const char *linep = line;
 	int len_trimmed = len;
-	// eat leading whitespace
+	/* eat leading whitespace */
 	while(linep - line < len
 	      && (*linep  == ' '
 		  || *linep == '\t')){
@@ -448,7 +447,7 @@ static void oserepl_rl_cb(char *line)
 	free(line);
 }
 
-// REPL builtin functions accessable with /ose messages
+/* REPL builtin functions accessable with /ose messages */
 
 static void oserepl_import(ose_bundle bundle)
 {
@@ -537,8 +536,8 @@ static void oserepl_udpport(ose_bundle bundle)
 
 static void oserepl_udpaddr(ose_bundle bundle)
 {
-	// const char * const addr = ose_peekAddress(vm_c);
-	// const int32_t addrlen = strlen(addr);
+	/* const char * const addr = ose_peekAddress(vm_c); */
+	/* const int32_t addrlen = strlen(addr); */
 	const char * const addr = ose_peekString(vm_s);
 	if(or_udp_socket_output){
 		close(or_udp_socket_output);
@@ -563,7 +562,7 @@ static void oserepl_setPrefix(ose_bundle bundle)
 	}
 }
 
-// UDP I/O
+/* UDP I/O */
 static int oserepl_udp_sock(const char * const addr,
 			    uint16_t port,
 			    struct sockaddr_in *sa)
@@ -588,7 +587,7 @@ static int oserepl_udp_send(ose_bundle bundle)
 	return r;
 }
 
-// REPL
+/* REPL */
 static void oserepl_sigHandler(int signo)
 {
 	switch(signo){
@@ -649,7 +648,7 @@ int main(int ac, char **av)
 	or_prefix = strdup("/ose");
 	or_prefixlen = 4;
 	{
-		// process args
+		/* process args */
 		for(int i = 1; i < ac; i++){
 			if(!strcmp(av[i], "--verbose")){
 				or_verbose = 1;
@@ -709,7 +708,7 @@ int main(int ac, char **av)
 		printf("\n");
 	}
 
-	// install signal handler
+	/* install signal handler */
 	if(signal(SIGINT, oserepl_sigHandler) == SIG_ERR){
 		fprintf(stderr,
 			"error installing signal handler to catch SIGINT\n");
@@ -721,26 +720,26 @@ int main(int ac, char **av)
 		return 0;
 	}
 
-	// history
+	/* history */
 	const char *homedir = getenv("HOME");
 	char histfile[strlen(homedir) + 6];
 	sprintf(histfile, "%s/.ose", homedir);
 	int r = read_history(histfile);
-	// if(r){
-	// 	fprintf(stderr,
-	// 		"ose: couldn't read history file: "
-	// 		"read_history(%s) returned %d\n",
-	// 		histfile, r);
-	// }
+	/* if(r){ */
+	/* 	fprintf(stderr, */
+	/* 		"ose: couldn't read history file: " */
+	/* 		"read_history(%s) returned %d\n", */
+	/* 		histfile, r); */
+	/* } */
 
-	// set up ose environment and vm
+	/* set up ose environment and vm */
 	bytes = (char *)malloc(MAX_BUNDLE_LEN);
 	oserepl_init();
 
-	// libedit
+	/* libedit */
 	rl_callback_handler_install(or_prompt, oserepl_rl_cb);
 	rl_attempted_completion_function = oserepl_rl_compcb;
-	//rl_basic_word_break_characters = " \t\n\"\\'`@><=;|&{(";
+	/*rl_basic_word_break_characters = " \t\n\"\\'`@><=;|&{("; */
 	rl_basic_word_break_characters = " \t\n\"\\'`@=;|&{(";
 	rl_completion_append_character = 0;
 
@@ -786,9 +785,9 @@ int main(int ac, char **av)
 		if(nselect <= 0){
 			continue;
 		}
-		//////////////////////////////////////////////////
-		// read
-		//////////////////////////////////////////////////
+		/*************************************************
+		 * read
+		 *************************************************/
 		if(FD_ISSET(or_udp_socket_input, &rset)){
 			struct sockaddr_in ca;
 			socklen_t ca_len = sizeof(struct sockaddr_in);;
@@ -804,8 +803,8 @@ int main(int ac, char **av)
 				ose_popAllDrop(vm_i);
 				or_have_input = 1;
 				{
-					// announce that we received a bundle
-					// over udp
+					/* announce that we received a bundle */
+					/* over udp */
 					fputs("\r  \r", stdout);
 					uint32_t a = ntohl(ca.sin_addr.s_addr);
 					printf("Received %d byte bundle from "
@@ -825,9 +824,9 @@ int main(int ac, char **av)
 		}
 
 		int should_print = 0;
-		//////////////////////////////////////////////////
-		// eval
-		//////////////////////////////////////////////////
+		/*************************************************
+		 * eval
+		 *************************************************/
 		uint64_t elapsed_time = 0;
 		if(or_have_input){
 			fputs("\r                \r", stdout);
@@ -835,9 +834,9 @@ int main(int ac, char **av)
 			should_print = 1;
 		}
 
-		//////////////////////////////////////////////////
-		// print
-		//////////////////////////////////////////////////
+		/*************************************************
+		 * print
+		 *************************************************/
 		if(or_udp_port_output && should_print){
 			oserepl_udp_send(vm_o);
 		}

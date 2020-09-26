@@ -28,14 +28,14 @@
 extern "C" {
 #endif
 
-// number of 32-bit ints available in the cache message
+/* number of 32-bit ints available in the cache message */
 #define OSEVM_CACHE_SIZE 30
 #define OSEVM_CACHE_MSG_SIZE OSE_CONTEXT_MESSAGE_OVERHEAD	\
 	+ 4 + 4 + 32 + (OSEVM_CACHE_SIZE * 4)
 #define OSEVM_CACHE_OFFSET_0 OSE_BUNDLE_HEADER_LEN	\
 	+ OSE_CONTEXT_BUNDLE_OFFSET			\
 	+ OSE_BUNDLE_HEADER_LEN				\
-	+ 4 + 4 + 32 // size, address, typetags
+	+ 4 + 4 + 32 /* size, address, typetags */
 #define OSEVM_CACHE_OFFSET_1 OSEVM_CACHE_OFFSET_0 + 4
 #define OSEVM_CACHE_OFFSET_2 OSEVM_CACHE_OFFSET_1 + 4
 #define OSEVM_CACHE_OFFSET_3 OSEVM_CACHE_OFFSET_2 + 4

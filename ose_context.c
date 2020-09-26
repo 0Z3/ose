@@ -57,14 +57,14 @@ static int32_t writeContextMessage(ose_bundle bundle,
 	strcpy(p, ",iiibb");
 	p += 8;
 	*((int32_t *)p) = ose_htonl(o + 4 + palen + 8 + 4 + 4 + 4 + 4);
-	p += 4; // int
+	p += 4; /* int */
 	*((int32_t *)p) = ose_htonl(4 + palen + 8 + 4 + 4 + 4);
-	p += 4; // int
+	p += 4; /* int */
 	*((int32_t *)p) = ose_htonl(freespace
 				    + OSE_BUNDLE_HEADER_LEN);
-	p += 4; // int
+	p += 4; /* int */
 
-	// bundle
+	/* bundle */
 	*((int32_t *)p) = ose_htonl(OSE_BUNDLE_HEADER_LEN);
 	p += 4;
 	memcpy(p, OSE_BUNDLE_HEADER, OSE_BUNDLE_HEADER_LEN);
@@ -139,7 +139,7 @@ ose_bundle ose_exit(ose_bundle bundle)
 void ose_addToSize(ose_bundle bundle, int32_t amt)
 {
 	ose_assert(ose_isBundle(bundle) == OSETT_TRUE);
-	//ose_assert(amt >= 0);
+	/*ose_assert(amt >= 0); */
 	int32_t os = ose_readInt32(bundle, -4);
 	ose_assert(os >= OSE_BUNDLE_HEADER_LEN);
 	int32_t ns1 = os + amt;
@@ -158,7 +158,7 @@ void ose_addToSize(ose_bundle bundle, int32_t amt)
 void ose_incSize(ose_bundle bundle, int32_t amt)
 {
 	ose_assert(ose_isBundle(bundle) == OSETT_TRUE);
-	//ose_assert(amt >= 0);
+	/*ose_assert(amt >= 0); */
 	int32_t os = ose_readInt32(bundle, -4);
 	ose_assert(os >= OSE_BUNDLE_HEADER_LEN);
 	int32_t ns1 = os + amt;
@@ -174,7 +174,7 @@ void ose_incSize(ose_bundle bundle, int32_t amt)
 void ose_decSize(ose_bundle bundle, int32_t amt)
 {
 	ose_assert(ose_isBundle(bundle) == OSETT_TRUE);
-	//ose_assert(amt >= 0);
+	/*ose_assert(amt >= 0); */
 	int32_t os = ose_readInt32(bundle, -4);
 	ose_assert(os >= OSE_BUNDLE_HEADER_LEN);
 	int32_t ns1 = os - amt;
@@ -194,7 +194,7 @@ void ose_copyElemAtOffset(int32_t srcoffset,
 {
 	ose_assert(ose_bundleHasAtLeastNElems(src, 1) == OSETT_TRUE);
 	const char * const srcp = ose_getBundlePtr(src);
-	//const int32_t src_offset = ose_getLastBundleElemOffset(src);
+	/*const int32_t src_offset = ose_getLastBundleElemOffset(src); */
 	const int32_t src_elem_size = ose_readInt32(src, srcoffset) + 4;
 	char *destp = ose_getBundlePtr(dest);
 	memcpy(destp + ose_readInt32(dest, -4),
@@ -240,7 +240,7 @@ void ose_appendBundle(ose_bundle src, ose_bundle dest)
 		}
 		ose_drop(src);
 	}else{
-		// if the source is empty, do nothing
+		/* if the source is empty, do nothing */
 		;
 	}
 }

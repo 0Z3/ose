@@ -39,8 +39,8 @@ extern "C" {
  */
 #define ose_assert(t) assert(t)
 
-// to be implemented. this should put a value in the status message
-// of the main context bundle
+/* to be implemented. this should put a value in the status message
+   of the main context bundle */
 #define ose_setErrno(e) do{}while(0)
 #define ose_debug(b) 
 
@@ -48,7 +48,6 @@ extern "C" {
 
 #define ose_rassert(t, e) ose_assert(t)
 #define ose_try do {} while(0);
-//#define ose_catch(x) do {} while(0);
 #define ose_catch(x) while(0)
 #define ose_finally do {} while(0);
 #define ose_end_try do {} while(0);

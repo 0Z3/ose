@@ -25,7 +25,6 @@
 #include "ose_conf.h"
 #include "ose.h"
 #include "ose_util.h"
-//#include "ose_stackops.h"
 #include "ose_assert.h"
 #include "ose_print.h"
 
@@ -63,14 +62,7 @@ int32_t ose_pprintMessageAddr(ose_bundle bundle,
 			      int32_t buflen)
 {
 	char *addr = ose_readString(bundle, ao);
-	int32_t addrlen = strlen(addr);
-	// if(addrlen + 1 > ncols){
-	// 	int n = snprintf(buf, ncols - 3, "%s", addr);
-	// 	n += snprintf(buf + n, buflen - n, "..");
-	// 	return n;
-	// }else{
-		return snprintf(buf, buflen, "%s ", addr);
-		//}
+	return snprintf(buf, buflen, "%s ", addr);
 }
 
 int32_t ose_pprintMessageArg(ose_bundle bundle,
@@ -81,7 +73,6 @@ int32_t ose_pprintMessageArg(ose_bundle bundle,
 			     int32_t buflen)
 {
 	const char sep = ':';
-	char *b = ose_getBundlePtr(bundle);
 	char tt = ose_readByte(bundle, tto);
 	switch(tt){
 	case OSETT_INT32:
@@ -120,15 +111,15 @@ int32_t ose_pprintMessageArg(ose_bundle bundle,
 			nn += n;
 			INCP(buf, n);
 			INCL(buf, buflen, n);
-			for(int i = blobsize - 4; i < blobsize; i++){
-				n = snprintf(buf, buflen, "%02X", p[i]);
+			for(int j = blobsize - 4; j < blobsize; j++){
+				n = snprintf(buf, buflen, "%02X", p[j]);
 				nn += n;
 				INCP(buf, n);
 				INCL(buf, buflen, n);
 			}
 		}else{
-			for(int i = 0; i < blobsize; i++){
-				n = snprintf(buf, buflen, "%02X", p[i]);
+			for(int k = 0; k < blobsize; k++){
+				n = snprintf(buf, buflen, "%02X", p[k]);
 				nn += n;
 				INCP(buf, n);
 				INCL(buf, buflen, n);
@@ -165,7 +156,7 @@ static int32_t ose_pprintBundleElem_msg(ose_bundle bundle,
 	char *bufp = buf;
 	int32_t bufl = buflen;
 	{
-		// address
+		/* address */
 		n = ose_pprintMessageAddr(bundle,
 					  offset,
 					  ao,
@@ -175,7 +166,7 @@ static int32_t ose_pprintBundleElem_msg(ose_bundle bundle,
 		INCP(bufp, n);
 		INCL(bufp, bufl, n);
 	}
-	// payload
+	/* payload */
 	while(plo < (offset + 4 + s) && ose_readByte(bundle, tto)){
 		char tt = ose_readByte(bundle, tto);
 		n = ose_pprintMessageArg(bundle,
@@ -260,8 +251,8 @@ static int32_t _ose_pprintBundle(ose_bundle bundle,
 	for(int i = 0; i < indent; i++){
 		indentstr[i] = ' ';
 	}
-	for(int i = indent; i < indent * 2; i++){
-		indentstr[i] = '#';
+	for(int j = indent; j < indent * 2; j++){
+		indentstr[j] = '#';
 	}
 	while(o < ss){
 		int n = 0;
@@ -316,7 +307,7 @@ static int32_t ose_pprintFullBundle_r(ose_constbundle bundle,
 		ose_snprintfi(buf, buflen, n, nn, "%s", "|");
 	}
 	ose_snprintfi(buf, buflen, n, nn, "%s", OSE_BUNDLE_ID);
-	for(int i = 0; i < (cols / 2) - (9 + (indent - 1) + 7 + 15); i++){
+	for(int j = 0; j < (cols / 2) - (9 + (indent - 1) + 7 + 15); j++){
 		ose_snprintfi(buf, buflen, n, nn, "%s", " ");
 	}
 	ose_snprintfi(buf, buflen, n, nn, "%08x.%08x\n",
@@ -345,9 +336,9 @@ static int32_t ose_pprintFullBundle_r(ose_constbundle bundle,
 				ose_snprintfi(buf, buflen, n, nn, "%s", "|");
 			}
 			ose_snprintfi(buf, buflen, n, nn, "%s", addr);
-			for(int i = 0;
-			    i < (cols / 2) - (9 + indent + strlen(addr));
-			    i++){
+			for(int j = 0;
+			    j < (cols / 2) - (9 + indent + strlen(addr));
+			    j++){
 				ose_snprintfi(buf, buflen, n, nn, "%s", " ");
 			}
 
@@ -355,14 +346,14 @@ static int32_t ose_pprintFullBundle_r(ose_constbundle bundle,
 			const char * const ttstr = ose_readString((ose_bundle)bundle, to);
 			const int32_t ttstrlen = strlen(ttstr);
 			int32_t po = to + ose_pnbytes(ttstrlen);
-			for(int i = 0; i < ttstrlen; i++){
+			for(int ii = 0; ii < ttstrlen; ii++){
 				char tt = ose_readByte(bundle, to);
-				if(i > 1){
-					for(int j = 0; j < cols / 2 + 1; j++){
+				if(ii > 1){
+					for(int j1 = 0; j1 < cols / 2 + 1; j1++){
 						ose_snprintfi(buf, buflen, n, nn, "%s", " ");
 					}
 					ose_snprintfi(buf, buflen, n, nn, "%c ", tt);
-				}else if(i == 0){
+				}else if(ii == 0){
 					ose_snprintfi(buf, buflen, n, nn, "%c", tt);
 				}else{
 					ose_snprintfi(buf, buflen, n, nn, "%c ", tt);
@@ -402,7 +393,7 @@ static int32_t ose_pprintFullBundle_r(ose_constbundle bundle,
 							      ose_readByte(bundle, po + 3));
 						po += 4;
 					}else{
-						for(int j = 0; j < bs; j += 8){
+						for(int j2 = 0; j2 < bs; j2 += 8){
 							ose_snprintfi(buf, buflen, n, nn,
 								      "%02x %02x %02x %02x "
 								      "%02x %02x %02x %02x",
@@ -415,11 +406,11 @@ static int32_t ose_pprintFullBundle_r(ose_constbundle bundle,
 								      0xff & ose_readByte(bundle, po + 6),
 								      0xff & ose_readByte(bundle, po + 7));
 							po += 8;
-							if(j < bs - 8){
+							if(j2 < bs - 8){
 								ose_snprintfi(buf, buflen, n, nn, "%s", "\n");
-								for(int j = 0;
-								    j < cols / 2 + 3;
-								    j++){
+								for(int j3 = 0;
+								    j3 < cols / 2 + 3;
+								    j3++){
 									ose_snprintfi(buf, buflen, n, nn, "%s", " ");
 								}
 							}
@@ -429,7 +420,7 @@ static int32_t ose_pprintFullBundle_r(ose_constbundle bundle,
 					break;
 				}
 				to++;
-				if(i > 0 || (i == 0 && ttstrlen == 1)){
+				if(ii > 0 || (ii == 0 && ttstrlen == 1)){
 					ose_snprintfi(buf, buflen, n, nn, "%s", "\n");
 				}
 			}

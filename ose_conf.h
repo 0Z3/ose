@@ -39,67 +39,58 @@ extern "C" {
 #include "sys/ose_endian.h"
 
 /**
- * The Arduino IDE doesn't let you predefine with a -D switch, so
- * we require and include a header for Arduino projects.
+ * These can be changed here or defined when invoking `make` if not building
+ * a library to be linked against later, since these values are needed
+ * in different header files. 
+ * 
+ * If these are commented out, the osevm will be built with a version
+ * of #osevm_init() that takes 7 arguments in order to specify these 
+ * sizes at runtime.
  */
-#if defined(ARDUINO) && !defined(OSE_CONF_IGNORE_ARDUINO)
-#include "ose_defs.h"
+#ifndef OSE_CONF_VM_INPUT_SIZE
+#define OSE_CONF_VM_INPUT_SIZE 131072
+#endif
+#ifndef OSE_CONF_VM_STACK_SIZE
+#define OSE_CONF_VM_STACK_SIZE 131072
+#endif
+#ifndef OSE_CONF_VM_ENV_SIZE
+#define OSE_CONF_VM_ENV_SIZE 131072
+#endif
+#ifndef OSE_CONF_VM_CONTROL_SIZE
+#define OSE_CONF_VM_CONTROL_SIZE 131072
+#endif
+#ifndef OSE_CONF_VM_DUMP_SIZE
+#define OSE_CONF_VM_DUMP_SIZE 131072
+#endif
+#ifndef OSE_CONF_VM_OUTPUT_SIZE
+#define OSE_CONF_VM_OUTPUT_SIZE 131072
 #endif
 
-#ifdef __DOXYGEN__
-/** 
- * @brief Debug mode: enables assertions, and enforces the type of 
- * #osc_bundle by wrapping it in a struct.
-*/
-#define OSE_CONF_DEBUG
 /**
- * @brief Define the behavior of the #ose_rassert macro. These definitons
- * are mutually exclusive. Defining OSE_CONF_RASSERT_FAIL causes
- * #ose_rassert to behave identically to #ose_assert. If no OSE_CONF_RASSERT
- * definition is provided, the default is OSE_CONF_RASSERT_FAIL.
+ * Uncomment these to provide support for different nonstandard OSC types
  */
-#define OSE_CONF_RASSERT_FAIL
+/* define OSE_CONF_PROVIDE_TYPE_SYMBOL */
+/* define OSE_CONF_PROVIDE_TYPE_DOUBLE */
+/* define OSE_CONF_PROVIDE_TYPE_INT8 */
+/* define OSE_CONF_PROVIDE_TYPE_UINT8 */
+/* define OSE_CONF_PROVIDE_TYPE_UINT32 */
+/* define OSE_CONF_PROVIDE_TYPE_INT64 */
+/* define OSE_CONF_PROVIDE_TYPE_UINT64 */
+/* define OSE_CONF_PROVIDE_TYPE_TYPETAG */
+/* define OSE_CONF_PROVIDE_TYPE_TRUE */
+/* define OSE_CONF_PROVIDE_TYPE_FALSE */
+/* define OSE_CONF_PROVIDE_TYPE_NULL */
+/* define OSE_CONF_PROVIDE_TYPE_INFINITUM */
+
 /**
- * @brief Define the behavior of the #ose_rassert macro. These definitons
- * are mutually exclusive. Defining OSE_CONF_RASSERT_THROW causes
- * a longjmp call to happen, and must be preceeded by a call to setjmp.
- * This can be done using the #OSE_TRY and #OSE_CATCH macros in #ose_assert.h.
- * If no OSE_CONF_RASSERT definition is provided, 
- * the default is OSE_CONF_RASSERT_FAIL.
+ * These can be safely defined when calling `make`. Debug is significantly
+ * slower, but provides a number of features that can help track down problems.
  */
-#define OSE_CONF_RASSERT_THROW
-/** @brief Provide support for the OSC symbol extended type. */
-#define OSE_CONF_PROVIDE_TYPE_SYMBOL
-/** @brief Provide support for the OSC double extended type. */
-#define OSE_CONF_PROVIDE_TYPE_DOUBLE
-/** @brief Provide support for the OSC int8 extended type. */
-#define OSE_CONF_PROVIDE_TYPE_INT8
-/** @brief Provide support for the OSC uint8 extended type. */
-#define OSE_CONF_PROVIDE_TYPE_UINT8
-/** @brief Provide support for the OSC uint32 extended type. */
-#define OSE_CONF_PROVIDE_TYPE_UINT32
-/** @brief Provide support for the OSC int64 extended type. */
-#define OSE_CONF_PROVIDE_TYPE_INT64
-/** @brief Provide support for the OSC uint64 extended type. */
-#define OSE_CONF_PROVIDE_TYPE_UINT64
-/** @brief Provide support for the OSC timetag extended type. */
-#define OSE_CONF_PROVIDE_TYPE_TIMETAG
-/** @brief Provide support for the OSC true extended type. */
-#define OSE_CONF_PROVIDE_TYPE_TRUE
-/** @brief Provide support for the OSC false extended type. */
-#define OSE_CONF_PROVIDE_TYPE_FALSE
-/** @brief Provide support for the OSC null extended type. */
-#define OSE_CONF_PROVIDE_TYPE_NULL
-/** @brief Provide support for the OSC infinitum extended type. */
-#define OSE_CONF_PROVIDE_TYPE_INFINITUM
-
-#else // __DOXYGEN__
-
 #ifdef OSE_CONF_DEBUG
 #define OSE_DEBUG
 #define OSE_SAFE_BUNDLE
 #else
-//#define NDEBUG
+#define NDEBUG
 #endif
 
 #if !defined(OSE_CONF_RASSERT_FAIL) && !defined(OSE_CONF_RASSERT_THROW)
@@ -117,6 +108,10 @@ extern "C" {
 #endif
 #define OSE_RASSERT_THROW
 #endif
+
+/**********************************************************************
+ * End configuration vars
+ **********************************************************************/
 
 #ifdef OSE_CONF_PROVIDE_TYPE_SYMBOL
 #define OSE_PROVIDE_TYPE_SYMBOL
@@ -174,8 +169,8 @@ static const int32_t OSE_ADDRESS_ANONVAL_SIZE = OSE_ADDRESS_ANONVAL_NBYTES
 #define OSE_ADDRESS_ANONVAL_SIZE OSE_ADDRESS_ANONVAL_NBYTES \
 	+ (4 - ((OSE_ADDRESS_ANONVAL_NBYTES) % 4))
 
-#endif // OSE_DEBUG
-#endif // OSE_CONF_ADDRESS_ANONVAL
+#endif /* OSE_DEBUG */
+#endif /* OSE_CONF_ADDRESS_ANONVAL */
 
 #if defined(OSE_CONF_VM_INPUT_SIZE)		\
 	&& defined(OSE_CONF_VM_STACK_SIZE)	\
@@ -212,8 +207,6 @@ static const int32_t OSE_ADDRESS_ANONVAL_SIZE = OSE_ADDRESS_ANONVAL_NBYTES
 #define OSE_USE_OPTIMIZED_CODE
 #endif
 	
-#endif // __DOXYGEN__
-
 #ifdef __cplusplus
 }
 #endif

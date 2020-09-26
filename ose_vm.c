@@ -169,7 +169,7 @@ void osevm_assign(ose_bundle osevm, char *address)
 		popControlToStack(vm_c, vm_s);
 		return;
 	}
-#ifdef OSE_SKIP//OSE_USE_OPTIMIZED_CODE
+#ifdef OSE_SKIP/*OSE_USE_OPTIMIZED_CODE */
 	char *eb = ose_getBundlePtr(vm_e);
 	int32_t es = ose_readInt32(vm_e, -4);
 	char *sb = ose_getBundlePtr(vm_s);
@@ -213,8 +213,8 @@ void osevm_assign(ose_bundle osevm, char *address)
 		memcpy(eb + eo, sb + to + 1, ntt - 1);
 		int32_t pntt = ose_pnbytes(ntt);
 		eo += ntt - 1;
-		// we store the offset of the data section where
-		// the address starts since we'll be deleting this anyway
+		/* we store the offset of the data section where */
+		/* the address starts since we'll be deleting this anyway */
 		ose_writeInt32(vm_s, so + 4, to + pntt);
 		so += ose_readInt32(vm_s, so) + 4;
 	}
@@ -225,7 +225,7 @@ void osevm_assign(ose_bundle osevm, char *address)
 	so = OSE_BUNDLE_HEADER_LEN;
 	while(so < ss){
 		int32_t size = ose_readInt32(vm_s, so);
-		// get the offset of the data section we stored earlier
+		/* get the offset of the data section we stored earlier */
 		int32_t offset = ose_readInt32(vm_s, so + 4);
 		int32_t amt = size - ((offset - so) - 4);
 		memcpy(eb + eo, sb + offset, amt);
@@ -275,7 +275,7 @@ void osevm_lookup(ose_bundle osevm, char *address)
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_e = OSEVM_ENV(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-        ose_bundle vm_d = OSEVM_DUMP(osevm);
+
 	if(OSEVM_GET_FLAGS(osevm) & OSEVM_FLAG_COMPILE){
 		popControlToStack(vm_c, vm_s);
 		return;
@@ -295,11 +295,9 @@ void osevm_lookup(ose_bundle osevm, char *address)
  */
 void osevm_funcall(ose_bundle osevm, char *address)
 {
-	ose_bundle vm_i = OSEVM_INPUT(osevm);
 	ose_bundle vm_s = OSEVM_STACK(osevm);
-	ose_bundle vm_e = OSEVM_ENV(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-        ose_bundle vm_d = OSEVM_DUMP(osevm);
+
 	if(OSEVM_GET_FLAGS(osevm) & OSEVM_FLAG_COMPILE){
 		popControlToStack(vm_c, vm_s);
 		return;
@@ -499,9 +497,9 @@ void osevm_execInCurrentContext(ose_bundle osevm, char *address)
 		   || address[3] == ';'
 		   || address[3] == '|'){
 			address[i - 1] = char_before_sep;
-			// ose_pushBundle(vm_s);
-			// ose_pushString(vm_s, address + 2);
-			// ose_push(vm_s);
+			/* ose_pushBundle(vm_s); */
+			/* ose_pushString(vm_s, address + 2); */
+			/* ose_push(vm_s); */
 			ose_pushMessage(vm_s,
 					address + 2,
 					strlen(address + 2),
@@ -637,8 +635,8 @@ void osevm_return(ose_bundle osevm, char *address)
 		   || address[3] == ':'
 		   || address[3] == ';'
 		   || address[3] == '|'){
-			// /;/./~~~ or /;/:/~~~ means return and execute
-			// address + 2 in the new context
+			/* /;/./~~~ or /;/:/~~~ means return and execute */
+			/* address + 2 in the new context */
 				
 			address[i - 1] = char_before_sep;
 			ose_pushString(vm_s, address + (i - 1));
@@ -649,13 +647,13 @@ void osevm_return(ose_bundle osevm, char *address)
 					OSE_ADDRESS_ANONVAL_LEN,
 					0);
 		}else{
-			// /;/~~~ means execute address + 2 in this
-			// context and then return
+			/* /;/~~~ means execute address + 2 in this */
+			/* context and then return */
 				
 			if(char_before_sep){
-				// /;/~~~/./~~~ or /;/~~~/:/~~~
-				// means execute address + 2 in this
-				// context, then return and continue
+				/* /;/~~~/./~~~ or /;/~~~/:/~~~ */
+				/* means execute address + 2 in this */
+				/* context, then return and continue */
 
 				address[i - 1] = char_before_sep;
 				for(int j = 0; j < i - 3; j++){
@@ -677,8 +675,8 @@ void osevm_return(ose_bundle osevm, char *address)
 				ose_moveElem(vm_s, vm_c);
 				ose_swap(vm_c);
 			}else{
-				// /;/~~~ means execute address + 2
-				// in this context and then return
+				/* /;/~~~ means execute address + 2 */
+				/* in this context and then return */
 
 				for(int j = 0; j < i - 2; j++){
 					address[j] = address[j + 2];
@@ -714,20 +712,16 @@ void osevm_return(ose_bundle osevm, char *address)
  */
 void osevm_defun(ose_bundle osevm, char *address)
 {
-	ose_bundle vm_i = OSEVM_INPUT(osevm);
 	ose_bundle vm_s = OSEVM_STACK(osevm);
-	ose_bundle vm_e = OSEVM_ENV(osevm);
-	ose_bundle vm_c = OSEVM_CONTROL(osevm);
         ose_bundle vm_d = OSEVM_DUMP(osevm);
-	ose_bundle vm_o = OSEVM_OUTPUT(osevm);
 	
 	int32_t flags = OSEVM_GET_FLAGS(osevm);
 	OSEVM_SET_FLAGS(osevm, flags | OSEVM_FLAG_COMPILE);
-	// ose_copyBundle(vm_i, vm_d);
-	// ose_copyBundle(vm_e, vm_d);
+	/* ose_copyBundle(vm_i, vm_d); */
+	/* ose_copyBundle(vm_e, vm_d); */
 	ose_copyBundle(vm_s, vm_d);
 	ose_clear(vm_s);
-	// ose_copyBundle(vm_c, vm_d);
+	/* ose_copyBundle(vm_c, vm_d); */
 	
 	if(address[2] == '/'){
 		ose_pushMessage(vm_s,
@@ -748,7 +742,6 @@ void osevm_defun(ose_bundle osevm, char *address)
 void osevm_endDefun(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
-	ose_bundle vm_c = OSEVM_CONTROL(osevm);
 	ose_bundle vm_d = OSEVM_DUMP(osevm);
 	int32_t flags = OSEVM_GET_FLAGS(osevm);
 	OSEVM_SET_FLAGS(osevm, flags ^ OSEVM_FLAG_COMPILE);
@@ -757,7 +750,7 @@ void osevm_endDefun(ose_bundle osevm, char *address)
 	ose_pop(vm_s);
 	ose_swap(vm_s);
 	ose_push(vm_s);
-	// ose_builtin_return(osevm);
+	/* ose_builtin_return(osevm); */
 	ose_moveElem(vm_d, vm_s);
 	ose_unpackDrop(vm_s);
 	ose_rollBottom(vm_s);
@@ -925,7 +918,7 @@ void osevm_toString(ose_bundle osevm, char *address)
 void osevm_toBlob(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
-	ose_bundle vm_c = OSEVM_CONTROL(osevm);
+
 	if(address[2] == '/'){
 		char *p = address + 3;
 		const int32_t n = strlen(p);
@@ -950,7 +943,6 @@ void osevm_toBlob(ose_bundle osevm, char *address)
 void osevm_appendByte(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
-	ose_bundle vm_c = OSEVM_CONTROL(osevm);
 
 	const char SLIP_END = 0300;
 	const char SLIP_ESC = 0333;
@@ -993,7 +985,7 @@ void osevm_appendByte(ose_bundle osevm, char *address)
 					case 1:
 						switch(c){
 						case SLIP_END:
-							// done
+							/* done */
 							break;
 						case SLIP_ESC:
 							ose_pushInt32(vm_s, 2);
@@ -1109,32 +1101,32 @@ ose_bundle osevm_init(ose_bundle bundle)
 		+ OSE_CONTEXT_MESSAGE_OVERHEAD;
 #endif
 
-	// cache
+	/* cache */
 	ose_pushContextMessage(bundle,
 			       OSEVM_CACHE_MSG_SIZE,
 			       "/_0");
 
-	// input from the world
+	/* input from the world */
 	ose_pushContextMessage(bundle,
 			       input_size,
 			       "/_i");
-	// stack
+	/* stack */
 	ose_pushContextMessage(bundle,
 			       stack_size,
 			       "/_s");
-	// environment
+	/* environment */
 	ose_pushContextMessage(bundle,
 			       env_size,
 			       "/_e");
-	// control
+	/* control */
 	ose_pushContextMessage(bundle,
 			       control_size,
 			       "/_c");
-	// dump
+	/* dump */
 	ose_pushContextMessage(bundle,
 			       dump_size,
 			       "/_d");
-	// output to the world
+	/* output to the world */
 	ose_pushContextMessage(bundle,
 			       output_size,
 			       "/_o");
@@ -1179,12 +1171,8 @@ ose_bundle osevm_init(ose_bundle bundle)
 
 static void applyControl(ose_bundle osevm, char *address)
 {
-	ose_bundle vm_i = OSEVM_INPUT(osevm);
 	ose_bundle vm_s = OSEVM_STACK(osevm);
-	ose_bundle vm_e = OSEVM_ENV(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
-        ose_bundle vm_d = OSEVM_DUMP(osevm);
-	ose_bundle vm_o = OSEVM_OUTPUT(osevm);
 
 	route_init(address, a);
 
@@ -1195,7 +1183,7 @@ static void applyControl(ose_bundle osevm, char *address)
 				OSEVM_ENDDEFUN(osevm, address);
 			}ose_catch(1){
 				;
-				// debug
+				/* debug */
 			}ose_finally{
 				;
 			}ose_end_try;
@@ -1210,7 +1198,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_ASSIGN(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1219,7 +1207,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_LOOKUP(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1228,7 +1216,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_FUNCALL(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1237,7 +1225,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_QUOTE(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1246,7 +1234,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_COPYCONTEXTBUNDLE(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1255,7 +1243,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_APPENDTOCONTEXTBUNDLE(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1264,7 +1252,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_REPLACECONTEXTBUNDLE(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1273,7 +1261,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_MOVEELEMTOCONTEXTBUNDLE(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1282,7 +1270,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_EXEC(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1291,7 +1279,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_EXECINCURRENTCONTEXT(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1300,7 +1288,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_APPLY(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1309,7 +1297,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_RETURN(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1318,7 +1306,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_DEFUN(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1327,7 +1315,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_TOINT32(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1336,7 +1324,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_TOFLOAT(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1345,7 +1333,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_TOSTRING(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1354,7 +1342,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_TOBLOB(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1363,7 +1351,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_APPENDBYTE(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1372,7 +1360,7 @@ static void applyControl(ose_bundle osevm, char *address)
 			OSEVM_DEFAULT(osevm, address);
 		}ose_catch(1){
 			;
-			// debug
+			/* debug */
 		}ose_finally{
 			;
 		}ose_end_try;
@@ -1410,6 +1398,7 @@ static void convertKnownStringAddressToAddress(ose_bundle vm_c)
 	}
 }
 
+#ifdef OSE_USE_OPTIMIZED_CODE
 static int isKnownAddress(const char * const address)
 {
 	route_init(address, ac);
@@ -1438,6 +1427,7 @@ static int isKnownAddress(const char * const address)
 		return 0;
 	}
 }
+#endif
 
 static void popAllControl(ose_bundle osevm)
 {
@@ -1453,7 +1443,7 @@ static void popAllControl(ose_bundle osevm)
 	int32_t s = ose_readInt32(vm_c, o);
 	while(o + s + 4 < cs){
 		o += s + 4;
-		int32_t s = ose_readInt32(vm_c, o);
+		s = ose_readInt32(vm_c, o);
 	}
 	char *b = ose_getBundlePtr(vm_c);
 	const char * const addr = b + o + 4;
@@ -1467,7 +1457,6 @@ static void popAllControl(ose_bundle osevm)
 	const int32_t ttlen = strlen(tt);
 	const int32_t pttlen = ose_pnbytes(ttlen);
 	const int32_t po = to + pttlen;
-	const char * const payload = b + po;
 	*((int32_t *)(b + o + s + 4)) = 0;
 	int32_t *sizes = (int32_t *)(b + o + s + 4);
 	int32_t *offsets = (sizes + (4 * (ttlen - 1)));
@@ -1571,7 +1560,7 @@ char osevm_step(ose_bundle osevm)
 		ose_try{
 			applyControl(osevm, ose_peekAddress(vm_c));
 		}ose_catch(1){
-			// debug
+			/* debug */
 		}ose_finally{
 			if(ose_bundleHasAtLeastNElems(vm_c, 1) == OSETT_TRUE){
 				ose_drop(vm_c);
@@ -1605,8 +1594,6 @@ char osevm_step(ose_bundle osevm)
 void osevm_run(ose_bundle osevm)
 {
 	ose_bundle vm_i = OSEVM_INPUT(osevm);
-	ose_bundle vm_s = OSEVM_STACK(osevm);
-	ose_bundle vm_e = OSEVM_ENV(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
         ose_bundle vm_d = OSEVM_DUMP(osevm);
 	int32_t n = ose_getBundleElemCount(vm_d);
@@ -1626,8 +1613,8 @@ void osevm_run(ose_bundle osevm)
 					break;
 				}
 				applyControl(osevm, ose_peekAddress(vm_c));
-				// check status and drop into
-				// debugger if necessary
+				/* check status and drop into */
+				/* debugger if necessary */
 				if(ose_bundleHasAtLeastNElems(vm_c, 1) == OSETT_TRUE){
 					ose_drop(vm_c);
 				}
