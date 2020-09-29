@@ -582,6 +582,77 @@ void ose_builtin_apply(ose_bundle osevm)
 	}
 }
 
+void ose_builtin_map(ose_bundle osevm)
+{
+	ose_bundle vm_s = OSEVM_STACK(osevm);
+	ose_bundle vm_c = OSEVM_CONTROL(osevm);
+	ose_swap(vm_s);
+	char t = ose_peekType(vm_s);
+	if(t == OSETT_BUNDLE){
+		ose_countItems(vm_s);
+		int32_t n = ose_popInt32(vm_s);
+		ose_popAll(vm_s);
+		int i = 0, j = -1;
+		ose_pushBundle(vm_s);
+		// ENm1 ... E0 B B -
+		for(i = 0; i < n; i++){
+			// B1 => items
+			// B0 => elems
+			ose_rot(vm_s); // ENm1 ... B1 B0 E0 -
+			ose_countItems(vm_s);
+			int jj = ose_popInt32(vm_s);
+			if(jj == 0){
+				for(i = 0; i < n + 3; i++){
+					ose_drop(vm_s);
+				}
+				return;
+			}else if(j > 0 && jj != j){
+				ose_rassert(0 && "arguments to map must be the same length", 1);
+				break;
+			}else{
+				ose_pop(vm_s); // ENm1 ... B1 B0 E0 I0 -
+				ose_notrot(vm_s); // ENm1 ... B1 I0 B0 E0 -
+				ose_push(vm_s); // ENm1 ... B1 I0 B0 -
+				ose_notrot(vm_s); // ENm1 ... B0 B1 I0 -
+				ose_push(vm_s); // ENm1 ... B0 B1 -
+				ose_swap(vm_s); // ENm1 ... B1 B0 -
+			}
+		}
+		// B1 B0 -
+		if(!strcmp(ose_peekAddress(vm_c), "/!")){
+			ose_drop(vm_c);
+			ose_pushMessage(vm_c, "/!/map", 6, 0);
+		}
+		ose_copyElem(vm_s, vm_c);
+		ose_drop(vm_s);
+		ose_swap(vm_s);
+		ose_copyElem(vm_s, vm_c);
+		ose_swap(vm_c);
+		ose_pushMessage(vm_c, "/!/apply", 8, 0);
+		ose_pushMessage(vm_c, "/!/map", 6, 0);
+		ose_push(vm_s);
+		ose_unpackDrop(vm_s);
+	}else{
+		ose_countItems(vm_s);
+		if(ose_popInt32(vm_s) > 0){
+			ose_swap(vm_s);
+			ose_copyElem(vm_s, vm_c);
+			ose_swap(vm_s);
+			ose_pop(vm_s);
+			ose_swap(vm_s);
+			ose_copyElem(vm_s, vm_c);
+			ose_drop(vm_s);
+			ose_swap(vm_s);
+			ose_pushMessage(vm_c, "/!/apply", 8, 0);
+			ose_pushMessage(vm_c, "/!/map", 6, 0);
+		}else{
+			;
+		}
+		
+		
+	}
+}
+
 void ose_builtin_return(ose_bundle osevm)
 {
 	ose_bundle vm_i = OSEVM_INPUT(osevm);

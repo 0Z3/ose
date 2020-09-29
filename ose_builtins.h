@@ -146,6 +146,7 @@ void ose_builtin_copyElem(ose_bundle osevm);
 void ose_builtin_assign(ose_bundle osevm);
 void ose_builtin_lookup(ose_bundle osevm);
 void ose_builtin_apply(ose_bundle osevm);
+void ose_builtin_map(ose_bundle osevm);
 void ose_builtin_return(ose_bundle osevm);
 
 #ifdef __cplusplus

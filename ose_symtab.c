@@ -73,7 +73,7 @@ struct _ose_symtab_rec {
 #endif
 };
 
-#define TOTAL_KEYWORDS 109
+#define TOTAL_KEYWORDS 110
 #define MIN_WORD_LENGTH 3
 #define MAX_WORD_LENGTH 23
 #define MIN_HASH_VALUE 8
@@ -318,7 +318,7 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
 #line 174 "ose_symtab.gperf"
     {"/exec", OSE_SYMTAB_VALUE(ose_builtin_exec)},
     {""},
-#line 183 "ose_symtab.gperf"
+#line 184 "ose_symtab.gperf"
     {"/return", OSE_SYMTAB_VALUE(ose_builtin_return)},
     {""},
 #line 153 "ose_symtab.gperf"
@@ -366,7 +366,10 @@ static const struct _ose_symtab_rec _ose_symtab_wordlist[] =
     {""}, {""}, {""}, {""}, {""},
 #line 163 "ose_symtab.gperf"
     {"/is/addresschar", OSE_SYMTAB_VALUE(ose_builtin_isAddressChar)},
-    {""}, {""}, {""}, {""}, {""}, {""}, {""},
+    {""}, {""}, {""},
+#line 183 "ose_symtab.gperf"
+    {"/map", OSE_SYMTAB_VALUE(ose_builtin_map)},
+    {""}, {""}, {""},
 #line 175 "ose_symtab.gperf"
     {"/if", OSE_SYMTAB_VALUE(ose_builtin_if)},
     {""},
@@ -426,7 +429,7 @@ _ose_symtab_lookup (register const char *str, register size_t len)
     }
   return 0;
 }
-#line 185 "ose_symtab.gperf"
+#line 186 "ose_symtab.gperf"
 
 
 void (*ose_symtab_lookup_fn(const char * const str))(ose_bundle)

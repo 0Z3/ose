@@ -38,6 +38,7 @@ LANG_HFILES=ose_print.h
 
 
 all: ose libose libosevm
+all-debug: debug libose-debug libosevm-debug
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(HOOKS) $(BUNDLE_SIZES) -c $<
@@ -103,7 +104,19 @@ libosevm: $(LIBOSEVM_CFILES) $(LIBOSEVM_HFILES)
 	ar rc libosevm.a *.o
 	rm -rf *.o
 
+libose-debug: CFLAGS=$(CFLAGS_DEBUG) -c
+libose-debug: CMD=$(CC) $(CFLAGS) $(LIBOSE_CFILES)
+libose-debug: $(LIBOSE_CFILES) $(LIBOSE_HFILES)
+	$(CMD)
+	ar rc libose.a *.o
+	rm -rf *.o
 
+libosevm-debug: CFLAGS=$(CFLAGS_DEBUG) -c
+libosevm-debug: CMD=$(CC) $(CFLAGS) $(HOOKS) $(LIBOSEVM_CFILES)
+libosevm-debug: $(LIBOSEVM_CFILES) $(LIBOSEVM_HFILES)
+	$(CMD)
+	ar rc libosevm.a *.o
+	rm -rf *.o
 
 ######################################################################
 # Ose Compiler

@@ -541,18 +541,23 @@ static void oserepl_udpport(ose_bundle bundle)
 	}
 }
 
-static void oserepl_udpaddr(ose_bundle bundle)
+static void oserepl_setudpaddr(ose_bundle bundle, const char * const addr)
 {
-	/* const char * const addr = ose_peekAddress(vm_c); */
-	/* const int32_t addrlen = strlen(addr); */
-	const char * const addr = ose_peekString(vm_s);
 	if(or_udp_socket_output){
 		close(or_udp_socket_output);
 	}
 	or_udp_addrstr_output = addr;
 	or_udp_socket_output = oserepl_udp_sock(or_udp_addrstr_output,
-					  or_udp_port_output,
-					  &or_udp_sockaddr_in_output);
+						or_udp_port_output,
+						&or_udp_sockaddr_in_output);
+}
+
+static void oserepl_udpaddr(ose_bundle bundle)
+{
+	/* const char * const addr = ose_peekAddress(vm_c); */
+	/* const int32_t addrlen = strlen(addr); */
+	const char * const addr = ose_peekString(vm_s);
+	oserepl_setudpaddr(bundle, addr);
 	ose_drop(vm_s);
 }
 

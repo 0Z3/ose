@@ -33,11 +33,41 @@ extern "C" {
 
 #include "ose_conf.h"
 #include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <setjmp.h>
 
 /** @brief Assertion macro. Can be turned off by defining NDEBUG 
  */
-#define ose_assert(t) assert(t)
+/* #define ose_assert(t) assert(t) */
+#ifdef NDEBUG
+#define ose_assert(t, str) do {} while(0)
+#define ose_assertf(t, fmt, ...) do {} while(0)
+#else
+/* TODO: make ose_assert take a mandatory string arg. */
+/* This is only here until we transition to the new sig. */
+#define ose_assert(t, ...)						\
+	!(t)								\
+	? (fprintf(stderr,						\
+		   "Assertion failed: %s, function %s, file %s, line %d.\n", \
+		   #t, __func__, __FILE__, __LINE__),			\
+	   fprintf(stderr,						\
+		   "%s\n",						\
+		   #__VA_ARGS__),						\
+	   abort())							\
+	: 0
+
+#define ose_assertf(t, fmt, ...)					\
+	!(t)								\
+	? (fprintf(stderr,						\
+		   "Assertion failed: %s, function %s, file %s, line %d.\n", \
+		   #t, __func__, __FILE__, __LINE__),			\
+	   fprintf(stderr,						\
+		   fmt,							\
+		   ##__VA_ARGS__),					\
+	   abort())							\
+	: 0
+#endif
 
 /* to be implemented. this should put a value in the status message
    of the main context bundle */
