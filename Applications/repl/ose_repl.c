@@ -2,7 +2,7 @@
   Copyright (c) 2019-20 John MacCallum
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
-  in the Software without restriction, including without limitation the rights
+n  in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
@@ -71,7 +71,7 @@ static int or_step = 0;
 static char *or_prefix = NULL;
 static int32_t or_prefixlen = 0;
 static int or_udp_input = 0;
-static int or_udp_output = 0;
+/* static int or_udp_output = 0; */
 
 /* Signaling and control */
 static jmp_buf or_jmp_buf;
@@ -97,12 +97,22 @@ static char *or_prompt_compile = "(compile)# ";
 static char *or_prompt = "# ";
 
 /* UDP I/O */
-static int or_udp_socket_input, or_udp_socket_output;
+static int or_udp_socket_input;/* , or_udp_socket_output; */
 static struct sockaddr_in or_udp_sockaddr_in_input;
-static struct sockaddr_in or_udp_sockaddr_in_output;
-static const char *or_udp_addrstr_output = "127.0.0.1";
+/* static struct sockaddr_in or_udp_sockaddr_in_output; */
+/* static const char *or_udp_addrstr_output = "127.0.0.1"; */
 static uint16_t or_udp_port_input = 10053;
-static uint16_t or_udp_port_output = 10073;
+/* static uint16_t or_udp_port_output = 10073; */
+
+static int or_udp_have_sender_addr = 0;
+static char or_udp_sender_addr[16];
+struct or_udp_output
+{
+	char *ipaddr;
+	uint16_t port;
+};
+static struct or_udp_output or_udp_output_dests[32];
+static int or_udp_output_dest_count = 0;
 
 /**********************************************************************
  * Forward decls
@@ -114,7 +124,7 @@ static void oserepl_step(ose_bundle bundle);
 static void oserepl_verbose(ose_bundle bundle);
 static void oserepl_printContextBundle(ose_bundle bundle);
 static void oserepl_udpport(ose_bundle bundle);
-static void oserepl_udpaddr(ose_bundle bundle);
+/* static void oserepl_udpaddr(ose_bundle bundle); */
 static void oserepl_setPrefix(ose_bundle bundle);
 
 static struct or_fn
@@ -127,10 +137,10 @@ static struct or_fn
 	      {"/print", oserepl_printContextBundle},
 	      {"/udp/input/port/get", oserepl_udpport},
 	      {"/udp/input/port/set", oserepl_udpport},
-	      {"/udp/output/port/get", oserepl_udpport},
-	      {"/udp/output/port/set", oserepl_udpport},
-	      {"/udp/output/addr/get", oserepl_udpaddr},
-	      {"/udp/output/addr/set", oserepl_udpaddr},
+	      /* {"/udp/output/port/get", oserepl_udpport}, */
+	      /* {"/udp/output/port/set", oserepl_udpport}, */
+	      /* {"/udp/output/addr/get", oserepl_udpaddr}, */
+	      /* {"/udp/output/addr/set", oserepl_udpaddr}, */
 	      {"/setprefix", oserepl_setPrefix},
 };
 
@@ -153,6 +163,7 @@ static int oserepl_udp_sock(const char * const addr,
 			    uint16_t port,
 			    struct sockaddr_in *sa);
 static int oserepl_udp_send(ose_bundle bundle);
+static int oserepl_udp_isValidAddress(const char * const str);
 
 /* REPL */
 static void oserepl_sigHandler(int signo);
@@ -522,18 +533,18 @@ static void oserepl_udpport(ose_bundle bundle)
 		}else{
 			ose_pushInt32(vm_s, or_udp_port_input);
 		}
-	}else if(!strncmp(addr + or_prefixlen + 4, "/output", 7)){
-		if(!strncmp(addr + or_prefixlen + 4 + 7 + 5, "/set", 4)){
-			or_udp_port_output = ose_popInt32(vm_s);
-			if(or_udp_socket_output){
-				close(or_udp_socket_output);
-				or_udp_socket_output = oserepl_udp_sock(or_udp_addrstr_output,
-								  or_udp_port_output,
-								  &or_udp_sockaddr_in_output);
-			}
-		}else{
-			ose_pushInt32(vm_s, or_udp_port_output);
-		}
+	/* }else if(!strncmp(addr + or_prefixlen + 4, "/output", 7)){ */
+	/* 	if(!strncmp(addr + or_prefixlen + 4 + 7 + 5, "/set", 4)){ */
+	/* 		or_udp_port_output = ose_popInt32(vm_s); */
+	/* 		if(or_udp_socket_output){ */
+	/* 			close(or_udp_socket_output); */
+	/* 			or_udp_socket_output = oserepl_udp_sock(or_udp_addrstr_output, */
+	/* 							  or_udp_port_output, */
+	/* 							  &or_udp_sockaddr_in_output); */
+	/* 		} */
+	/* 	}else{ */
+	/* 		ose_pushInt32(vm_s, or_udp_port_output); */
+	/* 	} */
 	}else if(addrlen > or_prefixlen + 5){
 		ose_assert(0 && "ose port must be either /input or /output");
 	}else{
@@ -541,25 +552,25 @@ static void oserepl_udpport(ose_bundle bundle)
 	}
 }
 
-static void oserepl_setudpaddr(ose_bundle bundle, const char * const addr)
-{
-	if(or_udp_socket_output){
-		close(or_udp_socket_output);
-	}
-	or_udp_addrstr_output = addr;
-	or_udp_socket_output = oserepl_udp_sock(or_udp_addrstr_output,
-						or_udp_port_output,
-						&or_udp_sockaddr_in_output);
-}
+/* static void oserepl_setudpaddr(ose_bundle bundle, const char * const addr) */
+/* { */
+/* 	if(or_udp_socket_output){ */
+/* 		close(or_udp_socket_output); */
+/* 	} */
+/* 	or_udp_addrstr_output = addr; */
+/* 	or_udp_socket_output = oserepl_udp_sock(or_udp_addrstr_output, */
+/* 						or_udp_port_output, */
+/* 						&or_udp_sockaddr_in_output); */
+/* } */
 
-static void oserepl_udpaddr(ose_bundle bundle)
-{
-	/* const char * const addr = ose_peekAddress(vm_c); */
-	/* const int32_t addrlen = strlen(addr); */
-	const char * const addr = ose_peekString(vm_s);
-	oserepl_setudpaddr(bundle, addr);
-	ose_drop(vm_s);
-}
+/* static void oserepl_udpaddr(ose_bundle bundle) */
+/* { */
+/* 	/\* const char * const addr = ose_peekAddress(vm_c); *\/ */
+/* 	/\* const int32_t addrlen = strlen(addr); *\/ */
+/* 	const char * const addr = ose_peekString(vm_s); */
+/* 	oserepl_setudpaddr(bundle, addr); */
+/* 	ose_drop(vm_s); */
+/* } */
 
 static void oserepl_setPrefix(ose_bundle bundle)
 {
@@ -590,13 +601,44 @@ static int oserepl_udp_sock(const char * const addr,
 
 static int oserepl_udp_send(ose_bundle bundle)
 {
-	int r = sendto(or_udp_socket_output,
-		       ose_getBundlePtr(bundle),
-		       ose_readInt32(bundle, -4),
-		       0,
-		       (struct sockaddr *)&or_udp_sockaddr_in_output,
-		       sizeof(struct sockaddr_in));
-	return r;
+	int i = 0;
+	for(; i < or_udp_output_dest_count; i++){
+		struct sockaddr_in sa;
+		int sock = 0;
+		if(or_udp_output_dests[i].ipaddr){
+			sock = oserepl_udp_sock(or_udp_output_dests[i].ipaddr,
+						or_udp_output_dests[i].port,
+						&sa);
+		}else{
+			if(or_udp_have_sender_addr){
+				sock = oserepl_udp_sock(or_udp_sender_addr,
+							or_udp_output_dests[i].port,
+							&sa);
+			}
+		}
+		int r = sendto(sock,
+			       ose_getBundlePtr(bundle),
+			       ose_readInt32(bundle, -4),
+			       0,
+			       (struct sockaddr *)&sa,
+			       sizeof(struct sockaddr_in));
+		if(r == -1){
+			fprintf(stderr, "error sending bundle to %s:%d (%d)\n",
+				or_udp_output_dests[i].ipaddr,
+				or_udp_output_dests[i].port,
+				r);
+			return r;
+		}
+	}
+	or_udp_have_sender_addr = 0;
+	return 0;
+}
+
+static int oserepl_udp_isValidAddress(const char * const str)
+{
+	struct sockaddr_in sa;
+	int result = inet_pton(AF_INET, str, &(sa.sin_addr));
+	return result != 0;
 }
 
 /* REPL */
@@ -677,24 +719,78 @@ int main(int ac, char **av)
 					or_udp_port_input = ip;
 				}
 				i++;
-			}else if(!strcmp(av[i], "--output-port")){
-				uint16_t op = (uint16_t)strtol(av[i + 1], NULL, 10);
-				if(op <= 1024 || op > 65535){
-					fprintf(stderr,
-						"output port out of range [1025,65535] (%d)\n",
-						op);
-					fprintf(stderr,
-						"using default value: %d\n",
-						or_udp_port_output);
-				}else{
-					or_udp_port_output = op;
+			}else if(!strncmp(av[i],
+					  "--udp-output",
+					  strlen("--udp-output"))){
+				int flaglen = strlen(av[i]);
+				int j = strlen("--udp-output");
+				int haveeq = 0;
+				for(; j < flaglen; j++){
+					if(av[i]['=']){
+						haveeq = 1;
+						break;
+					}
 				}
-				i++;
-			}else if(!strcmp(av[i], "--output-address")){
-				or_udp_addrstr_output = av[i + 1];
-				i++;
-			}else if(!strcmp(av[i], "--udp-output")){
-				or_udp_output = 1;
+				if(!haveeq){
+					fprintf(stderr,
+						"error: --udp-output args"
+						"must be in the form:\n");
+					fprintf(stderr,
+						"--udp-output=[address]:<port>\n"
+						"ex:\n"
+						"--udp-output=127.0.0.1:12345"
+						" (send to localhost on port 12345)\n"
+						"--udp-output=:12345"
+						" (return to sender on port 12345)\n");
+					return 1;
+				}
+				j++;
+				int k = j;
+				int havecolon = 0;
+				for(; k < flaglen; k++){
+					if(av[i][k] == ':'){
+						havecolon = 1;
+						break;
+					}
+				}
+				if(!havecolon){
+					fprintf(stderr,
+						"error: --udp-output args"
+						"must be in the form:\n");
+					fprintf(stderr,
+						"--udp-output=[address]:<port>\n"
+						"ex:\n"
+						"--udp-output=127.0.0.1:12345"
+						" (send to localhost on port 12345)\n"
+						"--udp-output=:12345"
+						" (return to sender on port 12345)\n");
+					return 1;
+				}
+				av[i][k] = 0;
+				char *addr = NULL;
+				if(j == k){
+					;
+				}else{
+					if(!oserepl_udp_isValidAddress(av[i] + j)){
+						fprintf(stderr,
+							"error: --udp-output args"
+							"must be in the form:\n");
+						fprintf(stderr,
+							"--udp-output=[address]:<port>\n"
+							"ex:\n"
+							"--udp-output=127.0.0.1:12345"
+							" (send to localhost on port 12345)\n"
+							"--udp-output=:12345"
+							" (return to sender on port 12345)\n");
+						return 1;
+					}
+					addr = av[i] + j;
+				}
+				uint16_t port = (uint16_t)strtol(av[i] + k + 1, NULL, 10);
+				or_udp_output_dests[or_udp_output_dest_count++] =
+					(struct or_udp_output){
+					 addr, port
+					};
 			}else if(!strcmp(av[i], "--udp-input")){
 				or_udp_input = 1;
 			}else if(!strcmp(av[i], "--prefix")){
@@ -707,16 +803,16 @@ int main(int ac, char **av)
 	{
 		printf("Ose %s\n", ose_version);
 		printf("\n");
-		if(or_udp_input){
-			printf("Receiving on UDP port %d\n", or_udp_port_input);
-		}else{
-			printf("UDP input disabled (enable with /ose/input/udp/on)\n");
-		}
-		if(or_udp_output){
-			printf("Sending to %s:%d\n", or_udp_addrstr_output, or_udp_port_output);
-		}else{
-			printf("UDP output disabled (enable with /ose/output/udp/on)\n");
-		}
+		/* if(or_udp_input){ */
+		/* 	printf("Receiving on UDP port %d\n", or_udp_port_input); */
+		/* }else{ */
+		/* 	printf("UDP input disabled (enable with /ose/input/udp/on)\n"); */
+		/* } */
+		/* if(or_udp_output){ */
+		/* 	printf("Sending to %s:%d\n", or_udp_addrstr_output, or_udp_port_output); */
+		/* }else{ */
+		/* 	printf("UDP output disabled (enable with /ose/output/udp/on)\n"); */
+		/* } */
 		printf("\n");
 	}
 
@@ -758,9 +854,9 @@ int main(int ac, char **av)
 	or_udp_socket_input = oserepl_udp_sock("0.0.0.0",
 						    or_udp_port_input,
 						    &or_udp_sockaddr_in_input);
-	or_udp_socket_output = oserepl_udp_sock(or_udp_addrstr_output,
-						     or_udp_port_output,
-						     &or_udp_sockaddr_in_output);
+	/* or_udp_socket_output = oserepl_udp_sock(or_udp_addrstr_output, */
+	/* 					     or_udp_port_output, */
+	/* 					     &or_udp_sockaddr_in_output); */
 
 	fd_set rset;
 	FD_ZERO(&rset);
@@ -816,11 +912,11 @@ int main(int ac, char **av)
 				ose_blobToElem(vm_i);
 				ose_popAllDrop(vm_i);
 				or_have_input = 1;
+				uint32_t a = ntohl(ca.sin_addr.s_addr);
 				{
 					/* announce that we received a bundle */
 					/* over udp */
 					fputs("\r  \r", stdout);
-					uint32_t a = ntohl(ca.sin_addr.s_addr);
 					printf("Received %d byte bundle from "
 					       "%d.%d.%d.%d:%d\n",
 					       len,
@@ -830,6 +926,13 @@ int main(int ac, char **av)
 					       a & 0x000000FF,
 					       or_udp_port_input);
 				}
+				snprintf(or_udp_sender_addr, 16,
+					 "%d.%d.%d.%d",
+					 (a & 0xFF000000) >> 24,
+					 (a & 0x00FF0000) >> 16,
+					 (a & 0x0000FF00) >> 8,
+					 a & 0x000000FF);
+				or_udp_have_sender_addr = 1;
 			}
 		}
 
@@ -851,7 +954,8 @@ int main(int ac, char **av)
 		/*************************************************
 		 * print
 		 *************************************************/
-		if(or_udp_port_output && should_print){
+		/* if(or_udp_port_output && should_print){ */
+		if(should_print){
 			oserepl_udp_send(vm_o);
 		}
 		ose_clear(vm_o);
