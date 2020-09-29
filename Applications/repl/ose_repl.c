@@ -859,7 +859,7 @@ int main(int ac, char **av)
 				uint16_t port = (uint16_t)strtol(av[i] + k + 1, NULL, 10);
 				or_udp_output_dests[or_udp_output_dest_count++] =
 					(struct or_udp_output){
-							       strdup(addr),
+							       addr ? strdup(addr) : NULL,
 							       port
 				};
 			}else if(!strcmp(av[i], "--udp-input")){
