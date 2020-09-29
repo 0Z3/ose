@@ -41,7 +41,7 @@ extern "C" {
  */
 /* #define ose_assert(t) assert(t) */
 #ifdef NDEBUG
-#define ose_assert(t, str) do {} while(0)
+#define ose_assert(t, ...) do {} while(0)
 #define ose_assertf(t, fmt, ...) do {} while(0)
 #else
 /* TODO: make ose_assert take a mandatory string arg. */
