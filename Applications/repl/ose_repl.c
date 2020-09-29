@@ -123,9 +123,10 @@ static void oserepl_import(ose_bundle osevm);
 static void oserepl_step(ose_bundle bundle);
 static void oserepl_verbose(ose_bundle bundle);
 static void oserepl_printContextBundle(ose_bundle bundle);
-static void oserepl_udpport(ose_bundle bundle);
+//static void oserepl_udpport(ose_bundle bundle);
 /* static void oserepl_udpaddr(ose_bundle bundle); */
-static void oserepl_setPrefix(ose_bundle bundle);
+static void oserepl_udp_output(ose_bundle osevm);
+static void oserepl_prefix(ose_bundle bundle);
 
 static struct or_fn
 {
@@ -135,13 +136,15 @@ static struct or_fn
 	      {"/step", oserepl_step},
 	      {"/verbose", oserepl_verbose},
 	      {"/print", oserepl_printContextBundle},
-	      {"/udp/input/port/get", oserepl_udpport},
-	      {"/udp/input/port/set", oserepl_udpport},
+	      /* {"/udp/input/port/get", oserepl_udpport}, */
+	      /* {"/udp/input/port/set", oserepl_udpport}, */
 	      /* {"/udp/output/port/get", oserepl_udpport}, */
 	      /* {"/udp/output/port/set", oserepl_udpport}, */
 	      /* {"/udp/output/addr/get", oserepl_udpaddr}, */
 	      /* {"/udp/output/addr/set", oserepl_udpaddr}, */
-	      {"/setprefix", oserepl_setPrefix},
+	      {"/udp/output", oserepl_udp_output},
+	      {"/prefix", oserepl_prefix},
+	      /* {"/setprefix", oserepl_setPrefix}, */
 };
 
 /* editline / readline */
@@ -221,13 +224,18 @@ void oserepl_default(ose_bundle osevm, char *address)
 				return;
 			}
 		}
+	}else if(!strcmp(address, "/prefix")){
+		oserepl_prefix(osevm);
+		ose_drop(vm_c);
+		return;
 	}
 	osevm_default(osevm, address);
 }
 
 int oserepl_isKnownAddress(const char * const address)
 {
-	if(!strncmp(address, or_prefix, or_prefixlen)){
+	if(!strncmp(address, or_prefix, or_prefixlen)
+	   || !strcmp(address, "/prefix")){
 		return 1;
 	}else{
 		return 0;
@@ -517,40 +525,40 @@ static void oserepl_printContextBundle(ose_bundle osevm)
 	fflush(stdout);
 }
 
-static void oserepl_udpport(ose_bundle bundle)
-{
-	const char * const addr = ose_peekAddress(vm_c);
-	const int32_t addrlen = strlen(addr);
-	if(!strncmp(addr + or_prefixlen + 4, "/input", 6)){
-		if(!strncmp(addr + or_prefixlen + 4 + 6 + 5, "/set", 4)){
-			or_udp_port_input = ose_popInt32(vm_s);
-			if(or_udp_socket_input){
-				close(or_udp_socket_input);
-				or_udp_socket_input = oserepl_udp_sock("0.0.0.0",
-								 or_udp_port_input,
-								 &or_udp_sockaddr_in_input);
-			}
-		}else{
-			ose_pushInt32(vm_s, or_udp_port_input);
-		}
-	/* }else if(!strncmp(addr + or_prefixlen + 4, "/output", 7)){ */
-	/* 	if(!strncmp(addr + or_prefixlen + 4 + 7 + 5, "/set", 4)){ */
-	/* 		or_udp_port_output = ose_popInt32(vm_s); */
-	/* 		if(or_udp_socket_output){ */
-	/* 			close(or_udp_socket_output); */
-	/* 			or_udp_socket_output = oserepl_udp_sock(or_udp_addrstr_output, */
-	/* 							  or_udp_port_output, */
-	/* 							  &or_udp_sockaddr_in_output); */
-	/* 		} */
-	/* 	}else{ */
-	/* 		ose_pushInt32(vm_s, or_udp_port_output); */
-	/* 	} */
-	}else if(addrlen > or_prefixlen + 5){
-		ose_assert(0 && "ose port must be either /input or /output");
-	}else{
-		ose_assert(0 && "ose port must be either /input or /output");
-	}
-}
+/* static void oserepl_udpport(ose_bundle bundle) */
+/* { */
+/* 	const char * const addr = ose_peekAddress(vm_c); */
+/* 	const int32_t addrlen = strlen(addr); */
+/* 	if(!strncmp(addr + or_prefixlen + 4, "/input", 6)){ */
+/* 		if(!strncmp(addr + or_prefixlen + 4 + 6 + 5, "/set", 4)){ */
+/* 			or_udp_port_input = ose_popInt32(vm_s); */
+/* 			if(or_udp_socket_input){ */
+/* 				close(or_udp_socket_input); */
+/* 				or_udp_socket_input = oserepl_udp_sock("0.0.0.0", */
+/* 								 or_udp_port_input, */
+/* 								 &or_udp_sockaddr_in_input); */
+/* 			} */
+/* 		}else{ */
+/* 			ose_pushInt32(vm_s, or_udp_port_input); */
+/* 		} */
+/* 	/\* }else if(!strncmp(addr + or_prefixlen + 4, "/output", 7)){ *\/ */
+/* 	/\* 	if(!strncmp(addr + or_prefixlen + 4 + 7 + 5, "/set", 4)){ *\/ */
+/* 	/\* 		or_udp_port_output = ose_popInt32(vm_s); *\/ */
+/* 	/\* 		if(or_udp_socket_output){ *\/ */
+/* 	/\* 			close(or_udp_socket_output); *\/ */
+/* 	/\* 			or_udp_socket_output = oserepl_udp_sock(or_udp_addrstr_output, *\/ */
+/* 	/\* 							  or_udp_port_output, *\/ */
+/* 	/\* 							  &or_udp_sockaddr_in_output); *\/ */
+/* 	/\* 		} *\/ */
+/* 	/\* 	}else{ *\/ */
+/* 	/\* 		ose_pushInt32(vm_s, or_udp_port_output); *\/ */
+/* 	/\* 	} *\/ */
+/* 	}else if(addrlen > or_prefixlen + 5){ */
+/* 		ose_assert(0 && "ose port must be either /input or /output"); */
+/* 	}else{ */
+/* 		ose_assert(0 && "ose port must be either /input or /output"); */
+/* 	} */
+/* } */
 
 /* static void oserepl_setudpaddr(ose_bundle bundle, const char * const addr) */
 /* { */
@@ -572,16 +580,78 @@ static void oserepl_udpport(ose_bundle bundle)
 /* 	ose_drop(vm_s); */
 /* } */
 
-static void oserepl_setPrefix(ose_bundle bundle)
+static void oserepl_udp_output(ose_bundle osevm)
 {
-	if(ose_peekType(vm_s) == OSETT_MESSAGE
-	   && ose_isStringType(ose_peekMessageArgType(vm_s)) == OSETT_TRUE){
-		free(or_prefix);
-		or_prefix = strdup(ose_peekString(vm_s));
-		or_prefixlen = strlen(or_prefix);
-		ose_drop(vm_s);
+	int32_t n = ose_getBundleElemCount(vm_s);
+	int i = 0;
+	if(n == 0){
+		for(i = 0; i < or_udp_output_dest_count; i++){
+			ose_pushBundle(vm_s);
+			ose_pushMessage(vm_s, "/addr", 5, 1,
+					OSETT_STRING,
+					or_udp_output_dests[i].ipaddr);
+			ose_push(vm_s);
+			ose_pushMessage(vm_s, "/port", 5, 1,
+					OSETT_INT32,
+					or_udp_output_dests[i].port);
+			ose_push(vm_s);
+		}
 	}else{
-		ose_assert(0 && "prefix must be a string");
+		ose_bundleAll(vm_s);
+		ose_popAllDrop(vm_s);
+		or_udp_output_dest_count = 0;
+		for(i = 0; i < n; i++){
+			if(or_udp_output_dests[i].ipaddr){
+				free(or_udp_output_dests[i].ipaddr);
+			}
+			char *addr = NULL;
+			int32_t port = -1;
+			int j = 0;
+			int nn = ose_getBundleElemElemCount(vm_s,
+							    ose_getLastBundleElemOffset(vm_s));
+			for(j = 0; j < nn; j++){
+				ose_pop(vm_s);
+				const char * const msgaddr = ose_peekAddress(vm_s);
+				if(!strcmp(msgaddr, "/addr")){
+					char *a = ose_peekString(vm_s);
+					if(!strlen(a)){
+						;
+					}else{
+						addr = strdup(a);
+					}
+					ose_drop(vm_s);
+				}else if(!strcmp(msgaddr, "/port")){
+					port = (uint16_t)ose_peekInt32(vm_s);
+					ose_drop(vm_s);
+				}else{
+					ose_assert(0, "/udp/output must be specified as one or more bundles containing the messages \"/addr\" : <ipaddr (string)> and \"/port\" : <port (int32)");
+				}
+			}
+			if(port < 0){
+				ose_assert(0, "/udp/output must be specified as one or more bundles containing the messages \"/addr\" : <ipaddr (string)> and \"/port\" : <port (int32)");
+			}
+			ose_drop(vm_s);
+			or_udp_output_dests[i].ipaddr = addr;
+			or_udp_output_dests[i].port = port;
+			or_udp_output_dest_count = i + 1;
+		}
+	}
+}
+
+static void oserepl_prefix(ose_bundle bundle)
+{
+	if(ose_getBundleElemCount(vm_s) == 0){
+		ose_pushString(vm_s, or_prefix);
+	}else{
+		if(ose_peekType(vm_s) == OSETT_MESSAGE
+		   && ose_isStringType(ose_peekMessageArgType(vm_s)) == OSETT_TRUE){
+			free(or_prefix);
+			or_prefix = strdup(ose_peekString(vm_s));
+			or_prefixlen = strlen(or_prefix);
+			ose_drop(vm_s);
+		}else{
+			ose_assert(0, "prefix must be a string");
+		}	
 	}
 }
 
@@ -789,8 +859,9 @@ int main(int ac, char **av)
 				uint16_t port = (uint16_t)strtol(av[i] + k + 1, NULL, 10);
 				or_udp_output_dests[or_udp_output_dest_count++] =
 					(struct or_udp_output){
-					 addr, port
-					};
+							       strdup(addr),
+							       port
+				};
 			}else if(!strcmp(av[i], "--udp-input")){
 				or_udp_input = 1;
 			}else if(!strcmp(av[i], "--prefix")){
@@ -802,7 +873,7 @@ int main(int ac, char **av)
 	}
 	{
 		printf("Ose %s\n", ose_version);
-		printf("\n");
+		/* printf("\n"); */
 		/* if(or_udp_input){ */
 		/* 	printf("Receiving on UDP port %d\n", or_udp_port_input); */
 		/* }else{ */
