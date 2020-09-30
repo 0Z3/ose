@@ -13,10 +13,13 @@ ADDITIONAL_LIBOSE_CFILES=ose_print.c
 ######################################################################
 
 CFLAGS_RELEASE=$(ADDITIONAL_CFLAGS) \
-	-Wall -I. -O3 -DOSE_USE_OPTIMIZED_CODE -DOSE_VERSION=\"$(GIT_VERSION)\"
+	-Wall -I. -O3 -DOSE_USE_OPTIMIZED_CODE \
+	-DOSE_VERSION=\"$(GIT_VERSION)\" \
+	-DOSE_DATE_COMPILED=\"$(DATE_COMPILED)\"
 CFLAGS_DEBUG=$(ADDITIONAL_CFLAGS) \
 	-Wall -I. -DOSE_CONF_DEBUG -O0 -glldb -fsanitize=undefined \
-	-DOSE_VERSION=\"$(GIT_VERSION)\"
+	-DOSE_VERSION=\"$(GIT_VERSION)\" \
+	-DOSE_DATE_COMPILED=\"$(DATE_COMPILED)\"
 
 ######################################################################
 # files
@@ -177,6 +180,7 @@ js: js/libose.js
 # 	echo "#define OSE_VERSION \""`git describe --long --dirty=" *BUILT AGAINST UNTRACKED CHANGES*"` $(MAKECMDGOALS)\" > ose_version.h
 # FORCE:
 GIT_VERSION := "$(shell git describe --dirty --always --tags) ($(MAKECMDGOALS))"
+DATE_COMPILED := "$(shell date)"
 
 sys/ose_endianchk: CC=clang
 sys/ose_endianchk: sys/ose_endianchk.c
