@@ -127,6 +127,7 @@ static void oserepl_printContextBundle(ose_bundle bundle);
 /* static void oserepl_udpaddr(ose_bundle bundle); */
 static void oserepl_udp_output(ose_bundle osevm);
 static void oserepl_prefix(ose_bundle bundle);
+static void oserepl_version(ose_bundle bundle);
 
 static struct or_fn
 {
@@ -144,6 +145,7 @@ static struct or_fn
 	      /* {"/udp/output/addr/set", oserepl_udpaddr}, */
 	      {"/udp/output", oserepl_udp_output},
 	      {"/prefix", oserepl_prefix},
+	      {"/version", oserepl_version},
 	      /* {"/setprefix", oserepl_setPrefix}, */
 };
 
@@ -653,6 +655,11 @@ static void oserepl_prefix(ose_bundle bundle)
 			ose_assert(0, "prefix must be a string");
 		}	
 	}
+}
+
+static void oserepl_version(ose_bundle bundle)
+{
+	ose_pushString(vm_s, ose_version);
 }
 
 /* UDP I/O */
