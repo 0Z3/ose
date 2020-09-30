@@ -872,7 +872,7 @@ int main(int ac, char **av)
 			}else if(!strcmp(av[i], "--udp-input")){
 				or_udp_input = 1;
 			}else if(!strcmp(av[i], "--prefix")){
-				or_prefix = av[i + 1];
+				or_prefix = strdup(av[i + 1]);
 				or_prefixlen = strlen(or_prefix);
 				i++;
 			}
