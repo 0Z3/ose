@@ -48,25 +48,25 @@ extern "C" {
 /* This is only here until we transition to the new sig. */
 #define ose_assert(t, ...)						\
 	!(t)								\
-	? (fprintf(stderr,						\
+	? ((void)fprintf(stderr,					\
 		   "Assertion failed: %s, function %s, file %s, line %d.\n", \
 		   #t, __func__, __FILE__, __LINE__),			\
 	   fprintf(stderr,						\
 		   "%s\n",						\
 		   #__VA_ARGS__),						\
 	   abort())							\
-	: 0
+	: (void)0
 
 #define ose_assertf(t, fmt, ...)					\
 	!(t)								\
-	? (fprintf(stderr,						\
+	? ((void)fprintf(stderr,					\
 		   "Assertion failed: %s, function %s, file %s, line %d.\n", \
 		   #t, __func__, __FILE__, __LINE__),			\
 	   fprintf(stderr,						\
 		   fmt,							\
 		   ##__VA_ARGS__),					\
 	   abort())							\
-	: 0
+	: (void)0
 #endif
 
 /* to be implemented. this should put a value in the status message

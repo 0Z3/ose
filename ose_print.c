@@ -381,8 +381,7 @@ static int32_t ose_pprintFullBundle_r(ose_constbundle bundle,
 				}
 					break;
 				case OSETT_BLOB:{
-					int32_t bs = ose_readInt32(bundle, po);
-					bs = ose_pnbytes(bs);
+					int32_t bs = ose_getPaddedBlobSize(bundle, po);
 					po += 4;
 					if(bs == 4){
 						ose_snprintfi(buf, buflen, n, nn,
@@ -394,19 +393,29 @@ static int32_t ose_pprintFullBundle_r(ose_constbundle bundle,
 						po += 4;
 					}else{
 						for(int j2 = 0; j2 < bs; j2 += 8){
-							ose_snprintfi(buf, buflen, n, nn,
-								      "%02x %02x %02x %02x "
-								      "%02x %02x %02x %02x",
-								      0xff & ose_readByte(bundle, po),
-								      0xff & ose_readByte(bundle, po + 1),
-								      0xff & ose_readByte(bundle, po + 2),
-								      0xff & ose_readByte(bundle, po + 3),
-								      0xff & ose_readByte(bundle, po + 4),
-								      0xff & ose_readByte(bundle, po + 5),
-								      0xff & ose_readByte(bundle, po + 6),
-								      0xff & ose_readByte(bundle, po + 7));
-							po += 8;
-							if(j2 < bs - 8){
+							if(bs - j2 == 4){
+								ose_snprintfi(buf, buflen, n, nn,
+									      "%02x %02x %02x %02x",
+									      ose_readByte(bundle, po),
+									      ose_readByte(bundle, po + 1),
+									      ose_readByte(bundle, po + 2),
+									      ose_readByte(bundle, po + 3));
+								po += 4;
+							}else{
+								ose_snprintfi(buf, buflen, n, nn,
+									      "%02x %02x %02x %02x "
+									      "%02x %02x %02x %02x",
+									      0xff & ose_readByte(bundle, po),
+									      0xff & ose_readByte(bundle, po + 1),
+									      0xff & ose_readByte(bundle, po + 2),
+									      0xff & ose_readByte(bundle, po + 3),
+									      0xff & ose_readByte(bundle, po + 4),
+									      0xff & ose_readByte(bundle, po + 5),
+									      0xff & ose_readByte(bundle, po + 6),
+									      0xff & ose_readByte(bundle, po + 7));
+								po += 8;
+							}
+							if(bs - j2 > 8){
 								ose_snprintfi(buf, buflen, n, nn, "%s", "\n");
 								for(int j3 = 0;
 								    j3 < cols / 2 + 3;

@@ -90,9 +90,9 @@ static volatile int or_have_input = 0;
 static ose_hptimer or_hptimer;
 #endif
 
-static char *or_prompt_normal = "# ";
-static char *or_prompt_compile = "(compile)# ";
-static char *or_prompt = "# ";
+static const char *or_prompt_normal = "# ";
+static const char *or_prompt_compile = "(compile)# ";
+static const char *or_prompt = "# ";
 
 /* UDP I/O */
 struct or_udp_input
@@ -152,17 +152,19 @@ static int oserepl_opt_udp_output(int argnum, char **av);
 static int oserepl_opt_verbose(int argnum, char **av);
 static int oserepl_opt_version(int argnum, char **av);
 
+struct or_opt_ex
+{
+	const char *example;
+	const char *description;
+};
+
 static struct or_opt
 {
-	char *option;
+	const char *option;
 	int (*fn)(int ac, char **av);
-	char *syntax;
-	char *description;
-	struct or_opt_ex
-	{
-		char *example;
-		char *description;
-	} exs[8];
+	const char *syntax;
+	const char *description;
+	struct or_opt_ex exs[8];
 } or_opts[] = {{"--help",
 		oserepl_opt_help,
 		"--help",
@@ -188,7 +190,7 @@ static struct or_opt
 		{{"--udp-output=127.0.0.1:12345",
 		  "Send output to localhost port 12345"},
 		 {"--udp-output=:12345",
-		  "If input was received via UDP, send output back to sender on port 12345"},
+		  "If input was received via UDP, reply to sender on port 12345"},
 		 {"--udp-output=192.168.178.22:12345,:54321,127.0.0.1:55555",
 		  "Send output to three locations, leftmost=first, rightmost=last."}}},
 	       {"--verbose",
@@ -765,10 +767,12 @@ static void oserepl_sigHandler(int signo)
 			exit(0);
 		}
 		siglongjmp(or_jmp_buf, 2);
+		break;
 	case SIGABRT:
 		or_have_input = 0;
 		or_assertion_failed = 1;
 		siglongjmp(or_jmp_buf, 1);
+		break;
 	}
 }
 
@@ -853,7 +857,7 @@ static void oserepl_opt_printHelp(struct or_opt o)
 
 static int oserepl_opt_help(int argnum, char **av)
 {
-	fprintf(stdout, "USAGE: Ose [options]\n");
+	fprintf(stdout, "USAGE: ose [options]\n");
 	fprintf(stdout, "OPTIONS:\n");
 	for(int i = 0; i < sizeof(or_opts) / sizeof(struct or_opt); i++){
 		oserepl_opt_printHelp(or_opts[i]);	

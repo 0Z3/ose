@@ -5,18 +5,19 @@
 # Other variables may be found in ose_conf.h
 ######################################################################
 CC=clang
-ADDITIONAL_CFLAGS=
+ADDITIONAL_REPL_CFLAGS=
+ADDITIONAL_LIBOSE_CFLAGS=
 ADDITIONAL_LIBOSE_CFILES=ose_print.c
 
 ######################################################################
 # Vars
 ######################################################################
 
-CFLAGS_RELEASE=$(ADDITIONAL_CFLAGS) \
+CFLAGS_RELEASE= \
 	-Wall -I. -O3 -DOSE_USE_OPTIMIZED_CODE \
 	-DOSE_VERSION=\"$(GIT_VERSION)\" \
 	-DOSE_DATE_COMPILED=\"$(DATE_COMPILED)\"
-CFLAGS_DEBUG=$(ADDITIONAL_CFLAGS) \
+CFLAGS_DEBUG= \
 	-Wall -I. -DOSE_CONF_DEBUG -O0 -glldb -fsanitize=undefined \
 	-DOSE_VERSION=\"$(GIT_VERSION)\" \
 	-DOSE_DATE_COMPILED=\"$(DATE_COMPILED)\"
@@ -68,7 +69,7 @@ REPL_HOOKS= \
 	-DOSEVM_DEFAULT=oserepl_default \
 	-DOSEVM_ISKNOWNADDRESS=oserepl_isKnownAddress
 
-ose: CFLAGS=$(CFLAGS_RELEASE)
+ose: CFLAGS=$(CFLAGS_RELEASE) $(ADDITIONAL_REPL_CFLAGS)
 ose: LDFLAGS=-lm -rdynamic
 ose: HOOKS=$(REPL_HOOKS)
 ose: CMD=$(CC) $(CFLAGS) $(LDFLAGS) -o ose \
@@ -77,7 +78,7 @@ ose: CMD=$(CC) $(CFLAGS) $(LDFLAGS) -o ose \
 ose: $(REPL_CFILES) $(REPL_HFILES) Applications/repl/ose_repl.c
 	$(CMD)
 
-debug: CFLAGS=$(CFLAGS_DEBUG)
+debug: CFLAGS=$(CFLAGS_DEBUG) $(ADDITIONAL_REPL_CFLAGS)
 debug: LDFLAGS=-lm -rdynamic
 debug: HOOKS=$(REPL_HOOKS)
 debug: CMD=$(CC) $(CFLAGS) $(LDFLAGS) -o ose \
@@ -91,7 +92,7 @@ debug: $(REPL_CFILES) $(REPL_HFILES) Applications/repl/ose_repl.c
 ######################################################################
 LIBOSE_CFILES=$(CORE_CFILES) $(ADDITIONAL_LIBOSE_CFILES)
 LIBOSE_HFILES=$(CORE_HFILES) sys/ose_endian.h
-libose: CFLAGS=$(CFLAGS_RELEASE) -c
+libose: CFLAGS=$(CFLAGS_RELEASE) $(ADDITIONAL_LIBOSE_CFLAGS) -c
 libose:	CMD=$(CC) $(CFLAGS) $(LIBOSE_CFILES)
 libose: $(LIBOSE_CFILES) $(LIBOSE_HFILES)
 	$(CMD)
@@ -100,7 +101,7 @@ libose: $(LIBOSE_CFILES) $(LIBOSE_HFILES)
 
 LIBOSEVM_CFILES=$(VM_CFILES)
 LIBOSEVM_HFILES=$(VM_HFILES)
-libosevm: CFLAGS=$(CFLAGS_RELEASE) -c
+libosevm: CFLAGS=$(CFLAGS_RELEASE) $(ADDITIONAL_LIBOSE_CFLAGS) -c
 libosevm: CMD=$(CC) $(CFLAGS) $(HOOKS) $(LIBOSEVM_CFILES)
 libosevm: $(LIBOSEVM_CFILES) $(LIBOSEVM_HFILES)
 	$(CMD)
