@@ -203,10 +203,6 @@ static const int32_t OSE_ADDRESS_ANONVAL_SIZE = OSE_ADDRESS_ANONVAL_NBYTES
 #define OSE_SYMTAB_FNSYMS
 #endif
 
-#ifdef OSE_CONF_USE_OPTIMIZED_CODE
-#define OSE_USE_OPTIMIZED_CODE
-#endif
-	
 #ifdef __cplusplus
 }
 #endif

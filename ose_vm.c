@@ -169,73 +169,7 @@ void osevm_assign(ose_bundle osevm, char *address)
 		popControlToStack(vm_c, vm_s);
 		return;
 	}
-#ifdef OSE_SKIP/*OSE_USE_OPTIMIZED_CODE */
-	char *eb = ose_getBundlePtr(vm_e);
-	int32_t es = ose_readInt32(vm_e, -4);
-	char *sb = ose_getBundlePtr(vm_s);
-	int32_t ss = ose_readInt32(vm_s, -4);
-	
-	int addr_is_on_stack = 0;
-	if(address[2] == '/'){
-		address += 2;
-	}else{
-		addr_is_on_stack = 1;
-		address = ose_peekString(vm_s);
-	}
-	int32_t addrlen = strlen(address);
-	int32_t paddrlen = ose_pnbytes(addrlen);
 
-	int32_t eo = OSE_BUNDLE_HEADER_LEN;
-	int32_t amt = 0;
-	while(eo < es){
-		if(!strcmp(address, eb + eo + 4)){
-			int32_t ss = ose_readInt32(vm_e, eo);
-			int32_t no = eo + ss + 4;
-			memmove(eb + eo,
-				eb + no,
-				es - no);
-			amt += ss + 4;
-			es -= ss + 4;
-		}
-		eo += ose_readInt32(vm_e, eo) + 4;
-	}
-	memset(eb + es, 0, amt);
-	ose_decSize(vm_e, amt);
-	memcpy(eb + es + 4, address, addrlen);
-
-	eo = es + 4 + paddrlen;
-	eb[eo] = OSETT_ID;
-	eo++;
-	int32_t so = OSE_BUNDLE_HEADER_LEN;
-	while(so < ss){
-		int32_t to = so + 4 + ose_pstrlen(sb + so + 4);
-		int32_t ntt = strlen(sb + to);
-		memcpy(eb + eo, sb + to + 1, ntt - 1);
-		int32_t pntt = ose_pnbytes(ntt);
-		eo += ntt - 1;
-		/* we store the offset of the data section where */
-		/* the address starts since we'll be deleting this anyway */
-		ose_writeInt32(vm_s, so + 4, to + pntt);
-		so += ose_readInt32(vm_s, so) + 4;
-	}
-	while(eo % 4){
-		eo++;
-	}
-	
-	so = OSE_BUNDLE_HEADER_LEN;
-	while(so < ss){
-		int32_t size = ose_readInt32(vm_s, so);
-		/* get the offset of the data section we stored earlier */
-		int32_t offset = ose_readInt32(vm_s, so + 4);
-		int32_t amt = size - ((offset - so) - 4);
-		memcpy(eb + eo, sb + offset, amt);
-		eo += amt;
-		so += size + 4;
-	}
-	ose_writeInt32(vm_e, es, (eo - es) - 4);
-	ose_incSize(vm_e, eo - es);
-	ose_clear(vm_s);
-#else	
 	if(address[2] == '/'){
 		ose_pushString(vm_s, address + 2);
 	}
@@ -264,7 +198,6 @@ void osevm_assign(ose_bundle osevm, char *address)
 	ose_moveStringToAddress(vm_s);
 	ose_moveElem(vm_s, vm_e);
 	ose_clear(vm_s);
-#endif
 }
 
 /**
@@ -1398,6 +1331,7 @@ static void convertKnownStringAddressToAddress(ose_bundle vm_c)
 	}
 }
 
+#define OSE_USE_OPTIMIZED_CODE
 #ifdef OSE_USE_OPTIMIZED_CODE
 static int isKnownAddress(const char * const address)
 {
