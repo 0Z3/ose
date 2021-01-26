@@ -23,6 +23,11 @@ SOFTWARE.
 #include "ose.h"
 
 const char * const ose_version = OSE_VERSION;
+#ifdef OSE_DEBUG
+const char * const ose_debug = "-- debug --";
+#else
+const char * const ose_debug = "";
+#endif
 const char * const ose_date_compiled = OSE_DATE_COMPILED;
 
 #ifdef OSE_NEED_HTONL

@@ -148,6 +148,7 @@ void ose_builtin_lookup(ose_bundle osevm);
 void ose_builtin_apply(ose_bundle osevm);
 void ose_builtin_map(ose_bundle osevm);
 void ose_builtin_return(ose_bundle osevm);
+void ose_builtin_version(ose_bundle osevm);
 
 #ifdef __cplusplus
 }

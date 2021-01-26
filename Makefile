@@ -180,7 +180,7 @@ js: js/libose.js
 # version.h: FORCE
 # 	echo "#define OSE_VERSION \""`git describe --long --dirty=" *BUILT AGAINST UNTRACKED CHANGES*"` $(MAKECMDGOALS)\" > ose_version.h
 # FORCE:
-GIT_VERSION := "$(shell git describe --dirty --always --tags) ($(MAKECMDGOALS))"
+GIT_VERSION := "$(shell git describe --dirty --always --tags)"
 DATE_COMPILED := "$(shell date)"
 
 sys/ose_endianchk: CC=clang

@@ -35,6 +35,7 @@ extern "C" {
 #include "ose_conf.h"
 
 extern const char * const ose_version;
+extern const char * const ose_debug;
 extern const char * const ose_date_compiled;
 
 #if defined (__unix__) || ( defined (__APPLE__) && defined (__MACH__) )

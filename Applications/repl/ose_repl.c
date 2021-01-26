@@ -977,6 +977,9 @@ int main(int ac, char **av)
 	}
 	{
 		printf("Ose %s\n", ose_version);
+#ifdef OSE_DEBUG
+		printf("%s\n", ose_debug);
+#endif
 		printf("\n");
 	}
 

@@ -678,3 +678,13 @@ void ose_builtin_return(ose_bundle osevm)
 	ose_replaceBundle(vm_d, vm_i);
 #endif
 }
+
+void ose_builtin_version(ose_bundle osevm)
+{
+	ose_bundle vm_s = OSEVM_STACK(osevm);
+	ose_pushString(vm_s, ose_version);
+#ifdef OSE_DEBUG
+	ose_pushString(vm_s, ose_debug);
+#endif
+	ose_pushString(vm_s, ose_date_compiled);
+}

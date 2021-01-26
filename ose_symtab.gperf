@@ -182,6 +182,7 @@ struct _ose_symtab_rec {
 /apply, OSE_SYMTAB_VALUE(ose_builtin_apply)
 /map, OSE_SYMTAB_VALUE(ose_builtin_map)
 /return, OSE_SYMTAB_VALUE(ose_builtin_return)
+/version, OSE_SYMTAB_VALUE(ose_builtin_version)
 ###
 %%
 
