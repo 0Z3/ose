@@ -66,7 +66,6 @@ REPL_HOOKS= \
 	-DOSEVM_DEFUN=oserepl_defun \
 	-DOSEVM_ENDDEFUN=oserepl_endDefun \
 	-DOSEVM_DEFAULT=oserepl_default \
-	-DOSEVM_DEFAULT=oserepl_default \
 	-DOSEVM_ISKNOWNADDRESS=oserepl_isKnownAddress
 
 ose: CFLAGS=$(CFLAGS_RELEASE) $(ADDITIONAL_REPL_CFLAGS)

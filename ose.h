@@ -34,6 +34,12 @@ extern "C" {
 #include <inttypes.h>
 #include "ose_conf.h"
 
+#ifndef OSE_VERSION
+#define OSE_VERSION ""
+#endif
+#ifndef OSE_DATE_COMPILED
+#define OSE_DATE_COMPILED ""
+#endif
 extern const char * const ose_version;
 extern const char * const ose_debug;
 extern const char * const ose_date_compiled;

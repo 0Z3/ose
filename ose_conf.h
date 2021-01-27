@@ -36,7 +36,13 @@ SOFTWARE.
 extern "C" {
 #endif
 
+#if __has_include("conf.h")
+#include "conf.h"
+#endif
+
+#if __has_include("sys/ose_endian.h")
 #include "sys/ose_endian.h"
+#endif
 
 /**
  * These can be changed here or defined when invoking `make` if not building

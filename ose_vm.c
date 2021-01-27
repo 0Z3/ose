@@ -877,10 +877,10 @@ void osevm_appendByte(ose_bundle osevm, char *address)
 {
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 
-	const char SLIP_END = 0300;
-	const char SLIP_ESC = 0333;
-	const char SLIP_ESC_END = 0334;
-	const char SLIP_ESC_ESC = 0335;
+#define SLIP_END 0300
+#define SLIP_ESC 0333
+#define SLIP_ESC_END 0334
+#define SLIP_ESC_ESC 0335
 	char c = 0;
 	if(address[2] == '/'){
 		c = (char)strtol(address + 3, NULL, 10);
