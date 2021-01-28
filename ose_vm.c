@@ -881,9 +881,9 @@ void osevm_appendByte(ose_bundle osevm, char *address)
 #define SLIP_ESC 0333
 #define SLIP_ESC_END 0334
 #define SLIP_ESC_ESC 0335
-	char c = 0;
+	unsigned char c = 0;
 	if(address[2] == '/'){
-		c = (char)strtol(address + 3, NULL, 10);
+		c = (unsigned char)strtol(address + 3, NULL, 10);
 	}else{
 			
 	}
@@ -927,7 +927,7 @@ void osevm_appendByte(ose_bundle osevm, char *address)
 						default:
 							ose_pushBlob(vm_s,
 								     1,
-								     &c);
+								     (char *)&c);
 							ose_push(vm_s);
 							ose_concatenateBlobs(vm_s);
 							ose_pushInt32(vm_s, 1);
@@ -1331,7 +1331,7 @@ static void convertKnownStringAddressToAddress(ose_bundle vm_c)
 	}
 }
 
-#define OSE_USE_OPTIMIZED_CODE
+//#define OSE_USE_OPTIMIZED_CODE
 #ifdef OSE_USE_OPTIMIZED_CODE
 static int isKnownAddress(const char * const address)
 {

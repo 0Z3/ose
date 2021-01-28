@@ -3047,12 +3047,146 @@ void ose_neq(ose_bundle bundle)
 
 void ose_lte(ose_bundle bundle)
 {
+	int32_t onm1, snm1, on, sn;
+	be2(bundle, &onm1, &snm1, &on, &sn);
+	int32_t nm1to, nm1ntt, nm1lto, nm1po, nm1lpo;
+	int32_t nto, nntt, nlto, npo, nlpo;
+	ose_getNthPayloadItem(bundle, 1, onm1,
+			      &nm1to, &nm1ntt, &nm1lto, &nm1po, &nm1lpo);
+	ose_getNthPayloadItem(bundle, 1, on,
+			      &nto, &nntt, &nlto, &npo, &nlpo);
+	char t2 = ose_readByte(bundle, nm1lto); (void)t2;
+	ose_assert(ose_isNumericType(t2) == OSETT_TRUE);
+	char t1 = ose_readByte(bundle, nlto);
+	ose_assert(ose_isNumericType(t1) == OSETT_TRUE);
+	ose_assert(t1 == t2);
+	char *b = ose_getBundlePtr(bundle);
+	switch(t1){
+	case OSETT_INT32: {
+		int32_t v2 = ose_readInt32(bundle, nm1lpo);
+		int32_t v1 = ose_readInt32(bundle, nlpo);
+		memset(b + onm1, 0, snm1 + sn + 8);
+		ose_decSize(bundle, snm1 + sn + 8);
+		ose_pushInt32(bundle, v1 <= v2);
+	}
+		break;
+	case OSETT_FLOAT: {
+		float v2 = ose_readFloat(bundle, nm1lpo);
+		float v1 = ose_readFloat(bundle, nlpo);
+		memset(b + onm1, 0, snm1 + sn + 8);
+		ose_decSize(bundle, snm1 + sn + 8);
+		ose_pushInt32(bundle, v1 <= v2);
+	}
+		break;
+#ifdef OSE_PROVIDE_TYPE_DOUBLE
+	case OSETT_DOUBLE: {
 
+	}
+		break;
+#endif
+#ifdef OSE_PROVIDE_TYPE_INT8
+	case OSETT_INT8: {
+
+	}
+		break;
+#endif
+#ifdef OSE_PROVIDE_TYPE_UINT8
+	case OSETT_UINT8: {
+
+	}
+		break;
+#endif
+#ifdef OSE_PROVIDE_TYPE_UINT32
+	case OSETT_UINT32: {
+
+	}
+		break;
+#endif
+#ifdef OSE_PROVIDE_TYPE_INT64
+	case OSETT_INT64: {
+
+	}
+		break;
+#endif
+#ifdef OSE_PROVIDE_TYPE_UINT64
+	case OSETT_UINT64: {
+
+	}
+		break;
+#endif
+	}
 }
 
 void ose_lt(ose_bundle bundle)
 {
+	int32_t onm1, snm1, on, sn;
+	be2(bundle, &onm1, &snm1, &on, &sn);
+	int32_t nm1to, nm1ntt, nm1lto, nm1po, nm1lpo;
+	int32_t nto, nntt, nlto, npo, nlpo;
+	ose_getNthPayloadItem(bundle, 1, onm1,
+			      &nm1to, &nm1ntt, &nm1lto, &nm1po, &nm1lpo);
+	ose_getNthPayloadItem(bundle, 1, on,
+			      &nto, &nntt, &nlto, &npo, &nlpo);
+	char t2 = ose_readByte(bundle, nm1lto); (void)t2;
+	ose_assert(ose_isNumericType(t2) == OSETT_TRUE);
+	char t1 = ose_readByte(bundle, nlto);
+	ose_assert(ose_isNumericType(t1) == OSETT_TRUE);
+	ose_assert(t1 == t2);
+	char *b = ose_getBundlePtr(bundle);
+	switch(t1){
+	case OSETT_INT32: {
+		int32_t v2 = ose_readInt32(bundle, nm1lpo);
+		int32_t v1 = ose_readInt32(bundle, nlpo);
+		memset(b + onm1, 0, snm1 + sn + 8);
+		ose_decSize(bundle, snm1 + sn + 8);
+		ose_pushInt32(bundle, v1 < v2);
+	}
+		break;
+	case OSETT_FLOAT: {
+		float v2 = ose_readFloat(bundle, nm1lpo);
+		float v1 = ose_readFloat(bundle, nlpo);
+		memset(b + onm1, 0, snm1 + sn + 8);
+		ose_decSize(bundle, snm1 + sn + 8);
+		ose_pushInt32(bundle, v1 < v2);
+	}
+		break;
+#ifdef OSE_PROVIDE_TYPE_DOUBLE
+	case OSETT_DOUBLE: {
 
+	}
+		break;
+#endif
+#ifdef OSE_PROVIDE_TYPE_INT8
+	case OSETT_INT8: {
+
+	}
+		break;
+#endif
+#ifdef OSE_PROVIDE_TYPE_UINT8
+	case OSETT_UINT8: {
+
+	}
+		break;
+#endif
+#ifdef OSE_PROVIDE_TYPE_UINT32
+	case OSETT_UINT32: {
+
+	}
+		break;
+#endif
+#ifdef OSE_PROVIDE_TYPE_INT64
+	case OSETT_INT64: {
+
+	}
+		break;
+#endif
+#ifdef OSE_PROVIDE_TYPE_UINT64
+	case OSETT_UINT64: {
+
+	}
+		break;
+#endif
+	}
 }
 
 void ose_and(ose_bundle bundle)

@@ -124,7 +124,7 @@ libosevm-debug: $(LIBOSEVM_CFILES) $(LIBOSEVM_HFILES)
 ######################################################################
 # Ose Compiler
 ######################################################################
-OSEC_CFILES=$(CORE_CFILES) $(SYS_CFILES) $(VM_CFILES) $(LANG_CFILES) osec.c
+OSEC_CFILES=$(CORE_CFILES) $(SYS_CFILES) $(VM_CFILES) $(LANG_CFILES) osec/osec.c
 OSEC_HFILES=$(CORE_HFILES) $(SYS_HFILES) $(VM_HFILES) $(LANG_HFILES)
 osec: CC=clang
 osec: CFLAGS=$(CFLAGS_DEBUG)
@@ -153,7 +153,7 @@ osec: HOOKS=-DOSEVM_ASSIGN=osec_assign \
 -DOSEVM_PRECONTROL=osec_preControl \
 -DOSEVM_POSTCONTROL=osec_postControl
 osec: $(OSEC_CFILES) $(OSEC_HFILES) 
-	$(CC) $(CFLAGS) -o osec \
+	$(CC) $(CFLAGS) -o osec/osec \
 	$(HOOKS) \
 	-DOSE_CONF_SYMTAB_FNSYMS \
 	$(OSEC_CFILES)
@@ -227,4 +227,4 @@ test: $(TESTS) test/common.h test/ut_common.h
 ######################################################################
 .PHONY: clean
 clean:
-	rm -rf ose *.dSYM $(TESTDIR)/*.dSYM $(TESTS) docs js/libose.js js/libose.wasm osec sys/ose_endianchk sys/ose_endian.h *.o sys/*.o *.a
+	rm -rf ose *.dSYM $(TESTDIR)/*.dSYM $(TESTS) docs js/libose.js js/libose.wasm osec/osec sys/ose_endianchk sys/ose_endian.h *.o sys/*.o *.a
