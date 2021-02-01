@@ -27,7 +27,7 @@ MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 extern "C" {
 #endif
 
-#define OSE_MATCH_BACKTRACK_LIMIT 1000
+#define OSE_MATCH_BACKTRACK_LIMIT 100
 
 /**
  * Switch this off to disable matching against a pattern with 2 stars

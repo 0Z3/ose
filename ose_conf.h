@@ -36,8 +36,10 @@ SOFTWARE.
 extern "C" {
 #endif
 
+#ifndef OSE_CONF_NO_CONF_FILE
 #if __has_include("conf.h")
 #include "conf.h"
+#endif
 #endif
 
 #if __has_include("sys/ose_endian.h")

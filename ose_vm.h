@@ -327,6 +327,10 @@ extern void OSEVM_POSTCONTROL (ose_bundle osevm);
 extern int OSEVM_ISKNOWNADDRESS (const char * const address);
 #endif
 
+void osevm_inputTopLevel(ose_bundle osevm,
+			 int32_t size, const char * const bundle);
+void osevm_input(ose_bundle osevm,
+		 int32_t size, const char * const bundle);
 void osevm_run(ose_bundle bundle);
 char osevm_step(ose_bundle osevm);
 

@@ -1,0 +1,85 @@
+#N canvas 931 316 948 550 12;
+#X msg 185 495 connect 192.168.178.56 10000;
+#X obj 185 462 loadbang;
+#X obj 67 495 netsend -u -b;
+#X obj 507 53 netreceive -u -b 10001;
+#X obj 507 120 o.display 179 28;
+#N canvas 654 23 373 463 bundle2bytes 0;
+#X obj 66 41 inlet;
+#X obj 106 391 outlet;
+#X obj 66 201 dev/o.downcast;
+#X obj 66 168 o.pack /b;
+#X obj 66 235 o.route /b;
+#X obj 66 268 list split 1;
+#X obj 106 345 list trim;
+#X obj 66 67 route FullPacket;
+#X obj 66 127 list trim;
+#X obj 66 97 list prepend FullPacket;
+#X obj 106 315 list prepend send;
+#X connect 0 0 7 0;
+#X connect 2 0 4 0;
+#X connect 3 0 2 0;
+#X connect 4 0 5 0;
+#X connect 5 1 10 0;
+#X connect 6 0 1 0;
+#X connect 7 0 9 0;
+#X connect 8 0 3 0;
+#X connect 9 0 8 0;
+#X connect 10 0 6 0;
+#X restore 67 462 pd bundle2bytes;
+#X obj 67 106 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#N canvas 0 23 450 300 bytes2bundle 0;
+#X obj 52 27 inlet;
+#X obj 52 261 outlet;
+#X obj 52 65 o.pack /list;
+#X obj 52 101 o.expr.codebox 199 23 binhex b#2F626E646C203D2062756E646C65282F
+b#6C69737429;
+#X obj 52 156 o.route /bndl;
+#X connect 0 0 2 0;
+#X connect 2 0 3 0;
+#X connect 3 0 4 0;
+#X connect 4 0 1 0;
+#X restore 507 82 pd bytes2bundle;
+#X obj 67 177 o.expr.codebox 165 37 binhex b#2F212F6C6564203D20696E743332282F
+b#212F6C656429;
+#X obj 85 228 o.compose 100 23 binhex b#2F212F6C6564;
+#X text 187 151 (pin 13 on Adafruit Feather);
+#X text 187 137 Toggle the onboard LED;
+#X text 235 176 Our sketch requires an int \,;
+#X text 235 190 but pd only has floats;
+#X obj 67 145 o.pack /!/led 0;
+#X text 214 223 Toggle the onboard LED (without;
+#X text 214 237 an argument \, this will flip the state);
+#X obj 105 268 o.compose 142 23 binhex b#2F2D203A20222F21756E69666F726D22
+b#;
+#X text 254 263 Get a random number between [0 \, 1];
+#X obj 100 418 o.downcast;
+#X text 482 318 1 Push a uniform random value between [0.1] onto the
+stack and multiply it by 1000;
+#X text 480 348 2 Push a string "/r" onto the stack \, and then onto
+the end of the value produced by the first message \, then move it
+from the data section to the address field.;
+#X text 183 406 o.downcast is necessary here \, because;
+#X text 183 420 our sketch only supports 32-bit floats \,;
+#X text 183 434 and odot's default is 64-bits (doubles);
+#X text 480 392 3 Duplicate the message on the stack \, and move it
+to the output bundle.;
+#X text 480 422 4 Sleep for the duration that's on the stack (in milliseconds)
+;
+#X obj 100 322 o.compose 335 61 binhex b#2F212F6D756C203A205B222F212F756E
+b#69666F726D222C20313030302E5D2C0A b#2F212F737472696E672F746F61646472
+b#6573732F6D6F7665203A205B222F7222 b#2C20222F212F70757368225D2C0A2F2D
+b#203A20222F212F647570222C0A2F212F b#736C656570;
+#X connect 0 0 2 0;
+#X connect 1 0 0 0;
+#X connect 3 0 7 0;
+#X connect 5 0 2 0;
+#X connect 6 0 14 0;
+#X connect 7 0 4 0;
+#X connect 8 0 5 0;
+#X connect 9 0 5 0;
+#X connect 14 0 8 0;
+#X connect 17 0 5 0;
+#X connect 19 0 5 0;
+#X connect 27 0 19 0;
