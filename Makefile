@@ -14,6 +14,7 @@ ADDITIONAL_LIBOSE_CFILES=ose_print.c
 ######################################################################
 
 CFLAGS_RELEASE= \
+	-DOSE_CONF_NO_CONF_FILE \
 	-Wall -I. -O3 \
 	-DOSE_VERSION=\"$(GIT_VERSION)\" \
 	-DOSE_DATE_COMPILED=\"$(DATE_COMPILED)\"

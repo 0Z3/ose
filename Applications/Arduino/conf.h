@@ -29,8 +29,8 @@
 /***************************************************************************
  * Edit these to work with your wireless network
  ***************************************************************************/
-#define CONF_MYSSID "FRITZ!Box 7530 BS"
-#define CONF_MYPASS "18096912605906665686"
+#define CONF_MYSSID ""
+#define CONF_MYPASS ""
 
 /***************************************************************************
  * If you change these, you'll have to update the Max / PD patches included
@@ -42,11 +42,6 @@
 #define CONF_PORT_LOCAL 10000
 #define CONF_PORT_REMOTE 10001
 
-/***************************************************************************
- * This is the amount of memory that Ose will use. This value is 
- * be more than enough to handle the examples, and should fit comfortably
- * on the different platforms. You shouldn't have to edit this.
- ***************************************************************************/
 #define CONF_BUNDLE_SIZE 65536
 
 /***************************************************************************
