@@ -34,7 +34,6 @@ extern "C" {
 
 #include <inttypes.h>
 #include <stdarg.h>
-#include "ose_conf.h"
 #include "ose.h"
 
 /**

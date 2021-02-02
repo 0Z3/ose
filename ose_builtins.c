@@ -21,7 +21,6 @@ SOFTWARE.
 
 #include <stdio.h>
 #include <string.h>
-#include "ose_conf.h"
 #include "ose.h"
 #include "ose_context.h"
 #include "ose_util.h"

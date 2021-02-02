@@ -19,8 +19,6 @@
   SOFTWARE.
 */
 
-#include "ose_conf.h"
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -112,7 +110,6 @@ void osec_writeIncludes(ose_bundle osevm)
 				"stdlib.h"
 	};
 	char *ose_includes[] = {
-				"ose_conf.h",
 				"ose.h",
 				"ose_context.h",
 				"ose_util.h",

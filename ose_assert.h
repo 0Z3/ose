@@ -31,7 +31,6 @@ SOFTWARE.
 extern "C" {
 #endif
 
-#include "ose_conf.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>

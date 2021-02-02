@@ -57,3 +57,4 @@ dkms.conf
 # Generated files
 ose_endian.h
 ose_version.h
+ose_conf.h

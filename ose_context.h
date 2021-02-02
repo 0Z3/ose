@@ -83,7 +83,6 @@ extern "C" {
 #endif
 
 #include <inttypes.h>
-#include "ose_conf.h"
 #include "ose.h"
 
 /**

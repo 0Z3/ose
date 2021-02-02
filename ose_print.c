@@ -22,7 +22,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "ose_conf.h"
 #include "ose.h"
 #include "ose_util.h"
 #include "ose_assert.h"

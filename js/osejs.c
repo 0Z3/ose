@@ -21,8 +21,6 @@
 
 #include <emscripten.h>
 
-#include "ose_conf.h"
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

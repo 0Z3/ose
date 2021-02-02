@@ -21,7 +21,6 @@
 
 #include <string.h>
 
-#include "ose_conf.h"
 #include "ose_assert.h"
 #include "ose_util.h"
 #include "ose_stackops.h"

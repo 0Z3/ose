@@ -29,7 +29,6 @@
 #include <setjmp.h>
 #include <math.h>
 
-#include "ose_conf.h"
 #include "ose.h"
 #include "ose_context.h"
 #include "ose_stackops.h"
@@ -1412,7 +1411,8 @@ void ose_splitMessage(ose_bundle bundle, int32_t offset, int32_t n)
 			       OSE_ADDRESS_ANONVAL_SIZE
 			       + OSE_EMPTY_TYPETAG_STRING_SIZE);
 		memcpy(b + offset + s + 4 + 4,
-		       OSE_ADDRESS_ANONVAL OSE_EMPTY_TYPETAG_STRING,
+		       //OSE_ADDRESS_ANONVAL OSE_EMPTY_TYPETAG_STRING,
+		       OSE_ADDRESS_ANONVAL_EMPTY_TYPETAG_STRING,
 		       OSE_ADDRESS_ANONVAL_SIZE + OSE_EMPTY_TYPETAG_STRING_SIZE);
 		return;
 	}

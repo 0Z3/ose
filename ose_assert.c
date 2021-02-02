@@ -21,7 +21,6 @@ SOFTWARE.
 
 #include <setjmp.h>
 #include "ose.h"
-#include "ose_conf.h"
 #include "ose_assert.h"
 
 int ose_errno = 0;

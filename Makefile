@@ -14,12 +14,11 @@ ADDITIONAL_LIBOSE_CFILES=ose_print.c
 ######################################################################
 
 CFLAGS_RELEASE= \
-	-DOSE_CONF_NO_CONF_FILE \
 	-Wall -I. -O3 \
 	-DOSE_VERSION=\"$(GIT_VERSION)\" \
 	-DOSE_DATE_COMPILED=\"$(DATE_COMPILED)\"
 CFLAGS_DEBUG= \
-	-Wall -I. -DOSE_CONF_DEBUG -DOSE_CONF_NO_CONF_FILE\
+	-Wall -I. -DOSE_CONF_DEBUG \
 	-O0 -glldb -fsanitize=undefined \
 	-DOSE_VERSION=\"$(GIT_VERSION)\" \
 	-DOSE_DATE_COMPILED=\"$(DATE_COMPILED)\"
@@ -52,7 +51,8 @@ all-debug: debug libose-debug libosevm-debug
 sys/%.o: sys/%.c
 	$(CC) $(CFLAGS) $(HOOKS) $(BUNDLE_SIZES) -c -o $@ $<
 
-
+ose_conf.h:
+	cp ose_conf.h.example ose_conf.h
 
 ######################################################################
 # REPL

@@ -7,7 +7,6 @@
 #include <setjmp.h>
 #include <time.h>
 
-#include "../ose_conf.h"
 #include "../ose.h"
 #include "../ose_util.h"
 #include "../ose_context.h"
