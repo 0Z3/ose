@@ -37,8 +37,7 @@
 #include <WiFiUdp.h>
 #include <Wire.h>
 
-// Ose includes (ose_conf.h should be first, followed by ose.h)
-#include <ose_conf.h>
+// Ose includes (ose.h should be first)
 #include <ose.h>
 // Basic Ose functionality for manipulating OSC
 #include <ose_context.h>
@@ -48,6 +47,8 @@
 #include <ose_vm.h>
 // Support for pattern matching OSC addresses
 #include <ose_match.h>
+
+#include "ESP32-WiFiUDP-conf.h"
 
 #define pin_led 13
 
@@ -93,6 +94,7 @@ void connect_to_wifi(const char *ssid, const char *pass)
 	}
 }
 
+#define CONF_BUNDLE_SIZE 65536
 // A pointer to the raw bytes that Ose will use as its bundle
 char *bytes;
 // The bundle, VM, Input, Stack, Environment, and Output
@@ -106,19 +108,19 @@ ose_bundle bundle, osevm, vm_i, vm_s, vm_e, vm_o;
   This sketch doesn't make use of these hooks--see the other sketches 
   for examples of their use.
 ****************************************************************************/
-int canrespond(const char * const address)
+int my_isKnownAddress(const char * const address)
 {
 	return 0;
 }
-void respond(ose_bundle osevm, char *pattern)
+void my_default(ose_bundle osevm, char *pattern)
 {
 	osevm_default(osevm, pattern);
 }
-void assign(ose_bundle osevm, char *address)
+void my_assign(ose_bundle osevm, char *address)
 {
 	osevm_assign(osevm, address);
 }
-void lookup(ose_bundle osevm, char *address)
+void my_lookup(ose_bundle osevm, char *address)
 {
 	osevm_lookup(osevm, address);
 }
