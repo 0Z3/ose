@@ -2593,7 +2593,11 @@ void ose_add(ose_bundle bundle)
 	}
 		break;
 	case OSETT_FLOAT: {
-
+		float v2 = ose_readFloat(bundle, nm1lpo);
+		float v1 = ose_readFloat(bundle, nlpo);
+		memset(b + onm1, 0, snm1 + sn + 8);
+		ose_decSize(bundle, snm1 + sn + 8);
+		ose_pushFloat(bundle, v1 + v2);
 	}
 		break;
 #ifdef OSE_PROVIDE_TYPE_DOUBLE
