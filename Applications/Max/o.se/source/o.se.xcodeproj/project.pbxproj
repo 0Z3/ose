@@ -1,0 +1,404 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		52C5966425CDC7D600F9E21F /* ose_print.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5965925CDC7D600F9E21F /* ose_print.c */; };
+		52C5966525CDC7D600F9E21F /* ose_stackops.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5965A25CDC7D600F9E21F /* ose_stackops.c */; };
+		52C5966625CDC7D600F9E21F /* ose.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5965B25CDC7D600F9E21F /* ose.c */; };
+		52C5966725CDC7D600F9E21F /* ose_builtins.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5965C25CDC7D600F9E21F /* ose_builtins.c */; };
+		52C5966825CDC7D600F9E21F /* ose_context.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5965D25CDC7D600F9E21F /* ose_context.c */; };
+		52C5966925CDC7D600F9E21F /* ose_symtab.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5965E25CDC7D600F9E21F /* ose_symtab.c */; };
+		52C5966A25CDC7D600F9E21F /* ose_util.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5965F25CDC7D600F9E21F /* ose_util.c */; };
+		52C5966B25CDC7D600F9E21F /* ose_vm.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5966025CDC7D600F9E21F /* ose_vm.c */; };
+		52C5966C25CDC7D600F9E21F /* ose_assert.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5966125CDC7D600F9E21F /* ose_assert.c */; };
+		52C5966E25CDC7D600F9E21F /* ose_match.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5966325CDC7D600F9E21F /* ose_match.c */; };
+		52C5967025CDC85300F9E21F /* ose_load.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5966F25CDC85300F9E21F /* ose_load.c */; };
+		52C5967225CDC85D00F9E21F /* ose_time.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5967125CDC85D00F9E21F /* ose_time.c */; };
+		52C5967425CDCCE800F9E21F /* o.se.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5967325CDCCE800F9E21F /* o.se.c */; };
+		52C5967625CE843900F9E21F /* MaxAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52C5967525CE843900F9E21F /* MaxAPI.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		52A1433B248465BB00C2059E /* o.se.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = o.se.mxo; sourceTree = BUILT_PRODUCTS_DIR; };
+		52C5965925CDC7D600F9E21F /* ose_print.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ose_print.c; path = ../../../../ose_print.c; sourceTree = "<group>"; };
+		52C5965A25CDC7D600F9E21F /* ose_stackops.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ose_stackops.c; path = ../../../../ose_stackops.c; sourceTree = "<group>"; };
+		52C5965B25CDC7D600F9E21F /* ose.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ose.c; path = ../../../../ose.c; sourceTree = "<group>"; };
+		52C5965C25CDC7D600F9E21F /* ose_builtins.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ose_builtins.c; path = ../../../../ose_builtins.c; sourceTree = "<group>"; };
+		52C5965D25CDC7D600F9E21F /* ose_context.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ose_context.c; path = ../../../../ose_context.c; sourceTree = "<group>"; };
+		52C5965E25CDC7D600F9E21F /* ose_symtab.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ose_symtab.c; path = ../../../../ose_symtab.c; sourceTree = "<group>"; };
+		52C5965F25CDC7D600F9E21F /* ose_util.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ose_util.c; path = ../../../../ose_util.c; sourceTree = "<group>"; };
+		52C5966025CDC7D600F9E21F /* ose_vm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ose_vm.c; path = ../../../../ose_vm.c; sourceTree = "<group>"; };
+		52C5966125CDC7D600F9E21F /* ose_assert.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ose_assert.c; path = ../../../../ose_assert.c; sourceTree = "<group>"; };
+		52C5966325CDC7D600F9E21F /* ose_match.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ose_match.c; path = ../../../../ose_match.c; sourceTree = "<group>"; };
+		52C5966F25CDC85300F9E21F /* ose_load.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ose_load.c; path = ../../../../sys/ose_load.c; sourceTree = "<group>"; };
+		52C5967125CDC85D00F9E21F /* ose_time.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ose_time.c; path = ../../../../sys/ose_time.c; sourceTree = "<group>"; };
+		52C5967325CDCCE800F9E21F /* o.se.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = o.se.c; sourceTree = "<group>"; };
+		52C5967525CE843900F9E21F /* MaxAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAPI.framework; path = "max-sdk/source/c74support/max-includes/MaxAPI.framework"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		52A14338248465BB00C2059E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				52C5967625CE843900F9E21F /* MaxAPI.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		52A14332248465BB00C2059E = {
+			isa = PBXGroup;
+			children = (
+				52C5967325CDCCE800F9E21F /* o.se.c */,
+				52C5966125CDC7D600F9E21F /* ose_assert.c */,
+				52C5965C25CDC7D600F9E21F /* ose_builtins.c */,
+				52C5965D25CDC7D600F9E21F /* ose_context.c */,
+				52C5966F25CDC85300F9E21F /* ose_load.c */,
+				52C5966325CDC7D600F9E21F /* ose_match.c */,
+				52C5965925CDC7D600F9E21F /* ose_print.c */,
+				52C5965A25CDC7D600F9E21F /* ose_stackops.c */,
+				52C5965E25CDC7D600F9E21F /* ose_symtab.c */,
+				52C5967125CDC85D00F9E21F /* ose_time.c */,
+				52C5965F25CDC7D600F9E21F /* ose_util.c */,
+				52C5966025CDC7D600F9E21F /* ose_vm.c */,
+				52C5965B25CDC7D600F9E21F /* ose.c */,
+				52C5967525CE843900F9E21F /* MaxAPI.framework */,
+				52A1433C248465BB00C2059E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		52A1433C248465BB00C2059E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				52A1433B248465BB00C2059E /* o.se.mxo */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		52A1433A248465BB00C2059E /* o.se */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 52A14341248465BB00C2059E /* Build configuration list for PBXNativeTarget "o.se" */;
+			buildPhases = (
+				52A14337248465BB00C2059E /* Sources */,
+				52A14338248465BB00C2059E /* Frameworks */,
+				52A14339248465BB00C2059E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = o.se;
+			productName = ose;
+			productReference = 52A1433B248465BB00C2059E /* o.se.mxo */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		52A14333248465BB00C2059E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1010;
+				ORGANIZATIONNAME = "John MacCallum";
+				TargetAttributes = {
+					52A1433A248465BB00C2059E = {
+						CreatedOnToolsVersion = 10.1;
+					};
+				};
+			};
+			buildConfigurationList = 52A14336248465BB00C2059E /* Build configuration list for PBXProject "o.se" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 52A14332248465BB00C2059E;
+			productRefGroup = 52A1433C248465BB00C2059E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				52A1433A248465BB00C2059E /* o.se */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		52A14339248465BB00C2059E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		52A14337248465BB00C2059E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				52C5967425CDCCE800F9E21F /* o.se.c in Sources */,
+				52C5966A25CDC7D600F9E21F /* ose_util.c in Sources */,
+				52C5966C25CDC7D600F9E21F /* ose_assert.c in Sources */,
+				52C5966625CDC7D600F9E21F /* ose.c in Sources */,
+				52C5966B25CDC7D600F9E21F /* ose_vm.c in Sources */,
+				52C5966925CDC7D600F9E21F /* ose_symtab.c in Sources */,
+				52C5966425CDC7D600F9E21F /* ose_print.c in Sources */,
+				52C5967025CDC85300F9E21F /* ose_load.c in Sources */,
+				52C5966E25CDC7D600F9E21F /* ose_match.c in Sources */,
+				52C5967225CDC85D00F9E21F /* ose_time.c in Sources */,
+				52C5966825CDC7D600F9E21F /* ose_context.c in Sources */,
+				52C5966525CDC7D600F9E21F /* ose_stackops.c in Sources */,
+				52C5966725CDC7D600F9E21F /* ose_builtins.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		52A1433F248465BB00C2059E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEPLOYMENT_LOCATION = YES;
+				DEPLOYMENT_POSTPROCESSING = NO;
+				DSTROOT = /;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"\"$(SRCROOT)/max-sdk/source/c74support/max-includes\"",
+					"$(PROJECT_DIR)/max-sdk/source/c74support/max-includes",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREFIX_HEADER = "$(SRCROOT)/max-sdk/source/c74support/max-includes/macho-prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"\"$(SRCROOT)/max-sdk/source/c74support/max-includes\"",
+					"\"$(SRCROOT)/../../../..\"",
+				);
+				INSTALL_PATH = "$(SOURCE_ROOT)/../externals";
+				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/max-sdk/source/c74support/max-includes\"";
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		52A14340248465BB00C2059E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEPLOYMENT_LOCATION = YES;
+				DEPLOYMENT_POSTPROCESSING = NO;
+				DSTROOT = /;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"\"$(SRCROOT)/max-sdk/source/c74support/max-includes\"",
+					"$(PROJECT_DIR)/max-sdk/source/c74support/max-includes",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREFIX_HEADER = "$(SRCROOT)/max-sdk/source/c74support/max-includes/macho-prefix.pch";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"\"$(SRCROOT)/max-sdk/source/c74support/max-includes\"",
+					"\"$(SRCROOT)/../../../..\"",
+				);
+				INSTALL_PATH = "$(SOURCE_ROOT)/../externals";
+				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/max-sdk/source/c74support/max-includes\"";
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		52A14342248465BB00C2059E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEPLOYMENT_LOCATION = "$(inherited)";
+				DEPLOYMENT_POSTPROCESSING = "$(inherited)";
+				DEVELOPMENT_TEAM = 2RZ9PA298L;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				GCC_PREFIX_HEADER = "$(inherited)";
+				GCC_WARN_PEDANTIC = NO;
+				GENERATE_MASTER_OBJECT_FILE = YES;
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				OTHER_CFLAGS = (
+					"-DOSEVM_POPINPUTTOCONTROL=ovm_popInputToControl",
+					"-DOSE_CONF_VM_INPUT_SIZE=8192",
+					"-DOSE_CONF_VM_STACK_SIZE=8192",
+					"-DOSE_CONF_VM_ENV_SIZE=8192",
+					"-DOSE_CONF_VM_CONTROL_SIZE=8192",
+					"-DOSE_CONF_VM_DUMP_SIZE=8192",
+					"-DOSE_CONF_VM_OUTPUT_SIZE=8192",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.john-maccallum.ose";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = "$(inherited)";
+				SYMROOT = build;
+				WRAPPER_EXTENSION = mxo;
+			};
+			name = Debug;
+		};
+		52A14343248465BB00C2059E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEPLOYMENT_LOCATION = "$(inherited)";
+				DEPLOYMENT_POSTPROCESSING = "$(inherited)";
+				DEVELOPMENT_TEAM = 2RZ9PA298L;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREFIX_HEADER = "$(inherited)";
+				GCC_WARN_PEDANTIC = NO;
+				GENERATE_MASTER_OBJECT_FILE = YES;
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				OTHER_CFLAGS = (
+					"-DOSEVM_POPINPUTTOCONTROL=ovm_popInputToControl",
+					"-DOSE_CONF_VM_INPUT_SIZE=8192",
+					"-DOSE_CONF_VM_STACK_SIZE=8192",
+					"-DOSE_CONF_VM_ENV_SIZE=8192",
+					"-DOSE_CONF_VM_CONTROL_SIZE=8192",
+					"-DOSE_CONF_VM_DUMP_SIZE=8192",
+					"-DOSE_CONF_VM_OUTPUT_SIZE=8192",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.john-maccallum.ose";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = "$(inherited)";
+				SYMROOT = build;
+				WRAPPER_EXTENSION = mxo;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		52A14336248465BB00C2059E /* Build configuration list for PBXProject "o.se" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				52A1433F248465BB00C2059E /* Debug */,
+				52A14340248465BB00C2059E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		52A14341248465BB00C2059E /* Build configuration list for PBXNativeTarget "o.se" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				52A14342248465BB00C2059E /* Debug */,
+				52A14343248465BB00C2059E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 52A14333248465BB00C2059E /* Project object */;
+}

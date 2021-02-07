@@ -54,6 +54,9 @@ dkms.conf
 .DS_Store
 *~
 
+*.xcworkspace
+xcuserdata
+
 # Generated files
 ose_endian.h
 ose_version.h
