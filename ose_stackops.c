@@ -816,6 +816,16 @@ void ose_pickBottom(ose_bundle bundle)
 
 }
 
+void ose_pickMatch_found_impl(ose_bundle bundle, int32_t o, int32_t s)
+{
+	ose_drop(bundle);
+	char *b = ose_getBundlePtr(bundle);
+	s = ose_readInt32(bundle, -4);
+	int32_t ss = ose_readInt32(bundle, o);
+	ose_incSize(bundle, ss + 4);
+	memcpy(b + s, b + o, ss + 4);
+}
+
 int32_t ose_pickMatch_impl(ose_bundle bundle)
 {
 	char *addr = ose_peekString(bundle);
@@ -823,12 +833,7 @@ int32_t ose_pickMatch_impl(ose_bundle bundle)
 	int32_t s = ose_readInt32(bundle, -4);
 	while(o < s){
 		if(!strcmp(addr, ose_readString(bundle, o + 4))){
-			ose_drop(bundle);
-			char *b = ose_getBundlePtr(bundle);
-			s = ose_readInt32(bundle, -4);
-			int32_t ss = ose_readInt32(bundle, o);
-			ose_incSize(bundle, ss + 4);
-			memcpy(b + s, b + o, ss + 4);
+			ose_pickMatch_found_impl(bundle, o, s);
 			return 1;
 		}
 		o += ose_readInt32(bundle, o) + 4;
@@ -843,6 +848,19 @@ void ose_pickMatch(ose_bundle bundle)
 
 int32_t ose_pickPMatch_impl(ose_bundle bundle)
 {
+	char *addr = ose_peekString(bundle);
+	int32_t o = OSE_BUNDLE_HEADER_LEN;
+	int32_t s = ose_readInt32(bundle, -4);
+	while(o < s){
+		int po = 0, ao = 0;
+		int32_t r = ose_match_pattern(ose_readString(bundle, o + 4),
+					      addr, &po, &ao);
+		if(r & OSE_MATCH_ADDRESS_COMPLETE){
+			ose_pickMatch_found_impl(bundle, o, s);
+			return 1;
+		}
+		o += ose_readInt32(bundle, o) + 4;
+	}
 	return 0;
 }
 

@@ -311,6 +311,10 @@ void ose_replaceBundleElemInDestAddr(ose_bundle src,
 
 
 void ose_copyBundle(ose_constbundle src, ose_bundle dest);
+int32_t ose_routeElemAtOffset(int32_t srcoffset,
+			      ose_constbundle src,
+			      int32_t prefixlen,
+			      ose_bundle dest);
 void ose_appendBundle(ose_bundle src, ose_bundle dest);
 void ose_replaceBundle(ose_bundle src, ose_bundle dest);
 void ose_copyElemAtOffset(int32_t srcoffset,

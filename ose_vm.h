@@ -306,11 +306,11 @@ void osevm_postInput(ose_bundle osevm);
 extern void OSEVM_POSTINPUT (ose_bundle osevm);
 #endif
 
-void osevm_preControl(ose_bundle osevm);
-#ifndef OSEVM_PRECONTROL
-#define OSEVM_PRECONTROL osevm_preControl
+void osevm_popInputToControl(ose_bundle osevm);
+#ifndef OSEVM_POPINPUTTOCONTROL
+#define OSEVM_POPINPUTTOCONTROL osevm_popInputToControl
 #else
-extern void OSEVM_PRECONTROL (ose_bundle osevm);
+extern void OSEVM_POPINPUTTOCONTROL (ose_bundle osevm);
 #endif
 
 void osevm_postControl(ose_bundle osevm);

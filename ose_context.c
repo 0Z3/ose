@@ -21,10 +21,10 @@
 
 #include <string.h>
 
+#include "ose.h"
 #include "ose_assert.h"
 #include "ose_util.h"
 #include "ose_stackops.h"
-#include "ose.h"
 #include "ose_context.h"
 
 static int32_t writeContextMessage(ose_bundle bundle,
@@ -214,6 +214,40 @@ void ose_copyBundle(ose_constbundle src, ose_bundle dest)
 	memcpy(ose_getBundlePtr(dest) + ds,
 	       ose_getBundlePtr(src) - 4,
 	       ss + 4);
+}
+
+int32_t ose_routeElemAtOffset(int32_t srcoffset,
+			   ose_constbundle src,
+			   int32_t prefixlen,
+			   ose_bundle dest)
+{
+	const char *ib = ose_getBundlePtr(src);
+	char *cb = ose_getBundlePtr(dest);
+	const int32_t addrlen = (int32_t)strlen(ib + srcoffset + 4);
+	const int32_t io = srcoffset;
+	const int32_t is = ose_readInt32(src, io);
+	const int32_t addrdiff = addrlen - prefixlen;
+	const int32_t newaddrlen = addrdiff ? addrdiff : OSE_ADDRESS_ANONVAL_LEN;
+	const int32_t newaddrsize = ose_pnbytes(newaddrlen);
+	const int32_t newsize = (is - ose_pnbytes(addrlen)) + newaddrsize;
+	const int32_t co = ose_readInt32(dest, -4);
+	ose_addToSize(dest, newsize + 4);
+	ose_writeInt32(dest, co, newsize);
+	int32_t i = io + 4 + prefixlen;
+	int32_t c = co + 4;
+	if(addrdiff){
+		memcpy(cb + c, ib + i, addrdiff);
+	}else{
+		memcpy(cb + c, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_SIZE);
+	}
+	i += addrdiff;
+	i++;
+	while(i % 4){
+		i++;
+	}
+	c += newaddrsize;
+	memcpy(cb + c, ib + i, is - ose_pnbytes(addrlen));
+	return newsize;
 }
 
 void ose_appendBundle(ose_bundle src, ose_bundle dest)

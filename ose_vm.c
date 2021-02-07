@@ -150,8 +150,10 @@ static void popControlToStack(ose_bundle vm_c, ose_bundle vm_s)
 	ose_copyElem(vm_c, vm_s);
 }
 
-static void popInputToControl(ose_bundle vm_i, ose_bundle vm_c)
+void osevm_popInputToControl(ose_bundle osevm)
 {
+	ose_bundle vm_i = OSEVM_INPUT(osevm);
+	ose_bundle vm_c = OSEVM_CONTROL(osevm);
 	ose_moveElem(vm_i, vm_c);
 }
 
@@ -1476,10 +1478,6 @@ void osevm_postInput(ose_bundle osevm)
 {
 }
 
-void osevm_preControl(ose_bundle osevm)
-{
-}
-
 void osevm_postControl(ose_bundle osevm)
 {
 }
@@ -1503,9 +1501,10 @@ char osevm_step(ose_bundle osevm)
 			OSEVM_POSTCONTROL(osevm);
 		}
 	}else if(ose_bundleIsEmpty(vm_i) == OSETT_FALSE){
-		popInputToControl(vm_i, vm_c);
-		popAllControl(osevm);
-		OSEVM_PRECONTROL(osevm);
+		OSEVM_POPINPUTTOCONTROL(osevm);
+		if(ose_bundleIsEmpty(vm_c) == OSETT_FALSE){
+			popAllControl(osevm);
+		}
 	}else if(ose_bundleIsEmpty(vm_d) == OSETT_FALSE
 		 && !(OSEVM_GET_FLAGS(osevm) & OSEVM_FLAG_COMPILE)){
 		ose_builtin_return(osevm);
@@ -1537,10 +1536,12 @@ void osevm_run(ose_bundle osevm)
 				if(ose_bundleIsEmpty(vm_i) == OSETT_TRUE){
 					break;
 				}
-				popInputToControl(vm_i, vm_c);
+				OSEVM_POPINPUTTOCONTROL(osevm);
+				if(ose_bundleIsEmpty(vm_c) == OSETT_TRUE){
+					continue;
+				}
 				popAllControl(osevm);
 			}
-			OSEVM_PRECONTROL(osevm);
 			while(1){
 				if(ose_bundleIsEmpty(vm_c) == OSETT_TRUE){
 					break;
