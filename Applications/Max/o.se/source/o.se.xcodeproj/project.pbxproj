@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5267E2D225D10B57004007D4 /* MaxAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5267E2D125D10B57004007D4 /* MaxAPI.framework */; };
 		52C5966425CDC7D600F9E21F /* ose_print.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5965925CDC7D600F9E21F /* ose_print.c */; };
 		52C5966525CDC7D600F9E21F /* ose_stackops.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5965A25CDC7D600F9E21F /* ose_stackops.c */; };
 		52C5966625CDC7D600F9E21F /* ose.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5965B25CDC7D600F9E21F /* ose.c */; };
@@ -20,10 +21,10 @@
 		52C5967025CDC85300F9E21F /* ose_load.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5966F25CDC85300F9E21F /* ose_load.c */; };
 		52C5967225CDC85D00F9E21F /* ose_time.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5967125CDC85D00F9E21F /* ose_time.c */; };
 		52C5967425CDCCE800F9E21F /* o.se.c in Sources */ = {isa = PBXBuildFile; fileRef = 52C5967325CDCCE800F9E21F /* o.se.c */; };
-		52C5967625CE843900F9E21F /* MaxAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52C5967525CE843900F9E21F /* MaxAPI.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		5267E2D125D10B57004007D4 /* MaxAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAPI.framework; path = "max-sdk/source/c74support/max-includes/MaxAPI.framework"; sourceTree = "<group>"; };
 		52A1433B248465BB00C2059E /* o.se.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = o.se.mxo; sourceTree = BUILT_PRODUCTS_DIR; };
 		52C5965925CDC7D600F9E21F /* ose_print.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ose_print.c; path = ../../../../ose_print.c; sourceTree = "<group>"; };
 		52C5965A25CDC7D600F9E21F /* ose_stackops.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ose_stackops.c; path = ../../../../ose_stackops.c; sourceTree = "<group>"; };
@@ -38,7 +39,6 @@
 		52C5966F25CDC85300F9E21F /* ose_load.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ose_load.c; path = ../../../../sys/ose_load.c; sourceTree = "<group>"; };
 		52C5967125CDC85D00F9E21F /* ose_time.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ose_time.c; path = ../../../../sys/ose_time.c; sourceTree = "<group>"; };
 		52C5967325CDCCE800F9E21F /* o.se.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = o.se.c; sourceTree = "<group>"; };
-		52C5967525CE843900F9E21F /* MaxAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAPI.framework; path = "max-sdk/source/c74support/max-includes/MaxAPI.framework"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,7 +46,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				52C5967625CE843900F9E21F /* MaxAPI.framework in Frameworks */,
+				5267E2D225D10B57004007D4 /* MaxAPI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -69,7 +69,7 @@
 				52C5965F25CDC7D600F9E21F /* ose_util.c */,
 				52C5966025CDC7D600F9E21F /* ose_vm.c */,
 				52C5965B25CDC7D600F9E21F /* ose.c */,
-				52C5967525CE843900F9E21F /* MaxAPI.framework */,
+				5267E2D125D10B57004007D4 /* MaxAPI.framework */,
 				52A1433C248465BB00C2059E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -89,6 +89,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 52A14341248465BB00C2059E /* Build configuration list for PBXNativeTarget "o.se" */;
 			buildPhases = (
+				525C5FD825D1222400C26B58 /* ShellScript */,
 				52A14337248465BB00C2059E /* Sources */,
 				52A14338248465BB00C2059E /* Frameworks */,
 				52A14339248465BB00C2059E /* Resources */,
@@ -142,6 +143,26 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		525C5FD825D1222400C26B58 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd $(SRCROOT)../../../../ && make sys/ose_endian.h\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		52A14337248465BB00C2059E /* Sources */ = {
@@ -207,10 +228,7 @@
 				DSTROOT = /;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"\"$(SRCROOT)/max-sdk/source/c74support/max-includes\"",
-					"$(PROJECT_DIR)/max-sdk/source/c74support/max-includes",
-				);
+				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/max-sdk/source/c74support/max-includes\"";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -238,6 +256,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				VALID_ARCHS = x86_64;
 			};
 			name = Debug;
 		};
@@ -281,10 +300,7 @@
 				DSTROOT = /;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"\"$(SRCROOT)/max-sdk/source/c74support/max-includes\"",
-					"$(PROJECT_DIR)/max-sdk/source/c74support/max-includes",
-				);
+				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/max-sdk/source/c74support/max-includes\"";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREFIX_HEADER = "$(SRCROOT)/max-sdk/source/c74support/max-includes/macho-prefix.pch";
@@ -305,6 +321,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				VALID_ARCHS = x86_64;
 			};
 			name = Release;
 		};
@@ -333,11 +350,13 @@
 					"-DOSE_CONF_VM_CONTROL_SIZE=8192",
 					"-DOSE_CONF_VM_DUMP_SIZE=8192",
 					"-DOSE_CONF_VM_OUTPUT_SIZE=8192",
+					"-DHAVE_OSE_ENDIAN_H",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.john-maccallum.ose";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = "$(inherited)";
 				SYMROOT = build;
+				SYSTEM_FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				WRAPPER_EXTENSION = mxo;
 			};
 			name = Debug;
@@ -368,11 +387,13 @@
 					"-DOSE_CONF_VM_CONTROL_SIZE=8192",
 					"-DOSE_CONF_VM_DUMP_SIZE=8192",
 					"-DOSE_CONF_VM_OUTPUT_SIZE=8192",
+					"-DHAVE_OSE_ENDIAN_H",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.john-maccallum.ose";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = "$(inherited)";
 				SYMROOT = build;
+				SYSTEM_FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				WRAPPER_EXTENSION = mxo;
 			};
 			name = Release;

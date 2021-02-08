@@ -34,7 +34,12 @@ extern "C" {
 #include <inttypes.h>
 #include "ose_conf.h"
 
-#if __has_include("sys/ose_endian.h")
+/* Would be nice to use this, but the compiler for the */
+/* ESP8266 doesn't support it :( */
+/* #if __has_include("sys/ose_endian.h") */
+/* #include "sys/ose_endian.h" */
+/* #endif */
+#ifdef HAVE_OSE_ENDIAN_H
 #include "sys/ose_endian.h"
 #endif
 
