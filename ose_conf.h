@@ -47,24 +47,24 @@ extern "C" {
  * of #osevm_init() that takes 7 arguments in order to specify these 
  * sizes at runtime.
  */
-#ifndef OSE_CONF_VM_INPUT_SIZE
-#define OSE_CONF_VM_INPUT_SIZE 8192
-#endif
-#ifndef OSE_CONF_VM_STACK_SIZE
-#define OSE_CONF_VM_STACK_SIZE 8192
-#endif
-#ifndef OSE_CONF_VM_ENV_SIZE
-#define OSE_CONF_VM_ENV_SIZE 8192
-#endif
-#ifndef OSE_CONF_VM_CONTROL_SIZE
-#define OSE_CONF_VM_CONTROL_SIZE 8192
-#endif
-#ifndef OSE_CONF_VM_DUMP_SIZE
-#define OSE_CONF_VM_DUMP_SIZE 8192
-#endif
-#ifndef OSE_CONF_VM_OUTPUT_SIZE
-#define OSE_CONF_VM_OUTPUT_SIZE 8192
-#endif
+/* #ifndef OSE_CONF_VM_INPUT_SIZE */
+/* #define OSE_CONF_VM_INPUT_SIZE 8192 */
+/* #endif */
+/* #ifndef OSE_CONF_VM_STACK_SIZE */
+/* #define OSE_CONF_VM_STACK_SIZE 8192 */
+/* #endif */
+/* #ifndef OSE_CONF_VM_ENV_SIZE */
+/* #define OSE_CONF_VM_ENV_SIZE 8192 */
+/* #endif */
+/* #ifndef OSE_CONF_VM_CONTROL_SIZE */
+/* #define OSE_CONF_VM_CONTROL_SIZE 8192 */
+/* #endif */
+/* #ifndef OSE_CONF_VM_DUMP_SIZE */
+/* #define OSE_CONF_VM_DUMP_SIZE 8192 */
+/* #endif */
+/* #ifndef OSE_CONF_VM_OUTPUT_SIZE */
+/* #define OSE_CONF_VM_OUTPUT_SIZE 8192 */
+/* #endif */
 
 /**
  * VM hooks
@@ -160,8 +160,8 @@ extern "C" {
 /* #define OSEVM_POSTINPUT my_postInput */
 /* #endif */
 
-/* #ifndef OSEVM_PRECONTROL */
-/* #define OSEVM_PRECONTROL my_preControl */
+/* #ifndef OSEVM_POPINPUTTOCONTROL */
+/* #define OSEVM_POPINPUTTOCONTROL my_popInputToControl */
 /* #endif */
 
 /* #ifndef OSEVM_POSTCONTROL */

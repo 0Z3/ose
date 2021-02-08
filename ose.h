@@ -288,6 +288,9 @@ static const char * const OSE_ADDRESS_ANONVAL_EMPTY_TYPETAG_STRING =
 #define OSE_ADDRESS_MIN_PLEN 4
 
 /* These get defined when compiling with `make` */
+#ifdef HAVE_OSE_VERSION_H
+#include "ose_version.h"
+#endif
 #ifndef OSE_VERSION
 #define OSE_VERSION ""
 #endif

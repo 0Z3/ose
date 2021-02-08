@@ -160,7 +160,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd $(SRCROOT)../../../../ && make sys/ose_endian.h\n";
+			shellScript = "cd $(SRCROOT)../../../../\nmake sys/ose_endian.h\necho \"#define OSE_VERSION \\\"\"`git describe --always --dirty --tags`\"\\\"\\n\" > ose_version.h\necho \"#define OSE_DATE_COMPILED \\\"\"`date`\"\\\"\\n\" >> ose_version.h\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -351,6 +351,10 @@
 					"-DOSE_CONF_VM_DUMP_SIZE=8192",
 					"-DOSE_CONF_VM_OUTPUT_SIZE=8192",
 					"-DHAVE_OSE_ENDIAN_H",
+					"-DOSE_CONF_ADDRESS_ANONVAL='\"/\\\\0\\\\0\\\\0\"'",
+					"-DOSE_CONF_ADDRESS_ANONVAL_LEN=1",
+					"-DOSE_CONF_ADDRESS_ANONVAL_SIZE=4",
+					"-DHAVE_OSE_VERSION_H",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.john-maccallum.ose";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -388,6 +392,10 @@
 					"-DOSE_CONF_VM_DUMP_SIZE=8192",
 					"-DOSE_CONF_VM_OUTPUT_SIZE=8192",
 					"-DHAVE_OSE_ENDIAN_H",
+					"-DOSE_CONF_ADDRESS_ANONVAL='\"/\\\\0\\\\0\\\\0\"'",
+					"-DOSE_CONF_ADDRESS_ANONVAL_LEN=1",
+					"-DOSE_CONF_ADDRESS_ANONVAL_SIZE=4",
+					"-DHAVE_OSE_VERSION_H",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.john-maccallum.ose";
 				PRODUCT_NAME = "$(TARGET_NAME)";

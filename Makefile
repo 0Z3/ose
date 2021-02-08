@@ -65,9 +65,6 @@ all-debug: debug libose-debug libosevm-debug
 sys/%.o: sys/%.c
 	$(CC) $(CFLAGS) $(HOOKS) $(BUNDLE_SIZES) -c -o $@ $<
 
-ose_conf.h:
-	cp ose_conf.h.example ose_conf.h
-
 ######################################################################
 # REPL
 ######################################################################
@@ -243,4 +240,4 @@ test: $(TESTS) test/common.h test/ut_common.h
 ######################################################################
 .PHONY: clean
 clean:
-	rm -rf ose *.dSYM $(TESTDIR)/*.dSYM $(TESTS) docs js/libose.js js/libose.wasm osec/osec sys/ose_endianchk sys/ose_endian.h *.o sys/*.o *.a
+	rm -rf ose *.dSYM $(TESTDIR)/*.dSYM $(TESTS) docs js/libose.js js/libose.wasm osec/osec sys/ose_endianchk sys/ose_endian.h *.o sys/*.o *.a ose_version.h
