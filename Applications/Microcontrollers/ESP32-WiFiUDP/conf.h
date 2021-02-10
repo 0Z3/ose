@@ -29,8 +29,8 @@
 /***************************************************************************
  * Edit these to work with your wireless network
  ***************************************************************************/
-#define CONF_MYSSID 
-#define CONF_MYPASS
+#define CONF_MYSSID "myssid"
+#define CONF_MYPASS "mypassword"
 
 /***************************************************************************
  * If you change these, you'll have to update the Max / PD patches included

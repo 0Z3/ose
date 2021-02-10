@@ -53,7 +53,7 @@
 // Support for pattern matching OSC addresses
 #include <ose_match.h>
 
-#include "ESP32-WiFiUDP-conf.h"
+#include "conf.h"
 
 #define pin_led 13
 
@@ -111,6 +111,7 @@ const int analog_input_pins[] =
 	};
 
 // WiFi configuration using values defined in ESP32-WiFiUDP-conf.h
+IPAddress ip_local;
 const char * const ssid = CONF_MYSSID;
 const char * const pass = CONF_MYPASS;
 const unsigned int port_local = CONF_PORT_LOCAL;
@@ -127,7 +128,6 @@ char *incoming_packet;
 */
 void wifi_event_handler(WiFiEvent_t e)
 {
-	IPAddress ip_local;
 	switch(e){
 	case SYSTEM_EVENT_STA_GOT_IP:
 		ip_local = WiFi.localIP();
@@ -150,6 +150,9 @@ void connect_to_wifi(const char *ssid, const char *pass)
 		delay(5000);
 		ESP.restart();
 	}
+	Serial.print("Connected! IP address: ");
+	Serial.println(ip_local);
+	Serial.printf("UDP server on port %d\n", port_local);
 }
 
 #define CONF_BUNDLE_SIZE 65536
@@ -283,17 +286,153 @@ void my_default(ose_bundle osevm, char *pattern)
 }
 
 /*
-  The assign and lookup hooks aren't implemented here. See the other
-  ESP32 sketches for examples of their use. 
+  This function will be called anytime Ose processes an address or a string
+  that begins with the prefix /@. If the next part of the address is /d/,
+  we'll try to treat it as an assignment to a digital pin. If not, we'll call
+  Ose's builtin assignment function, which will perform a normal assignment
+  into the environment.
 */
 void my_assign(ose_bundle osevm, char *address)
 {
-	osevm_assign(osevm, address);
+	// we only care about messages that look like /@/d/
+	if(address[2] == '/' && address[3] == 'd' && address[4] == '/'){
+		// if there's nothing on the stack, then there's nothing to do
+		if(ose_isIntegerType(ose_peekMessageArgType(vm_s)) == OSETT_TRUE){
+			// get the value on top of the stack
+			int v = ose_peekInt32(vm_s);
+			// iterate over all the pin addresses we respond to,
+			// and assign the value to any that match the pattern
+			// we received. if we assign to at least 1 pin,
+			// we'll remove the value from the stack, but if
+			// we didn't match any pins, we'll leave it there
+			int foundmatch = 0;
+			for(int i = 0;
+			    i < sizeof(digital_output_pins) / sizeof(int);
+			    i++){
+				const char * const addr =
+					digital_output_addresses[i];
+				const int pin = digital_output_pins[i];
+				int po = 0, ao = 0;
+				int r = ose_match_pattern(address + 2,
+							  addr,
+							  &po, &ao);
+				if(r & OSE_MATCH_ADDRESS_COMPLETE){
+					pinMode(pin, OUTPUT);
+					digitalWrite(pin, v ? HIGH : LOW);
+					foundmatch = 1;
+				}
+			}
+			if(foundmatch){
+				ose_drop(vm_s);
+			}
+		}
+	}else{
+		// the assignment wasn't to a pin, so let Ose handle it
+		osevm_assign(osevm, address);
+	}
 }
 
+/*
+  Similar to the function above, this will be called anytime Ose processes
+  an address or a string that begins with the prefix /$. If the next part of 
+  the address is /d/ or /a/, we'll read the value of the corresponding 
+  analog or digital pin(s) and leave the value(s) on the stack. If not, we'll
+  call Ose's builtin lookup function, which will perform a normal lookup in 
+  the environment.
+*/
 void my_lookup(ose_bundle osevm, char *address)
 {
-	osevm_lookup(osevm, address);
+	if(address[2] == '/' && address[3] == 'd' && address[4] == '/'){
+		for(int i = 0;
+		    i < sizeof(digital_input_addresses) / sizeof(char*);
+		    i++){
+			int po = 0, ao = 0;
+			int r = ose_match_pattern(address + 2,
+						  digital_input_addresses[i],
+						  &po, &ao);
+			if(r & OSE_MATCH_ADDRESS_COMPLETE){
+				pinMode(digital_input_pins[i], INPUT);
+				int v = digitalRead(digital_input_pins[i])
+					== HIGH ? 1 : 0;
+				// push the value of the pin onto the stack
+				ose_pushInt32(vm_s, v);
+			}
+		}
+	}else if(address[3] == 'a' && address[4] == '/'){
+		for(int i = 0;
+		    i < sizeof(analog_input_addresses) / sizeof(char*);
+		    i++){
+			int po = 0, ao = 0;
+			int r = ose_match_pattern(address + 2,
+						  analog_input_addresses[i],
+						  &po, &ao);
+			if(r & OSE_MATCH_ADDRESS_COMPLETE){
+				pinMode(analog_input_pins[i], INPUT);
+				float v = analogRead(analog_input_pins[i]);
+				// push the value of the pin onto the stack
+				ose_pushFloat(vm_s, v);
+			}
+		}
+	}else{
+		// the lookup wasn't for a pin, so let Ose handle it.
+		osevm_lookup(osevm, address);
+	}
+}
+
+/***************************************************************************
+  The next three functions encapsulate some of the basic functionality of the 
+  ESP32. We'll store these three functions in the environment, and then
+  we'll be able to call them by sending the corresponding address, prefixed
+  by /!.
+***************************************************************************/
+
+// Cause the system to sleep for an amount of time specified by the
+// value on the stack.
+void mysleep(ose_bundle osevm)
+{
+	if(ose_getBundleElemCount(vm_s) > 0
+	   && ose_isNumericType(ose_peekMessageArgType(vm_s)) == OSETT_TRUE){
+		if(ose_isIntegerType(ose_peekMessageArgType(vm_s)) == OSETT_TRUE){
+			delay((unsigned long)ose_popInt32(vm_s));
+		}else if(ose_isFloatType(ose_peekMessageArgType(vm_s)) == OSETT_TRUE){
+			delay((unsigned long)ose_popFloat(vm_s));
+		}
+	}
+}
+
+// This function uses the ESP32's true random number generator to produce
+// a uniform random number between [0,1], which it pushes onto the stack
+// in the form of a message with address /u.
+void myuniform(ose_bundle osevm)
+{
+	ose_pushMessage(vm_s, "/u", 2, 1,
+			OSETT_FLOAT,
+			(float)((double)esp_random() / (double)UINT32_MAX));
+}
+
+// Set the state of the onboard LED (you may have to change the value
+// of pin_led at the top of this file, if you're not using an
+// Adafruit Feather. If there's an int on the stack, use that, otherwise,
+// read the current value and set it to the opposite.
+void myled(ose_bundle osevm)
+{
+	int v;
+	if(ose_getBundleElemCount(vm_s) > 0
+	   && ose_isIntegerType(ose_peekMessageArgType(vm_s)) == OSETT_TRUE){
+		v = ose_popInt32(vm_s) == HIGH ? HIGH : LOW;
+	}else{
+		v = digitalRead(pin_led) == HIGH ? LOW : HIGH;
+	}
+	digitalWrite(pin_led, v);
+}
+
+void myping(ose_bundle osevm)
+{
+	ose_pushMessage(vm_o, "/ping", 5, 4,
+			OSETT_INT32, ip_local[0],
+			OSETT_INT32, ip_local[1],
+			OSETT_INT32, ip_local[2],
+			OSETT_INT32, ip_local[3]);
 }
 
 void setup() 
@@ -324,6 +463,17 @@ void setup()
 	vm_s = OSEVM_STACK(osevm);
 	vm_e = OSEVM_ENV(osevm);
 	vm_o = OSEVM_OUTPUT(osevm);
+
+	// Push our functions into the environment. They're just messages,
+	// and we can give them whatever names (addresses) we want.
+	ose_pushMessage(vm_e, "/sleep", strlen("/sleep"), 1,
+			OSETT_CFUNCTION, mysleep);
+	ose_pushMessage(vm_e, "/uniform", strlen("/uniform"), 1,
+			OSETT_CFUNCTION, myuniform);
+	ose_pushMessage(vm_e, "/led", strlen("/led"), 1,
+			OSETT_CFUNCTION, myled);
+	ose_pushMessage(vm_e, "/ping", strlen("/ping"), 1,
+			OSETT_CFUNCTION, myping);
 
 	// Finally, connect to the WiFi network
 	connect_to_wifi(ssid, pass);
