@@ -99,13 +99,13 @@ extern "C" {
  * 	  and the bundle (blob).
  */
 #define OSE_CONTEXT_BUNDLE_OFFSET				\
-	4			/* size */			\
-	+ 4			/* padded address len */	\
-	+ 8			/* padded typetag str */	\
-	+ 4			/* int */			\
-	+ 4			/* int */			\
-	+ 4			/* int */			\
-	+ 4			/* blob size */
+	(4			/* size */			\
+	 + 4			/* padded address len */	\
+	 + 8			/* padded typetag str */	\
+	 + 4			/* int */			\
+	 + 4			/* int */			\
+	 + 4			/* int */			\
+	 + 4)			/* blob size */
 
 
 
@@ -114,9 +114,9 @@ extern "C" {
  * @brief The overhead in bytes of a context message.
  */
 #define OSE_CONTEXT_MESSAGE_OVERHEAD			\
-	OSE_CONTEXT_BUNDLE_OFFSET			\
-	+ OSE_BUNDLE_HEADER_LEN	/* bundle header */	\
-	+ 4			/* blob size */
+	(OSE_CONTEXT_BUNDLE_OFFSET				\
+	 + OSE_BUNDLE_HEADER_LEN	/* bundle header */	\
+	 + 4)			/* blob size */
 
 
 
@@ -133,11 +133,11 @@ extern "C" {
  * @brief Maximum overhead used by the system.
  */
 #define OSE_CONTEXT_MAX_OVERHEAD					\
-	OSE_CONTEXT_ALIGNMENT						\
-	* 4								\
-	+ OSE_BUNDLE_HEADER_LEN						\
-	+ OSE_CONTEXT_MESSAGE_OVERHEAD + OSE_CONTEXT_STATUS_MESSAGE_SIZE \
-	+ OSE_CONTEXT_MESSAGE_OVERHEAD
+	(OSE_CONTEXT_ALIGNMENT						\
+	 * 4								\
+	 + OSE_BUNDLE_HEADER_LEN					\
+	 + OSE_CONTEXT_MESSAGE_OVERHEAD + OSE_CONTEXT_STATUS_MESSAGE_SIZE \
+	 + OSE_CONTEXT_MESSAGE_OVERHEAD)
 
 
 

@@ -34,12 +34,12 @@ static int32_t writeContextMessage(ose_bundle bundle,
 	ose_assert(strlen(address) == 3);
 	ose_assert(size >= OSE_CONTEXT_MESSAGE_OVERHEAD);
 	char *b = ose_getBundlePtr(bundle);
-	int32_t o = ose_readInt32(bundle, -4);
-	int32_t alen = 3;
-	int32_t palen = 4;
-	int32_t overhead = OSE_CONTEXT_MESSAGE_OVERHEAD;
-	int32_t freespace = size - overhead;
-	int32_t msize = size - 4;
+	const int32_t o = ose_readInt32(bundle, -4);
+	const int32_t alen = 3;
+	const int32_t palen = 4;
+	const int32_t overhead = OSE_CONTEXT_MESSAGE_OVERHEAD;
+	const int32_t freespace = size - overhead;
+	const int32_t msize = size - 4;
 	char *p = b + o;
 	*((int32_t *)p) = ose_htonl(msize);
 	p += 4;

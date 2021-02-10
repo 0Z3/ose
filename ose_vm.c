@@ -1034,7 +1034,6 @@ ose_bundle osevm_init(ose_bundle bundle)
 	const int32_t output_size = OSEVM_OUTPUT_SIZE
 		+ OSE_CONTEXT_MESSAGE_OVERHEAD;
 #endif
-
 	/* cache */
 	ose_pushContextMessage(bundle,
 			       OSEVM_CACHE_MSG_SIZE,
@@ -1584,3 +1583,45 @@ void osevm_input(ose_bundle osevm,
 	ose_pushMessage(vm_i, "/!/eval", 7, 1,
 			1, OSETT_BLOB, size, bundle);
 }
+
+#ifdef OSEVM_HAVE_SIZES
+int32_t osevm_computeSizeReqs(int n, ...)
+{
+	va_list ap;
+	va_start(ap, n);
+	int32_t s = OSE_CONTEXT_MAX_OVERHEAD + OSEVM_CACHE_MSG_SIZE
+		+ OSEVM_INPUT_SIZE + OSE_CONTEXT_MESSAGE_OVERHEAD
+		+ OSEVM_STACK_SIZE + OSE_CONTEXT_MESSAGE_OVERHEAD
+		+ OSEVM_ENV_SIZE + OSE_CONTEXT_MESSAGE_OVERHEAD
+		+ OSEVM_CONTROL_SIZE + OSE_CONTEXT_MESSAGE_OVERHEAD
+		+ OSEVM_DUMP_SIZE + OSE_CONTEXT_MESSAGE_OVERHEAD
+		+ OSEVM_OUTPUT_SIZE + OSE_CONTEXT_MESSAGE_OVERHEAD;
+	for(int i = 0; i < n; i++){
+		int32_t nn = va_arg(ap, int32_t);
+		s += nn;
+	}
+	va_end(ap);
+	return s;
+}
+#else
+int32_t osevm_computeSizeReqs(int32_t input_size,
+			      int32_t stack_size,
+			      int32_t env_size,
+			      int32_t control_size,
+			      int32_t dump_size,
+			      int32_t output_size,
+			      int n, ...)
+{
+	va_list ap;
+	va_start(ap, n);
+	int32_t s = OSE_CONTEXT_MAX_OVERHEAD + OSEVM_CACHE_MSG_SIZE
+		+ input_size + stack_size + env_size
+		+ control_size + dump_size + output_size;
+	for(int i = 0; i < n; i++){
+		int32_t nn = va_arg(ap, int32_t);
+		s += nn;
+	}
+	va_end(ap);
+	return s;
+}
+#endif

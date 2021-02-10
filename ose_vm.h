@@ -333,6 +333,17 @@ void osevm_input(ose_bundle osevm,
 		 int32_t size, const char * const bundle);
 void osevm_run(ose_bundle bundle);
 char osevm_step(ose_bundle osevm);
+#ifdef OSEVM_HAVE_SIZES
+int32_t osevm_computeSizeReqs(int n, ...);
+#else
+int32_t osevm_computeSizeReqs(int32_t input_size,
+			      int32_t stack_size,
+			      int32_t env_size,
+			      int32_t control_size,
+			      int32_t dump_size,
+			      int32_t output_size,
+			      int n, ...);
+#endif
 
 #ifdef __cplusplus
 }
