@@ -45,7 +45,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 1087.5, 786.0, 489.0, 114.0 ],
-					"presentation_linecount" : 10,
 					"text" : "call our uniform function which puts a value between [0,1] on the stack\npush the value 1000. on the stack\nmultiply them together\npush the string /r on the stack\npush the string /r onto the end of the message that contains the results of the multiplication\nmove the string /r from the end of the message to the address\nduplicate the message on the stack\nmove the copy we just made to the output bundle\ncall our sleep function, which calls arduino's delay() function"
 				}
 
@@ -58,7 +57,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 999.5, 406.0, 289.0, 102.0 ],
-					"presentation_linecount" : 8,
 					"text" : "\n\nlookup the value of pin 21 and put it on the stack\nassign the value on the stack to /r in the environment\nlookup /r and put it on the stack\nassign the value on the stack to pin 13\nlookup /r again and put it on the stack\nmove the value on the stack to the output bundle"
 				}
 
@@ -71,7 +69,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 1215.25, 629.5, 233.5, 42.0 ],
-					"presentation_linecount" : 4,
 					"text" : "This calls the /ping function we implemented which will respond on port 1000 with the local address on the device:"
 				}
 
@@ -83,8 +80,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 567.0, 724.0, 372.0, 54.0 ],
-					"presentation_linecount" : 4,
+					"patching_rect" : [ 567.0, 724.0, 375.0, 54.0 ],
 					"text" : "This example chooses a random number and multiplies it by 1000 to get a duration in miliseconds. It then puts a copy of that value in the output bundle, and sleeps for that duration, sending the output bundle back to use after the duration has elapsed."
 				}
 
@@ -97,7 +93,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 943.5, 406.0, 345.0, 102.0 ],
-					"presentation_linecount" : 8,
 					"text" : "Note, the address is the last part of a message to be evaluated.\n\n/$/d/21\n/@/r \n/$/r\n/@/d/13 \n/$/r \n/- "
 				}
 
@@ -110,7 +105,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 473.0, 298.0, 491.0, 30.0 ],
-					"presentation_linecount" : 6,
 					"text" : "These two examples read a value from one pin, and assign it to another. For example, you might connect a button to pin 21, which will cause it to turn the LED on pin 13 on and off."
 				}
 
@@ -186,7 +180,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 146.0, 694.5, 264.0, 30.0 ],
-					"presentation_linecount" : 2,
 					"text" : "Without a value, our implementation of the /led function toggles the state of the LED."
 				}
 
@@ -215,7 +208,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 126.0, 561.5, 264.0, 30.0 ],
-					"presentation_linecount" : 2,
 					"text" : "This calls the function \"/led\" that we installed in the environment. "
 				}
 
@@ -227,8 +219,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 94.0, 336.0, 262.0, 30.0 ],
-					"presentation_linecount" : 2,
+					"patching_rect" : [ 94.0, 336.0, 264.0, 30.0 ],
 					"text" : "We overloaded Ose's assignment address (/@) to mean \"assign a value to a pin."
 				}
 
@@ -241,7 +232,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 58.0, 87.0, 331.0, 30.0 ],
-					"presentation_linecount" : 2,
 					"text" : "This makes use of our implementation of the \"default\" hook, for processing address strings that Ose doesn't respond to."
 				}
 
@@ -294,7 +284,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 582.0, 904.5, 351.0, 42.0 ],
-					"presentation_linecount" : 3,
 					"text" : "Note: o.downcast is necessary here, because our sketch only supports 32-bit floats, and odot's default floating point type is 64-bits (double)."
 				}
 
@@ -307,7 +296,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 943.0, 786.0, 137.0, 114.0 ],
-					"presentation_linecount" : 9,
 					"text" : "/!/uniform\n1000.\n/!/mul\n/r\n/!/push\n/!/string/toaddress/move\n/!/dup\n/-\n/!/sleep"
 				}
 
@@ -323,7 +311,6 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 567.0, 786.0, 366.0, 65.0 ],
-					"presentation_linecount" : 4,
 					"saved_bundle_data" : [ 35, 98, 117, 110, 100, 108, 101, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 47, 33, 47, 109, 117, 108, 0, 0, 44, 115, 100, 0, 47, 33, 47, 117, 110, 105, 102, 111, 114, 109, 0, 0, 64, -113, 64, 0, 0, 0, 0, 0, 0, 0, 0, 44, 47, 33, 47, 115, 116, 114, 105, 110, 103, 47, 116, 111, 97, 100, 100, 114, 101, 115, 115, 47, 109, 111, 118, 101, 0, 0, 0, 0, 44, 115, 115, 0, 47, 114, 0, 0, 47, 33, 47, 112, 117, 115, 104, 0, 0, 0, 0, 16, 47, 45, 0, 0, 44, 115, 0, 0, 47, 33, 47, 100, 117, 112, 0, 0, 0, 0, 0, 16, 47, 33, 47, 115, 108, 101, 101, 112, 0, 0, 0, 0, 44, 0, 0, 0 ],
 					"saved_bundle_length" : 140,
 					"text" : "/!/mul : [\"/!/uniform\", 1000.],\n/!/string/toaddress/move : [\"/r\", \"/!/push\"],\n/- : \"/!/dup\",\n/!/sleep"
@@ -349,8 +336,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 691.0, 629.5, 462.0, 54.0 ],
-					"presentation_linecount" : 10,
+					"patching_rect" : [ 691.0, 629.5, 466.0, 54.0 ],
 					"text" : "This calls the function \"/uniform\" that we implemented that puts a uniform random value between [0,1], generated by the ESP32's true random number generator, on the stack. The address \"/-\" transfers the message from the stack to the output bundle, which is automatically sent back to us when the bundle has been fully processed."
 				}
 
@@ -403,7 +389,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 563.0, 391.0, 202.0, 30.0 ],
-					"presentation_linecount" : 2,
 					"text" : "Set the value of digital pin 13 (onboard LED) to the value of pin 21"
 				}
 
@@ -533,7 +518,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 688.0, 109.0, 189.0, 30.0 ],
+					"patching_rect" : [ 688.0, 109.0, 191.0, 30.0 ],
 					"text" : "Set the value of all the digital pins to 1 (HIGH), and get their values"
 				}
 
@@ -640,13 +625,12 @@
 					"fontface" : 0,
 					"fontsize" : 12.0,
 					"id" : "obj-4",
-					"linecount" : 2,
 					"maxclass" : "o.display",
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 1400.0, 63.0, 191.0, 48.0 ],
-					"text" : "/d/21 : 0,\n/d/13 : 0"
+					"patching_rect" : [ 1400.0, 63.0, 191.0, 34.0 ],
+					"text" : "/r : 925.697"
 				}
 
 			}

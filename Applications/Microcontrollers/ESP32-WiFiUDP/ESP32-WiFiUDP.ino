@@ -155,7 +155,6 @@ void connect_to_wifi(const char *ssid, const char *pass)
 	Serial.printf("UDP server on port %d\n", port_local);
 }
 
-#define CONF_BUNDLE_SIZE 65536
 // A pointer to the raw bytes that Ose will use as its bundle
 char *bytes;
 // The bundle, VM, Input, Stack, Environment, and Output
@@ -435,29 +434,41 @@ void myping(ose_bundle osevm)
 			OSETT_INT32, ip_local[3]);
 }
 
+#define VM_BUNDLE_SIZE 8192
 void setup() 
 {
 	Serial.begin(115200);
 
-	// Allocate memory for our bundle 
-	bytes = (char *)malloc(CONF_BUNDLE_SIZE);
+	// Allocate memory for our bundle. The VM consists of 6 bundles,
+	// which can be any size. The total amount of memory used by the
+	// VM is equal to the size of those 6 bundles, plus som extra space
+	// for housekeeping. The following function computes exactly the
+	// amount of space we need, given the sizes of the 6 bundles.
+	// Note: these sizes can be burned into the VM more efficiently
+	// at compile time by editing ose_conf.h.
+	int32_t n = osevm_computeSizeReqs(VM_BUNDLE_SIZE, VM_BUNDLE_SIZE,
+					  VM_BUNDLE_SIZE, VM_BUNDLE_SIZE,
+					  VM_BUNDLE_SIZE, VM_BUNDLE_SIZE, 0);
+	Serial.printf("Allocating %d bytes for bundle\n", n);
+	bytes = (char *)malloc(n);
 	if(!bytes){
-		Serial.printf("Couldn't allocate %d bytes for bundle!\n\r",
-			      CONF_BUNDLE_SIZE);
+		Serial.printf("Couldn't allocate %d bytes for bundle!\n\r", n);
 		return;
 	}
 	// Allocate space to receive an incoming bundle over UDP
-	incoming_packet = (char *)malloc(CONF_BUNDLE_SIZE);
+	incoming_packet = (char *)malloc(VM_BUNDLE_SIZE);
 	if(!incoming_packet){
 		Serial.printf("Couldn't allocate %d bytes for incoming packet!\n\r",
-			      CONF_BUNDLE_SIZE);
+			      VM_BUNDLE_SIZE);
 		return;
 	}
 
 	// Initialize our bundle
-	bundle = ose_newBundleFromCBytes(CONF_BUNDLE_SIZE, bytes);
+	bundle = ose_newBundleFromCBytes(n, bytes);
 	// Initialize the VM
-	osevm = osevm_init(bundle);
+	osevm = osevm_init(bundle,
+			   VM_BUNDLE_SIZE, VM_BUNDLE_SIZE, VM_BUNDLE_SIZE,
+			   VM_BUNDLE_SIZE, VM_BUNDLE_SIZE, VM_BUNDLE_SIZE);
 	// Store pointers to some of the VM's bundles that we may want to use
 	vm_i = OSEVM_INPUT(osevm);
 	vm_s = OSEVM_STACK(osevm);
@@ -485,7 +496,7 @@ void loop()
 	if(size){
 		// Read the UDP packet, and save the address it was received
 		// from so that we can send a packet back to it
-		udp.read(incoming_packet, CONF_BUNDLE_SIZE);
+		udp.read(incoming_packet, VM_BUNDLE_SIZE);
 		IPAddress ip_remote = udp.remoteIP();
 
 		// Copy the packet we just got into the VM's input bundle
