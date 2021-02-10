@@ -5,8 +5,8 @@ demonstrate different paradigms for using Ose on a microcontroller.
 
 ## Installation
 
-1. In the top level ose directory, uncomment (remove /* */)
-the following lines:
+1. Uncomment (remove /* and /*) the following lines in ose_conf.h
+in the top level ose directory:
 
 ```
 /* #ifndef OSEVM_ASSIGN */
