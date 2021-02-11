@@ -436,6 +436,25 @@ int32_t ose_vwriteMessage(ose_bundle bundle,
 			  int32_t n,
 			  va_list ap);
 
+#define OSE_SLIP_END 0300
+#define OSE_SLIP_ESC 0333
+#define OSE_SLIP_ESC_END 0334
+#define OSE_SLIP_ESC_ESC 0335
+
+struct ose_SLIPBuf
+{
+	unsigned char *buf;
+	int32_t buflen, count, state;
+};
+struct ose_SLIPBuf ose_initSLIPBuf(unsigned char *buf, int32_t buflen);
+int ose_SLIPDecode(unsigned char c, struct ose_SLIPBuf *s);
+// -1 error
+// >0 length
+int32_t ose_SLIPEncode(const unsigned char * const src,
+		       int32_t srclen,
+		       unsigned char *dest,
+		       int32_t destlen);
+
 #ifdef __cplusplus
 }
 #endif

@@ -1100,3 +1100,119 @@ int32_t ose_writeMessage(ose_bundle bundle,
 	va_end(ap);
 	return len;
 }
+
+struct ose_SLIPBuf ose_initSLIPBuf(unsigned char *buf, int32_t buflen)
+{
+	return (struct ose_SLIPBuf)
+		{
+			buf, buflen, 0, 0
+		};
+}
+
+int ose_SLIPDecode(unsigned char c, struct ose_SLIPBuf *s)
+{
+	int state = s->state;
+	switch(state){
+	case 0:
+		s->state = 1;
+		if(c == OSE_SLIP_END){
+			break;
+		}
+		// fall through
+	case 1:
+		switch(c){
+		case OSE_SLIP_END:
+			s->state = 0;
+			if(s->count == 0){
+				if(s->count % 4 == 0){
+					return 0; // done
+				}else{
+					return -1; // error
+				}
+			}
+			s->state = 0;
+			break;
+		case OSE_SLIP_ESC:
+			s->state = 2;
+			break;
+		default:
+			if(s->count < s->buflen){
+				s->buf[(s->count)++] = c;
+			}else{
+				s->state = 3;
+			}
+			break;
+		}
+		break;
+	case 2:
+		switch(c){
+		case OSE_SLIP_ESC_END:
+			if(s->count < s->buflen){
+				s->buf[(s->count)++] = OSE_SLIP_END;
+				s->state = 1;
+			}else{
+				s->state = 3;
+			}
+			break;
+		case OSE_SLIP_ESC_ESC:
+			if(s->count < s->buflen){
+				s->buf[(s->count)++] = OSE_SLIP_ESC;
+				s->state = 1;
+			}else{
+				s->state = 3;
+			}
+			break;
+		default:
+			s->state = 3;
+		}
+		break;
+	case 3:
+		if(c == OSE_SLIP_END){
+			s->count = 0;
+			s->state = 0;
+		}
+		break;
+	}
+	return 1;
+}
+
+// -1 error
+// >0 length
+int32_t ose_SLIPEncode(const unsigned char * const src,
+		       int32_t srclen,
+		       unsigned char *dest,
+		       int32_t destlen)
+{
+	if(!dest){
+		return -1;
+	}
+	int32_t j = 0;
+	for(int32_t i = 0; i < srclen; i++){
+		switch(src[i]){
+		case OSE_SLIP_END:
+			if(j + 2 > destlen){
+				return -1;
+			}
+			dest[j++] = OSE_SLIP_ESC;
+			dest[j++] = OSE_SLIP_ESC_END;
+			break;
+		case OSE_SLIP_ESC:
+			if(j + 2 > destlen){
+				return -1;
+			}
+			dest[j++] = OSE_SLIP_ESC;
+			dest[j++] = OSE_SLIP_ESC_ESC;
+			break;
+		default:
+			if(j + 1 > destlen){
+				return -1;
+			}
+			dest[j++] = src[i];
+		}
+	}
+	if(j + 1 > destlen){
+		return -1;
+	}
+	dest[j++] = OSE_SLIP_END;
+	return j;
+}
