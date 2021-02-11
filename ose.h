@@ -47,10 +47,15 @@ extern "C" {
  * Debug mode
  */
 #ifdef OSE_CONF_DEBUG
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
 #define OSE_DEBUG
 #define OSE_SAFE_BUNDLE
 #else
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 #endif
 
 #if !defined(OSE_CONF_RASSERT_FAIL) && !defined(OSE_CONF_RASSERT_THROW)
