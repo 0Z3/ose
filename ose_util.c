@@ -1103,6 +1103,7 @@ int32_t ose_writeMessage(ose_bundle bundle,
 
 struct ose_SLIPBuf ose_initSLIPBuf(unsigned char *buf, int32_t buflen)
 {
+	memset(buf, 0, buflen);
 	return (struct ose_SLIPBuf)
 		{
 			buf, buflen, 0, 0
@@ -1122,8 +1123,8 @@ int ose_SLIPDecode(unsigned char c, struct ose_SLIPBuf *s)
 	case 1:
 		switch(c){
 		case OSE_SLIP_END:
-			s->state = 0;
-			if(s->count == 0){
+			if(s->count > 0){
+				s->state = 0;
 				if(s->count % 4 == 0){
 					return 0; // done
 				}else{
