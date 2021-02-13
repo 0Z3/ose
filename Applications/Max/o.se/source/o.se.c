@@ -170,6 +170,7 @@ static void ovm_outputBundles(ovm *x)
 	if(x->prefix){
 		ovm_outlet_bundle(x->prefix_delegation_outlet,
 				  ps_FullPacket, x->vm_g);
+		ose_clear(x->vm_g);
 	}
 	for(int i = 0; i < x->num_route_outlets; i++){
 		ose_pushBundle(x->vm_d);
