@@ -1565,7 +1565,7 @@ void osevm_run(ose_bundle osevm)
 	OSEVM_POSTINPUT(osevm);
 }
 
-void osevm_inputTopLevel(ose_bundle osevm,
+void osevm_inputMessages(ose_bundle osevm,
 			 int32_t size, const char * const bundle)
 {
 	ose_bundle vm_i = OSEVM_INPUT(osevm);
@@ -1576,12 +1576,15 @@ void osevm_inputTopLevel(ose_bundle osevm,
 	ose_popAllDrop(vm_i);
 }
 
-void osevm_input(ose_bundle osevm,
-		 int32_t size, const char * const bundle)
+void osevm_inputMessage(ose_bundle osevm,
+			int32_t size, const char * const message)
 {
 	ose_bundle vm_i = OSEVM_INPUT(osevm);
-	ose_pushMessage(vm_i, "/!/eval", 7, 1,
-			1, OSETT_BLOB, size, bundle);
+	ose_pushMessage(vm_i, OSE_ADDRESS_ANONVAL,
+			OSE_ADDRESS_ANONVAL_LEN, 
+			1, OSETT_BLOB, size, message);
+	ose_blobToElem(vm_i);
+	//ose_popAllDrop(vm_i);
 }
 
 #ifdef OSEVM_HAVE_SIZES

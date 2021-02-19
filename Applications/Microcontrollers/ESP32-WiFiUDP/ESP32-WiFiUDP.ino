@@ -500,7 +500,7 @@ void loop()
 		IPAddress ip_remote = udp.remoteIP();
 
 		// Copy the packet we just got into the VM's input bundle
-		osevm_inputTopLevel(osevm, size, incoming_packet);
+		osevm_inputMessages(osevm, size, incoming_packet);
 		// Run the vm
 		osevm_run(osevm);
 		// Send the output bundle to the address we received

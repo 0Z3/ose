@@ -1136,6 +1136,22 @@ int ose_SLIPDecode(unsigned char c, struct ose_SLIPBuf *s)
 		case OSE_SLIP_ESC:
 			s->state = 2;
 			break;
+		case 10:
+		case 13:
+			if(s->havenullbyte == 0){
+				//s->buf[s->count++] = c;
+				s->count++;
+				while(s->count % 4){
+					s->count++;
+				}
+				s->buf[s->count] = OSETT_ID;
+				s->count += 4;
+				return 0;
+			}else{
+				// fall through
+			}
+		case 0:
+			s->havenullbyte = 1;
 		default:
 			if(s->count < s->buflen){
 				s->buf[(s->count)++] = c;

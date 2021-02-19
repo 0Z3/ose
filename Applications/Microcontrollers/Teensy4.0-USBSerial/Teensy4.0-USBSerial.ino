@@ -49,6 +49,7 @@
 #include <ose_vm.h>
 // Support for pattern matching OSC addresses
 #include <ose_match.h>
+#include <ose_print.h>
 
 #define pin_led 13
 
@@ -105,6 +106,7 @@ char *incoming_packet;
 char *bytes;
 // The bundle, VM, Input, Stack, Environment, and Output
 ose_bundle bundle, osevm, vm_i, vm_s, vm_e, vm_o;
+int echo;
 
 /****************************************************************************
   The next four functions are "hooks" that the Ose VM will call at different
@@ -131,7 +133,8 @@ ose_bundle bundle, osevm, vm_i, vm_s, vm_e, vm_o;
 int my_isKnownAddress(const char * const address)
 {
 	if((address[0] == '/' && address[1] == 'a' && address[2] == '/')
-	   || (address[0] == '/' && address[1] == 'd' && address[2] == '/')){
+	   || (address[0] == '/' && address[1] == 'd' && address[2] == '/')
+	   || (address[0] == '/' && address[1] == 0)){
 		return 1;
 	}
 	return 0;
@@ -149,8 +152,16 @@ void my_default(ose_bundle osevm, char *pattern)
 	// if this is not an address we respond to,
 	// call Ose's default hook and bail out
 	if(!(pattern[0] == '/' && pattern[1] == 'a' && pattern[2] == '/')
-	   && !(pattern[0] == '/' && pattern[1] == 'd' && pattern[2] == '/')){
+	   && !(pattern[0] == '/' && pattern[1] == 'd' && pattern[2] == '/')
+	   && !(pattern[0] == '/' && pattern[1] == 0)){
 		osevm_default(osevm, pattern);
+		return;
+	}
+	if(pattern[1] == 0){
+		echo = echo ? 0 : 1;
+		if(echo){
+			Serial1.printf("(echoing input)\n\r");
+		}
 		return;
 	}
 
@@ -278,7 +289,7 @@ void my_assign(ose_bundle osevm, char *address)
 				ose_drop(vm_s);
 			}
 		}
-	}if(address[2] == '/' && address[3] == 'a' && address[4] == '/'){
+	}else if(address[2] == '/' && address[3] == 'a' && address[4] == '/'){
 		// if there's nothing on the stack, then there's nothing to do
 		if(ose_isIntegerType(ose_peekMessageArgType(vm_s)) == OSETT_TRUE){
 			// get the value on top of the stack
@@ -413,7 +424,7 @@ struct ose_SLIPBuf slipbuf;
 // char bytes[65536];
 void setup() 
 {
-	Serial.begin(9600);
+	Serial1.begin(115200);
 	pinMode(pin_led, OUTPUT);
 	Entropy.Initialize();
 	
@@ -468,33 +479,64 @@ void setup()
 			OSETT_CFUNCTION, myuniform);
 	ose_pushMessage(vm_e, "/led", strlen("/led"), 1,
 			OSETT_CFUNCTION, myled);
+
+	echo = 0;
 }
 
 void loop() 
 {
-	while(Serial.available() > 0){
-		int r = ose_SLIPDecode(Serial.read(), &slipbuf);
+	while(Serial1.available() > 0){
+		char c = Serial1.read();
+		int r = ose_SLIPDecode(c, &slipbuf);
+		if(echo){
+			switch(c){
+			case 10:
+			case 13:
+				Serial1.write("\n\r", 2);
+				break;
+			case OSE_SLIP_END:
+				echo = 0;
+				break;
+			default:
+				Serial1.write(c);
+			}
+			Serial1.flush();
+		}
 		if(r == -1){
 			slipbuf = ose_initSLIPBuf((unsigned char *)incoming_packet,
 						  VM_BUNDLE_SIZE);
 		}else if(r == 0){
 			// Copy the packet we just got into the VM's input bundle
-			osevm_inputTopLevel(osevm, slipbuf.count, slipbuf.buf);
+			if(!strncmp(slipbuf.buf, OSE_BUNDLE_ID, OSE_BUNDLE_ID_LEN)){
+				osevm_inputMessages(osevm, slipbuf.count, slipbuf.buf);
+			}else{
+				for(int i = 0; i < slipbuf.count; i++){
+					Serial1.printf("%d ", slipbuf.buf[i]);
+				}
+				Serial1.printf("\r\n");
+				osevm_inputMessage(osevm, slipbuf.count, slipbuf.buf);
+			}
 			// Run the vm
 			osevm_run(osevm);
-			// Use the incoming_packet buffer as a temporary
-			// buffer to SLIP encode the output bundle of the VM
-			memset(incoming_packet, 0, VM_BUNDLE_SIZE);
-			int32_t n = ose_SLIPEncode(vm_o,
-						   ose_readInt32(vm_o, -4),
-						   incoming_packet,
-						   VM_BUNDLE_SIZE);
-			// Write the SLIP encoded bundle
-			Serial.write(incoming_packet, n);
-			Serial.flush();
+			if(echo){
+				char buf[2048];
+				int32_t n = ose_pprintFullBundle_impl(vm_s, buf, 2048, "STACK");
+				Serial1.write(buf, n);
+			}else{
+				// Use the incoming_packet buffer as a temporary
+				// buffer to SLIP encode the output bundle of the VM
+				memset(incoming_packet, 0, VM_BUNDLE_SIZE);
+				int32_t n = ose_SLIPEncode(vm_o,
+							   ose_readInt32(vm_o, -4),
+							   incoming_packet,
+							   VM_BUNDLE_SIZE);
+				// Write the SLIP encoded bundle
+				Serial1.write(incoming_packet, n);
+				Serial1.flush();
+			}
 			// Clear the stack and the output bundle
 			ose_clear(vm_o);
-			ose_clear(vm_s);
+			//ose_clear(vm_s);
 			// Reinitialize the SLIP buffer
 			slipbuf = ose_initSLIPBuf((unsigned char *)incoming_packet,
 						  VM_BUNDLE_SIZE);

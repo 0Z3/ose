@@ -211,7 +211,7 @@ static int32_t ose_pprintBundleElem(ose_bundle bundle,
 		if(ose_getBundleElemElemCount(bundle, offset) == 0){
 			n = snprintf(bufp, bufl, "#bundle");
 		}else{
-			n = snprintf(bufp, bufl, "#bundle\n");
+			n = snprintf(bufp, bufl, "#bundle\r\n");
 		}
 		nn += n;
 		INCP(bufp, n);
@@ -272,7 +272,7 @@ static int32_t _ose_pprintBundle(ose_bundle bundle,
 		o += s + 4;
 		offset += s + 4;
 		if(o < ss){
-			n = snprintf(bufp, bufl, "\n");
+			n = snprintf(bufp, bufl, "\r\n");
 			INCP(bufp, n);
 			INCL(bufp, bufl, n);
 			nn += n;
@@ -309,7 +309,7 @@ static int32_t ose_pprintFullBundle_r(ose_constbundle bundle,
 	for(int j = 0; j < (cols / 2) - (9 + (indent - 1) + 7 + 15); j++){
 		ose_snprintfi(buf, buflen, n, nn, "%s", " ");
 	}
-	ose_snprintfi(buf, buflen, n, nn, "%08x.%08x\n",
+	ose_snprintfi(buf, buflen, n, nn, "%08x.%08x\r\n",
 		      ose_readInt32(bundle, OSE_BUNDLE_ID_LEN),
 		      ose_readInt32(bundle, OSE_BUNDLE_ID_LEN + 4));
 	while(o < s){
@@ -415,7 +415,7 @@ static int32_t ose_pprintFullBundle_r(ose_constbundle bundle,
 								po += 8;
 							}
 							if(bs - j2 > 8){
-								ose_snprintfi(buf, buflen, n, nn, "%s", "\n");
+								ose_snprintfi(buf, buflen, n, nn, "%s", "\r\n");
 								for(int j3 = 0;
 								    j3 < cols / 2 + 3;
 								    j3++){
@@ -429,7 +429,7 @@ static int32_t ose_pprintFullBundle_r(ose_constbundle bundle,
 				}
 				to++;
 				if(ii > 0 || (ii == 0 && ttstrlen == 1)){
-					ose_snprintfi(buf, buflen, n, nn, "%s", "\n");
+					ose_snprintfi(buf, buflen, n, nn, "%s", "\r\n");
 				}
 			}
 		}
@@ -451,13 +451,13 @@ int32_t ose_pprintFullBundle_impl(ose_constbundle bundle,
 		for(int i = 0; i < cols - namelen; i++){
 			ose_snprintfi(buf, buflen, n, nn, "%s", "_");
 		}
-		ose_snprintfi(buf, buflen, n, nn, "%s", "\n");
+		ose_snprintfi(buf, buflen, n, nn, "%s", "\r\n");
 	}
 	ose_snprintfi(buf, buflen, n, nn, "%s", "OFFSET   ADDRESS");
 	for(int i = 0; i < (cols / 2) - 16; i++){
 		ose_snprintfi(buf, buflen, n, nn, "%s", " ");
 	}
-	ose_snprintfi(buf, buflen, n, nn, "%s", "TT DATA\n");
+	ose_snprintfi(buf, buflen, n, nn, "%s", "TT DATA\r\n");
 	nn += ose_pprintFullBundle_r(bundle,
 				     buf, buflen,
 				     o, s, 0, 1);

@@ -43,6 +43,14 @@ extern "C" {
 #define OSEVM_CACHE_OFFSET_5 OSEVM_CACHE_OFFSET_4 + 4
 #define OSEVM_CACHE_OFFSET_6 OSEVM_CACHE_OFFSET_5 + 4
 #define OSEVM_CACHE_OFFSET_7 OSEVM_CACHE_OFFSET_6 + 4
+#define OSEVM_CACHE_OFFSET_8 OSEVM_CACHE_OFFSET_7 + 4
+#define OSEVM_CACHE_OFFSET_9 OSEVM_CACHE_OFFSET_8 + 4
+#define OSEVM_CACHE_OFFSET_10 OSEVM_CACHE_OFFSET_9 + 4
+#define OSEVM_CACHE_OFFSET_11 OSEVM_CACHE_OFFSET_10 + 4
+#define OSEVM_CACHE_OFFSET_12 OSEVM_CACHE_OFFSET_11 + 4
+#define OSEVM_CACHE_OFFSET_13 OSEVM_CACHE_OFFSET_12 + 4
+#define OSEVM_CACHE_OFFSET_14 OSEVM_CACHE_OFFSET_13 + 4
+#define OSEVM_CACHE_OFFSET_15 OSEVM_CACHE_OFFSET_14 + 4
 
 #define OSEVM_CACHE_POINTER OSEVM_CACHE_OFFSET_0
 #define OSEVM_CACHE_FLAGS OSEVM_CACHE_OFFSET_1
@@ -327,10 +335,10 @@ extern void OSEVM_POSTCONTROL (ose_bundle osevm);
 extern int OSEVM_ISKNOWNADDRESS (const char * const address);
 #endif
 
-void osevm_inputTopLevel(ose_bundle osevm,
+void osevm_inputMessages(ose_bundle osevm,
 			 int32_t size, const char * const bundle);
-void osevm_input(ose_bundle osevm,
-		 int32_t size, const char * const bundle);
+void osevm_inputMessage(ose_bundle osevm,
+			int32_t size, const char * const message);
 void osevm_run(ose_bundle bundle);
 char osevm_step(ose_bundle osevm);
 #ifdef OSEVM_HAVE_SIZES

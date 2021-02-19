@@ -445,6 +445,7 @@ struct ose_SLIPBuf
 {
 	unsigned char *buf;
 	int32_t buflen, count, state;
+	int havenullbyte;
 };
 struct ose_SLIPBuf ose_initSLIPBuf(unsigned char *buf, int32_t buflen);
 int ose_SLIPDecode(unsigned char c, struct ose_SLIPBuf *s);
