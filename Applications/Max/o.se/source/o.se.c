@@ -74,6 +74,8 @@ typedef struct _ovm {
 	
 	char *bytes;
 	ose_bundle bundle, osevm, vm_i, vm_s, vm_e, vm_c, vm_d, vm_o, vm_g;
+
+	int delegating;
 } ovm;
 
 t_class *ovm_class;
@@ -167,10 +169,11 @@ static void ovm_outlet_bundleElem(void *outlet,
 
 static void ovm_outputBundles(ovm *x)
 {
-	if(x->prefix){
-		ovm_outlet_bundle(x->prefix_delegation_outlet,
-				  ps_FullPacket, x->vm_g);
-	}
+	/* if(x->prefix){ */
+	/* 	ovm_outlet_bundle(x->prefix_delegation_outlet, */
+	/* 			  ps_FullPacket, x->vm_g); */
+	/* 	ose_clear(x->vm_g); */
+	/* } */
 	for(int i = 0; i < x->num_route_outlets; i++){
 		ose_pushBundle(x->vm_d);
 		int32_t dbo = ose_getLastBundleElemOffset(x->vm_d);		
@@ -240,8 +243,18 @@ static void ovm_outputBundles(ovm *x)
 	ovm_outlet_bundle(x->vm_outlets[OVM_OUTLET_OUTPUT], ps_FullPacket, x->vm_o);
 }
 
+void ovm_delegate(ovm *x)
+{
+	//if(x->prefix){
+		ovm_outlet_bundle(x->prefix_delegation_outlet,
+				  ps_FullPacket, x->vm_g);
+		ose_clear(x->vm_g);
+		//}
+}
+
 void ovm_popInputToControl(ose_bundle osevm)
 {
+	ovm *x = (ovm *)*((intptr_t *)(osevm + OSEVM_CACHE_OFFSET_8));
 	ose_bundle vm_i = OSEVM_INPUT(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
 	ose_bundle vm_e = OSEVM_ENV(osevm);
@@ -257,10 +270,14 @@ void ovm_popInputToControl(ose_bundle osevm)
 			const int32_t io = ose_getLastBundleElemOffset(vm_i);
 			ose_routeElemAtOffset(io, vm_i, po, vm_c);
 			ose_drop(vm_i);
+			ose_drop(vm_e);
 		}else{
 			ose_moveElem(vm_i, vm_g);
+			ose_drop(vm_e);
+			x->delegating = 1;
+			ovm_delegate(x);
+			x->delegating = 0;
 		}
-		ose_drop(vm_e);
 	}else{
 		ose_drop(vm_e);
 		osevm_popInputToControl(osevm);
@@ -269,14 +286,18 @@ void ovm_popInputToControl(ose_bundle osevm)
 
 void ovm_FullPacket(ovm *x, long _len, long _ptr)
 {
-    int32_t len = (int32_t)_len;
+	int32_t len = (int32_t)_len;
 	char *ptr = (char *)_ptr;
 	const long inlet = proxy_getinlet((t_object *)x);
 	if(inlet == OVM_INLET_INPUT){
 		osevm_inputTopLevel(x->osevm, len, ptr);
-		ovm_bindUserArgs(x);
-		osevm_run(x->osevm);
-		ovm_outputBundles(x);
+		if(!x->delegating){
+			ovm_bindUserArgs(x);
+			*((intptr_t *)(x->osevm + OSEVM_CACHE_OFFSET_8)) =
+				(intptr_t)x;
+			osevm_run(x->osevm);
+			ovm_outputBundles(x);
+		}
 	}else if(inlet == OVM_INLET_STACK){
 		int32_t s = ose_readInt32(x->vm_s, -4);
 		ose_addToSize(x->vm_s, len - OSE_BUNDLE_HEADER_LEN);
@@ -635,6 +656,7 @@ void *ovm_new(t_symbol *sym, long argc, t_atom *argv)
 	object_free(d);
 
 	critical_new(&(x->lock));
+	x->delegating = 0;
 
 	return x;
 }
