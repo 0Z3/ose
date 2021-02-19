@@ -343,6 +343,8 @@
 				INSTALL_PATH = "$(inherited)";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_CFLAGS = (
+					"-DOSEVM_ISKNOWNADDRESS=ovm_isKnownAddress",
+					"-DOSEVM_DEFAULT=ovm_default",
 					"-DOSEVM_POPINPUTTOCONTROL=ovm_popInputToControl",
 					"-DOSE_CONF_VM_INPUT_SIZE=8192",
 					"-DOSE_CONF_VM_STACK_SIZE=8192",
@@ -351,10 +353,10 @@
 					"-DOSE_CONF_VM_DUMP_SIZE=8192",
 					"-DOSE_CONF_VM_OUTPUT_SIZE=8192",
 					"-DHAVE_OSE_ENDIAN_H",
+					"-DHAVE_OSE_VERSION_H",
 					"-DOSE_CONF_ADDRESS_ANONVAL='\"/\\\\0\\\\0\\\\0\"'",
 					"-DOSE_CONF_ADDRESS_ANONVAL_LEN=1",
 					"-DOSE_CONF_ADDRESS_ANONVAL_SIZE=4",
-					"-DHAVE_OSE_VERSION_H",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.john-maccallum.ose";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -384,6 +386,8 @@
 				INSTALL_PATH = "$(inherited)";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_CFLAGS = (
+					"-DOSEVM_ISKNOWNADDRESS=ovm_isKnownAddress",
+					"-DOSEVM_DEFAULT=ovm_default",
 					"-DOSEVM_POPINPUTTOCONTROL=ovm_popInputToControl",
 					"-DOSE_CONF_VM_INPUT_SIZE=8192",
 					"-DOSE_CONF_VM_STACK_SIZE=8192",
@@ -392,10 +396,10 @@
 					"-DOSE_CONF_VM_DUMP_SIZE=8192",
 					"-DOSE_CONF_VM_OUTPUT_SIZE=8192",
 					"-DHAVE_OSE_ENDIAN_H",
+					"-DHAVE_OSE_VERSION_H",
 					"-DOSE_CONF_ADDRESS_ANONVAL='\"/\\\\0\\\\0\\\\0\"'",
 					"-DOSE_CONF_ADDRESS_ANONVAL_LEN=1",
 					"-DOSE_CONF_ADDRESS_ANONVAL_SIZE=4",
-					"-DHAVE_OSE_VERSION_H",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.john-maccallum.ose";
 				PRODUCT_NAME = "$(TARGET_NAME)";

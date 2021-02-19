@@ -60,7 +60,8 @@ typedef struct _ovm {
 	t_symbol **user_inlet_addrs;
 	long *user_inlet_argcs;
 	t_atom **user_inlet_argvs;
-	
+
+	void *delegation_outlet;
 	void *prefix_delegation_outlet;
 	void *route_delegation_outlet;
 	t_symbol **route_addrs;
@@ -75,7 +76,8 @@ typedef struct _ovm {
 	char *bytes;
 	ose_bundle bundle, osevm, vm_i, vm_s, vm_e, vm_c, vm_d, vm_o, vm_g;
 
-	int delegating;
+	int delegate; // flag to delegate unknown addresses 
+	int delegating; // set this when we are calling one of the delegation outlets
 } ovm;
 
 t_class *ovm_class;
@@ -243,10 +245,10 @@ static void ovm_outputBundles(ovm *x)
 	ovm_outlet_bundle(x->vm_outlets[OVM_OUTLET_OUTPUT], ps_FullPacket, x->vm_o);
 }
 
-void ovm_delegate(ovm *x)
+void ovm_delegate(ovm *x, void *outlet)
 {
 	//if(x->prefix){
-		ovm_outlet_bundle(x->prefix_delegation_outlet,
+		ovm_outlet_bundle(outlet,
 				  ps_FullPacket, x->vm_g);
 		ose_clear(x->vm_g);
 		//}
@@ -275,12 +277,50 @@ void ovm_popInputToControl(ose_bundle osevm)
 			ose_moveElem(vm_i, vm_g);
 			ose_drop(vm_e);
 			x->delegating = 1;
-			ovm_delegate(x);
+			ovm_delegate(x, x->prefix_delegation_outlet);
 			x->delegating = 0;
 		}
 	}else{
 		ose_drop(vm_e);
 		osevm_popInputToControl(osevm);
+	}
+}
+
+int ovm_isKnownAddress(const char * const address)
+{
+	return 1;
+}
+
+void ovm_default(ose_bundle osevm, char *address)
+{
+	if(!strncmp(address, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_SIZE)){
+		osevm_default(osevm, address);
+		return;
+	}
+	ovm *x = (ovm *)*((intptr_t *)(osevm + OSEVM_CACHE_OFFSET_8));
+	ose_bundle vm_s = OSEVM_STACK(osevm);
+	ose_bundle vm_e = OSEVM_ENV(osevm);
+	ose_bundle vm_g = ose_enter(osevm, "/_g");
+	if(x->delegate){
+		/* ose_pushMessage(vm_g, "/address", strlen("/address"), 1, */
+		/* 		OSETT_STRING, address); */
+		/* ose_pushMessage(vm_g, "/stack", strlen("/stack"), 1, */
+		/* 		OSETT_BLOB, */
+		/* 		ose_readInt32(vm_s, -4), ose_getBundlePtr(vm_s)); */
+		/* ose_pushMessage(vm_g, "/env", strlen("/env"), 1, */
+		/* 		OSETT_BLOB, */
+		/* 		ose_readInt32(vm_e, -4), ose_getBundlePtr(vm_e)); */
+		ose_pushMessage(vm_g, address, strlen(address), 2,
+				OSETT_BLOB,
+				ose_readInt32(vm_s, -4), ose_getBundlePtr(vm_s),
+				OSETT_BLOB,
+				ose_readInt32(vm_e, -4), ose_getBundlePtr(vm_e));
+		ose_clear(vm_s);
+		x->delegating = 1;
+		ovm_delegate(x, x->delegation_outlet);
+		x->delegating = 0;
+	}else{
+		osevm_default(osevm, address);
 	}
 }
 
@@ -295,8 +335,8 @@ void ovm_FullPacket(ovm *x, long _len, long _ptr)
 			ovm_bindUserArgs(x);
 			*((intptr_t *)(x->osevm + OSEVM_CACHE_OFFSET_8)) =
 				(intptr_t)x;
-			osevm_run(x->osevm);
-			ovm_outputBundles(x);
+			/* osevm_run(x->osevm); */
+			/* ovm_outputBundles(x); */
 		}
 	}else if(inlet == OVM_INLET_STACK){
 		int32_t s = ose_readInt32(x->vm_s, -4);
@@ -325,6 +365,16 @@ void ovm_FullPacket(ovm *x, long _len, long _ptr)
 	}else{
 
 	}
+}
+
+void ovm_run(ovm *x)
+{
+	osevm_run(x->osevm);
+}
+
+void ovm_output(ovm *x)
+{
+	ovm_outputBundles(x);
 }
 
 void ovm_bang(ovm *x)
@@ -363,7 +413,7 @@ void ovm_list(ovm *x, t_symbol *msg, long argc, t_atom *argv)
 	}
 	long idx = inlet - x->num_vm_inlets;
 	long oldargc = x->user_inlet_argcs[idx];
-	if(argc <= oldargc){
+	if(argc > oldargc){
 		if(x->user_inlet_argvs[idx]){
 			x->user_inlet_argvs[idx] = realloc(x->user_inlet_argvs[idx],
 							   argc * sizeof(t_atom));
@@ -575,6 +625,17 @@ void *ovm_new(t_symbol *sym, long argc, t_atom *argv)
 		}
 	}
 
+	// delegation outlet for unknown addresses
+	if(dictionary_hasentry(d, gensym("/delegate"))){
+		x->delegate = 1;
+		x->delegation_outlet = outlet_new(x, "FullPacket");
+		if(!x->delegation_outlet){
+			object_error((t_object *)x,
+				     "couldn't allocate delegation outlet");
+			return NULL;		
+		}
+	}
+
 	// prefix delegation outlet (if we have a prefix)
 	if(dictionary_hasentry(d, gensym("/prefix"))){
 		t_symbol *pfx = NULL;
@@ -670,6 +731,8 @@ void ext_main(void *r)
 
 	class_addmethod(c, (method)ovm_FullPacket, "FullPacket",
 			A_LONG, A_LONG, 0);
+	class_addmethod(c, (method)ovm_run, "run", 0);
+	class_addmethod(c, (method)ovm_output, "output", 0);
 	class_addmethod(c, (method)ovm_bang, "bang", 0);
 	class_addmethod(c, (method)ovm_anything, "anything", A_GIMME, 0);
 	class_addmethod(c, (method)ovm_list, "list", A_GIMME, 0);
