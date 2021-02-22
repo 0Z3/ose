@@ -96,7 +96,6 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 950.0, 267.0, 150.0, 38.0 ],
-					"presentation_linecount" : 2,
 					"saved_bundle_data" : [ 35, 98, 117, 110, 100, 108, 101, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 47, 36, 47, 100, 47, 49, 52, 0, 44, 0, 0, 0, 0, 0, 0, 12, 47, 64, 47, 100, 47, 49, 51, 0, 44, 0, 0, 0 ],
 					"saved_bundle_length" : 48,
 					"text" : "/$/d/14,\n/@/d/13"
@@ -665,8 +664,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "int", "" ],
-					"patching_rect" : [ 310.5, 677.0, 77.0, 20.0 ],
-					"text" : "serial g 9600"
+					"patching_rect" : [ 310.5, 677.0, 90.0, 20.0 ],
+					"text" : "serial d 115200"
 				}
 
 			}
