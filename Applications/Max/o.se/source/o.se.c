@@ -320,7 +320,18 @@ void ovm_default(ose_bundle osevm, char *address)
 		ovm_delegate(x, x->delegation_outlet);
 		x->delegating = 0;
 	}else{
-		osevm_default(osevm, address);
+		//osevm_default(osevm, address);
+		ose_pushString(vm_s, address);
+	}
+}
+
+void ovm_funcall(ose_bundle osevm, char *address)
+{
+	ovm *x = (ovm *)*((intptr_t *)(osevm + OSEVM_CACHE_OFFSET_8));
+	if(!strncmp(address, "/!/output", 9)){
+		ovm_outputBundles(x);
+	}else{
+		osevm_funcall(osevm, address);
 	}
 }
 
@@ -330,12 +341,12 @@ void ovm_FullPacket(ovm *x, long _len, long _ptr)
 	char *ptr = (char *)_ptr;
 	const long inlet = proxy_getinlet((t_object *)x);
 	if(inlet == OVM_INLET_INPUT){
-		osevm_inputTopLevel(x->osevm, len, ptr);
+		osevm_inputMessages(x->osevm, len, ptr);
 		if(!x->delegating){
 			ovm_bindUserArgs(x);
 			*((intptr_t *)(x->osevm + OSEVM_CACHE_OFFSET_8)) =
 				(intptr_t)x;
-			/* osevm_run(x->osevm); */
+			osevm_run(x->osevm);
 			/* ovm_outputBundles(x); */
 		}
 	}else if(inlet == OVM_INLET_STACK){
@@ -367,19 +378,18 @@ void ovm_FullPacket(ovm *x, long _len, long _ptr)
 	}
 }
 
-void ovm_run(ovm *x)
-{
-	osevm_run(x->osevm);
-}
+/* void ovm_run(ovm *x) */
+/* { */
+/* 	osevm_run(x->osevm); */
+/* } */
 
-void ovm_output(ovm *x)
-{
-	ovm_outputBundles(x);
-}
+/* void ovm_output(ovm *x) */
+/* { */
+/* 	ovm_outputBundles(x); */
+/* } */
 
 void ovm_bang(ovm *x)
 {
-	ose_pushInt32(x->vm_i, 666);
 }
 
 void ovm_anything(ovm *x, t_symbol *msg, long argc, t_atom *argv)
@@ -731,9 +741,9 @@ void ext_main(void *r)
 
 	class_addmethod(c, (method)ovm_FullPacket, "FullPacket",
 			A_LONG, A_LONG, 0);
-	class_addmethod(c, (method)ovm_run, "run", 0);
-	class_addmethod(c, (method)ovm_output, "output", 0);
-	class_addmethod(c, (method)ovm_bang, "bang", 0);
+	/* class_addmethod(c, (method)ovm_run, "run", 0); */
+	/* class_addmethod(c, (method)ovm_output, "output", 0); */
+	/* class_addmethod(c, (method)ovm_bang, "bang", 0); */
 	class_addmethod(c, (method)ovm_anything, "anything", A_GIMME, 0);
 	class_addmethod(c, (method)ovm_list, "list", A_GIMME, 0);
 	class_addmethod(c, (method)ovm_float, "float", A_FLOAT, 0);

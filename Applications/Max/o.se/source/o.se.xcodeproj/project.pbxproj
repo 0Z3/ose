@@ -345,6 +345,7 @@
 				OTHER_CFLAGS = (
 					"-DOSEVM_ISKNOWNADDRESS=ovm_isKnownAddress",
 					"-DOSEVM_DEFAULT=ovm_default",
+					"-DOSEVM_FUNCALL=ovm_funcall",
 					"-DOSEVM_POPINPUTTOCONTROL=ovm_popInputToControl",
 					"-DOSE_CONF_VM_INPUT_SIZE=8192",
 					"-DOSE_CONF_VM_STACK_SIZE=8192",
@@ -388,6 +389,7 @@
 				OTHER_CFLAGS = (
 					"-DOSEVM_ISKNOWNADDRESS=ovm_isKnownAddress",
 					"-DOSEVM_DEFAULT=ovm_default",
+					"-DOSEVM_FUNCALL=ovm_funcall",
 					"-DOSEVM_POPINPUTTOCONTROL=ovm_popInputToControl",
 					"-DOSE_CONF_VM_INPUT_SIZE=8192",
 					"-DOSE_CONF_VM_STACK_SIZE=8192",
