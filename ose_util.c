@@ -24,6 +24,7 @@
 #include "ose.h"
 #include "ose_assert.h"
 #include "ose_util.h"
+#include "ose_match.h"
 
 ose_bool ose_isAddressChar(const char c)
 {
@@ -705,6 +706,18 @@ int32_t ose_getFirstOffsetForMatch(ose_constbundle bundle,
 int32_t ose_getFirstOffsetForPMatch(ose_constbundle bundle,
 				    const char * const addr)
 {
+	const char * const b = ose_getBundlePtr(bundle);
+	int32_t o = OSE_BUNDLE_HEADER_LEN;
+	const int32_t s = ose_readInt32(bundle, -4);
+	while(o < s){
+		//if(!strcmp(b + o + 4, addr)){
+		int po, ao;
+		int r = ose_match_pattern(b + o + 4, addr, &po, &ao);
+		if(r & OSE_MATCH_ADDRESS_COMPLETE){
+			return o;
+		}
+		o += ose_readInt32(bundle, o) + 4;
+	}
 	return 0;
 }
 

@@ -478,13 +478,11 @@ void ose_builtin_apply(ose_bundle osevm)
 			char itemtype = ose_getBundlePtr(vm_s)[lto];
 			const char * const p = ose_getBundlePtr(vm_s) + lpo;
 			if(ose_isStringType(itemtype) == OSETT_TRUE){
-				int32_t mo = ose_getFirstOffsetForMatch(vm_e, p);
+				int32_t mo = ose_getFirstOffsetForPMatch(vm_e, p);
 				if(mo >= OSE_BUNDLE_HEADER_LEN){
-					/*ose_pushString(vm_e, p); */
+					ose_pushString(vm_c, p);
+					ose_push(vm_c);
 					ose_dropAtOffset(vm_s, o);
-					/*ose_pickMatch(vm_e); */
-					/*ose_drop(vm_e); */
-					/*ose_moveElem(vm_e, vm_s); */
 					ose_copyElemAtOffset(mo, vm_e, vm_s);
 					continue;
 				}

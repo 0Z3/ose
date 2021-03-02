@@ -330,6 +330,13 @@ void ovm_funcall(ose_bundle osevm, char *address)
 	ovm *x = (ovm *)*((intptr_t *)(osevm + OSEVM_CACHE_OFFSET_8));
 	if(!strncmp(address, "/!/output", 9)){
 		ovm_outputBundles(x);
+	}else if(!strncmp(address, "/!/load", 7)){
+		if(ose_isStringType(ose_peekMessageArgType(x->vm_s)) == OSETT_TRUE){
+			ose_loadLib(x->osevm, ose_peekString(x->vm_s));
+		}else{
+			object_error((t_object *)x,
+				     "/!/load requires a path (string) on the stack");
+		}
 	}else{
 		osevm_funcall(osevm, address);
 	}
@@ -483,7 +490,13 @@ void ovm_assist(ovm *x, void *b, long m, long a, char *s)
 		if(x->prefix){
 			z++;
 			if(a < z){
-				sprintf(s, "Delegation: Messages that do not match the prefix %s\n", x->prefix);
+				sprintf(s, "Delegation: Messages that do not match the prefix %s", x->prefix);
+			}
+		}
+		if(x->delegate){
+			z++;
+			if(a < z){
+				sprintf(s, "Delegation: Strings that o.se does not respond to");
 			}
 		}
 	}else{
@@ -749,6 +762,7 @@ void ext_main(void *r)
 	class_addmethod(c, (method)ovm_float, "float", A_FLOAT, 0);
 	class_addmethod(c, (method)ovm_int, "int", A_LONG, 0);
 	class_addmethod(c, (method)ovm_assist, "assist", A_CANT, 0);
+	class_addmethod(c, (method)stdinletinfo, "inletinfo", A_CANT, 0);
 
 	class_register(CLASS_BOX, c);
 	ovm_class = c;
