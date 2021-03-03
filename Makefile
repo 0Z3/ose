@@ -68,8 +68,8 @@ sys/%.o: sys/%.c
 ######################################################################
 # REPL
 ######################################################################
-REPL_CFILES=$(CORE_CFILES) $(SYS_CFILES) $(VM_CFILES) $(LANG_CFILES)
-REPL_HFILES=$(CORE_HFILES) $(SYS_HFILES) $(VM_HFILES) $(LANG_HFILES)
+REPL_CFILES=$(CORE_CFILES) $(SYS_CFILES) $(VM_CFILES) $(LANG_CFILES) Applications/repl/linenoise.c
+REPL_HFILES=$(CORE_HFILES) $(SYS_HFILES) $(VM_HFILES) $(LANG_HFILES) Applications/repl/linenoise.h
 
 REPL_HOOKS= \
 	-DOSEVM_PREINPUT=oserepl_preInput \

@@ -30,7 +30,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <editline/readline.h>
+#include "linenoise.h"
 
 #include "ose.h"
 #include "ose_context.h"
@@ -81,6 +81,8 @@ static jmp_buf or_jmp_buf;
 static volatile sig_atomic_t or_assertion_failed = 0;
 static volatile sig_atomic_t or_quit = 0;
 static volatile int or_have_input = 0;
+static char *or_input_text = NULL;
+struct linenoiseState *or_linenoise_state = NULL;
 
 /* If we have access to a high precision timer,  */
 /* we use it to time the run() operation */
@@ -203,20 +205,6 @@ static struct or_opt
 		{}},
 };
 
-/* editline / readline */
-static void oserepl_rl_compgen_addContextBundleSfxs(const char * const text,
-						    const int textlen,
-						    const char * const pfx,
-						    const int32_t pfxlen,
-						    const char * const sym,
-						    const char **pfxs,
-						    const char **matches,
-						    const char **sfxs,
-						    int32_t *nmatches);
-static char *oserepl_rl_compgen(const char *text, int state);
-static char **oserepl_rl_compcb(const char *text, int start, int end);
-static void oserepl_rl_cb(char *line);
-
 /* UDP I/O */
 static int oserepl_udp_sock(const char * const addr,
 			    uint16_t port,
@@ -253,13 +241,13 @@ void oserepl_postControl(ose_bundle osevm)
 
 void oserepl_defun(ose_bundle osevm, char *address)
 {
-	rl_set_prompt(or_prompt_compile);
+	// change to compile prompt
 	osevm_defun(osevm, address);
 }
 
 void oserepl_endDefun(ose_bundle osevm, char *address)
 {
-	rl_set_prompt(or_prompt_normal);
+	// change from compile prompt back to normal
 	osevm_endDefun(osevm, address);
 }
 
@@ -298,235 +286,46 @@ int oserepl_isKnownAddress(const char * const address)
 	}
 }
 
-/* editline / readline */
-static void oserepl_rl_compgen_addContextBundleSfxs(const char * const text,
-						    const int textlen,
-						    const char * const pfx,
-						    const int32_t pfxlen,
-						    const char * const sym,
-						    const char **pfxs,
-						    const char **matches,
-						    const char **sfxs,
-						    int32_t *nmatches)
-{
-	const int32_t s = ose_readInt32(osevm, -4);
-	int32_t o = OSE_BUNDLE_HEADER_LEN;
-	while(o < s){
-		const int32_t ss =
-			ose_readInt32(osevm, o);
-		const char * const addr =
-			ose_readString(osevm, o + 4);
-		pfxs[*nmatches] = pfx;
-		matches[*nmatches] = sym;
-		sfxs[*nmatches] = addr;
-		(*nmatches)++;
-		o += ss + 4;
-	}
-}
+/* Linenoise callbacks */
 
-static char *oserepl_rl_compgen(const char *text, int state)
-{
-	int symtablen = ose_symtab_len();
-	static const char *matches[256];
-	static const char *pfxs[256];
-	static const char *sfxs[256];
-	static int nmatches;
-	static int curmatch;
-
-	if(state == 0){
-		nmatches = 0;
-		curmatch = 0;
-		int len = strlen(text);
-		if(*text != '/'){
-			return NULL;
-		}
-		if(!strncmp(text, "/!", 2)){
-			for(int i = 0; i < symtablen; i++){
-				char *sym = ose_symtab_getNthSym(i);
-				if(!strncmp(text + 2, sym, len - 2)){
-					pfxs[nmatches] = "/!";
-					matches[nmatches] = sym;
-					sfxs[nmatches] = NULL;
-					nmatches++;
-				}
-			}
-		}
-		if(!strncmp(text, "/$", 2)){
-			int32_t o = OSE_BUNDLE_HEADER_LEN;
-			int32_t s = ose_readInt32(vm_e, -4);
-			while(o < s){
-				int32_t ss = ose_readInt32(vm_e, o);
-				char *addy = ose_readString(vm_e, o + 4);
-				if(!strncmp(text + 2, addy, len - 2)){
-					pfxs[nmatches] = "/$";
-					matches[nmatches] = addy;
-					sfxs[nmatches] = NULL;
-					nmatches++;
-				}
-				o += ss + 4;
-			}
-		}
-		if(!strncmp(text, or_prefix, len)){
-			pfxs[nmatches] = or_prefix;
-			matches[nmatches] = NULL;
-			sfxs[nmatches] = NULL;
-			nmatches++;
-		}
-		if(!strncmp(text, or_prefix, or_prefixlen)){
-			for(int i = 0;
-			    i < sizeof(or_fns) / sizeof(struct or_fn);
-			    i++){
-				if(!strncmp(text + or_prefixlen,
-					    or_fns[i].sym,
-					    len - or_prefixlen)){
-					pfxs[nmatches] = or_prefix;
-					matches[nmatches] = or_fns[i].sym;
-					sfxs[nmatches] = NULL;
-					nmatches++;
-				}
-			}
-			if(!strncmp(text + or_prefixlen,
-				    "/print",
-				    6)){
-				oserepl_rl_compgen_addContextBundleSfxs(text,
-									len,
-									or_prefix,
-									or_prefixlen,
-									"/print",
-									pfxs,
-									matches,
-									sfxs,
-									&nmatches);
-			}
-		}
-		/* builtins that take a fixed set of suffixes */
-		if(!strncmp(text, "/>", 2)
-		   || !strncmp(text, "/>/", 3)){
-			oserepl_rl_compgen_addContextBundleSfxs(text,
-								len,
-								NULL,
-								0,
-								"/>",
-								pfxs,
-								matches,
-								sfxs,
-								&nmatches);
-		}else if(!strncmp(text, "/<", 2)){
-			if(text[2] == '/'){
-				oserepl_rl_compgen_addContextBundleSfxs(text,
-									len,
-									NULL,
-									0,
-									"/<",
-									pfxs,
-									matches,
-									sfxs,
-									&nmatches);
-			}else if(text[2] == 0){
-				oserepl_rl_compgen_addContextBundleSfxs(text,
-									len,
-									NULL,
-									0,
-									"/<",
-									pfxs,
-									matches,
-									sfxs,
-									&nmatches);
-				oserepl_rl_compgen_addContextBundleSfxs(text,
-									len,
-									NULL,
-									0,
-									"/<<",
-									pfxs,
-									matches,
-									sfxs,
-									&nmatches);
-			}else if(text[2] == '<'){
-				oserepl_rl_compgen_addContextBundleSfxs(text,
-									len,
-									NULL,
-									0,
-									"/<<",
-									pfxs,
-									matches,
-									sfxs,
-									&nmatches);
-			}
-		}else if(!strncmp(text, "/-", 2)
-			 || !strncmp(text, "/-/", 3)){
-			oserepl_rl_compgen_addContextBundleSfxs(text,
-								len,
-								NULL,
-								0,
-								"/-",
-								pfxs,
-								matches,
-								sfxs,
-								&nmatches);
-		}
-
-	}
-	if(curmatch == nmatches){
-		return NULL;
-	}else{
-		const char * const pfx = pfxs[curmatch];
-		const char * const sym = matches[curmatch];
-		const char * const sfx = sfxs[curmatch];
-		curmatch++;
-		const int len = (pfx ? strlen(pfx) : 0)
-			+ (sym ? strlen(sym) : 0)
-			+ (sfx ? strlen(sfx) : 0);
-		char *buf = malloc(len + 1);
-		memset(buf, 0, len + 1);
-		char *bufp = buf;
-		if(pfx){
-			bufp += sprintf(bufp, "%s", pfx);
-		}
-		if(sym){
-			bufp += sprintf(bufp, "%s", sym);
-		}
-		if(sfx){
-			bufp += sprintf(bufp, "%s", sfx);
-		}
-		return buf;
-	}
-}
-
-static char **oserepl_rl_compcb(const char *text, int start, int end)
-{
-	/* Don't do filename completion even if our generator finds no matches. */
-	/* rl_attempted_completion_over = 1; */
-
-	/* Note: returning nullptr here will make readline use the default */
-	/* filename oserepl_rl_compcb. */
-	return rl_completion_matches(text, oserepl_rl_compgen);
-}
-
-static void oserepl_rl_cb(char *line)
+void oserepl_linenoise_cb(struct linenoiseState *l, char *line, int len)
 {
 	if(!line){
+		or_input_text = NULL;
 		return;
 	}
-	or_have_input = 1;
-	
-	int len = strlen(line);
-	if(strlen(line) <= 0){
-		return;
-	}
-	
-	const char *linep = line;
-	int len_trimmed = len;
-	/* eat leading whitespace */
-	while(linep - line < len
-	      && (*linep  == ' '
-		  || *linep == '\t')){
-		linep++;
-		len_trimmed--;
-	}
-
-	add_history(line);
+	linenoiseHistoryAdd(line);
 	ose_pushMessage(vm_i, line, strlen(line), 0);
 	free(line);
+	or_have_input = 1;
+}
+
+void oserepl_linenoise_completion_cb(const char *str, linenoiseCompletions *c)
+{
+	size_t len = strlen(str);
+	char buf[128];
+	if(!strncmp(str, "/!", 2)){
+		int symtablen = ose_symtab_len();
+		for(int i = 0; i < symtablen; i++){
+			char *sym = ose_symtab_getNthSym(i);
+			if(!strncmp(str + 2, sym, len - 2)){
+				snprintf(buf, 128, "/!%s", sym);
+				linenoiseAddCompletion(c, buf);
+			}
+		}
+	}else if(!strncmp(str, "/$", 2)){
+		int32_t o = OSE_BUNDLE_HEADER_LEN;
+		int32_t s = ose_readInt32(vm_e, -4);
+		while(o < s){
+			int32_t ss = ose_readInt32(vm_e, o);
+			char *addy = ose_readString(vm_e, o + 4);
+			if(!strncmp(str + 2, addy, len - 2)){
+				snprintf(buf, 128, "/$%s", addy);
+				linenoiseAddCompletion(c, buf);
+			}
+			o += ss + 4;
+		}
+	}
 }
 
 /* REPL builtin functions accessable with /ose messages */
@@ -764,12 +563,10 @@ static void oserepl_sigHandler(int signo)
 		if(or_quit > 1){
 			exit(0);
 		}
-		siglongjmp(or_jmp_buf, 2);
 		break;
 	case SIGABRT:
 		or_have_input = 0;
 		or_assertion_failed = 1;
-		siglongjmp(or_jmp_buf, 1);
 		break;
 	}
 }
@@ -919,7 +716,7 @@ static int oserepl_opt_udp_output(int argnum, char **av)
 			or_udp_output_dests[or_udp_output_dest_count].ipaddr = strdup(tok);
 		}
 		uint16_t port = (uint16_t)strtol(p + 1, NULL, 10);
-		or_udp_output_dests[or_udp_output_dest_count].port = port;		
+		or_udp_output_dests[or_udp_output_dest_count].port = port;
 		*p = ':';
 		or_udp_output_dest_count++;
 		tok = strtok(NULL, ",");
@@ -946,6 +743,7 @@ static int oserepl_opt_version(int argnum, char **av)
 
 int main(int ac, char **av)
 {
+	int i;
 	or_prefix = strdup("/ose");
 	or_prefixlen = 4;
 	{
@@ -973,13 +771,6 @@ int main(int ac, char **av)
 			}
 		}
 	}
-	{
-		printf("Ose %s\n", ose_version);
-#ifdef OSE_DEBUG
-		printf("%s\n", ose_debug);
-#endif
-		printf("\n");
-	}
 
 	/* install signal handler */
 	if(signal(SIGINT, oserepl_sigHandler) == SIG_ERR){
@@ -997,19 +788,26 @@ int main(int ac, char **av)
 	const char *homedir = getenv("HOME");
 	char histfile[strlen(homedir) + 6];
 	sprintf(histfile, "%s/.ose", homedir);
-	int r = read_history(histfile);
+	linenoiseHistoryLoad(histfile);
 
 	/* set up ose environment and vm */
 	bytes = (char *)malloc(MAX_BUNDLE_LEN);
 	oserepl_init();
 
-	/* libedit */
-	rl_callback_handler_install(or_prompt, oserepl_rl_cb);
-	rl_attempted_completion_function = oserepl_rl_compcb;
-	/*rl_basic_word_break_characters = " \t\n\"\\'`@><=;|&{("; */
-	rl_basic_word_break_characters = " \t\n\"\\'`@=;|&{(";
-	rl_completion_append_character = 0;
-
+	/* linenoise setup */
+	linenoiseSetWordBreakChars(" \t\n\"\\'`@=;|&{(/");
+	linenoiseSetCompletionCallback(oserepl_linenoise_completion_cb);
+	struct linenoiseState l = linenoiseSetLineCallback(oserepl_linenoise_cb,
+							   or_prompt);
+	or_linenoise_state = &l;
+	{
+		linenoisePrintf(&l, "Ose %s\n", ose_version);
+#ifdef OSE_DEBUG
+		linenoisePrintf(&l, "%s\n", ose_debug);
+#endif
+		linenoisePrintf(&l, "\n");
+	}
+	
 	int maxfdp1 = oserepl_udp_openInputPorts();
 	fd_set rset;
 	FD_ZERO(&rset);
@@ -1020,25 +818,17 @@ int main(int ac, char **av)
 #endif
 
 	while(1){
-		switch(sigsetjmp(or_jmp_buf, 1)){
-		case 1: {
-			if(or_assertion_failed){
-				or_assertion_failed = 0;
-				oserepl_init();
-				fputs("\r  \r", stdout);
-				rl_on_new_line();
-				rl_forced_update_display();
-			}
+		if(or_assertion_failed){
+			or_assertion_failed = 0;
+			oserepl_init();
 		}
-			break;
-		case 2: {
+		if(or_quit){
 			goto cleanup_and_quit;
-		}
-			break;
 		}
 
 		maxfdp1 = 1;
-		for(int i = 0; i < or_udp_input_src_count; i++){
+		
+		for(i = 0; i < or_udp_input_src_count; i++){
 			FD_SET(or_udp_input_srcs[i].sock, &rset);
 			if(or_udp_input_srcs[i].sock + 1 > maxfdp1){
 				maxfdp1 = or_udp_input_srcs[i].sock + 1;
@@ -1049,10 +839,18 @@ int main(int ac, char **av)
 		if(nselect <= 0){
 			continue;
 		}
+
+		if(or_assertion_failed){
+			or_assertion_failed = 0;
+			oserepl_init();
+		}
+		if(or_quit){
+			goto cleanup_and_quit;
+		}
 		/*************************************************
 		 * read
 		 *************************************************/
-		for(int i = 0; i < or_udp_input_src_count; i++){
+		for(i = 0; i < or_udp_input_src_count; i++){
 			if(FD_ISSET(or_udp_input_srcs[i].sock, &rset)){
 				struct sockaddr_in ca;
 				socklen_t ca_len = sizeof(struct sockaddr_in);;
@@ -1068,19 +866,19 @@ int main(int ac, char **av)
 					ose_popAllDrop(vm_i);
 					or_have_input = 1;
 					uint32_t a = ntohl(ca.sin_addr.s_addr);
-					{
-						/* announce that we received */
-						/* a bundle over udp */
-						fputs("\r  \r", stdout);
-						printf("Received %d byte bundle "
-						       "from %d.%d.%d.%d:%d\n",
-						       len,
-						       (a & 0xFF000000) >> 24,
-						       (a & 0x00FF0000) >> 16,
-						       (a & 0x0000FF00) >> 8,
-						       a & 0x000000FF,
-						       or_udp_input_srcs[i].port);
-					}
+
+					/* announce that we received */
+					/* a bundle over udp */
+					linenoisePrintf(&l,
+							"Received %d byte bundle"
+							"from %d.%d.%d.%d\n",
+							len,
+							(a & 0xFF000000) >> 24,
+							(a & 0x00FF0000) >> 16,
+							(a & 0x0000FF00) >> 8,
+							a & 0x000000FF,
+							or_udp_input_srcs[i].port);
+
 					snprintf(or_udp_sender_addr, 16,
 						 "%d.%d.%d.%d",
 						 (a & 0xFF000000) >> 24,
@@ -1093,7 +891,7 @@ int main(int ac, char **av)
 		}
 
 		if(FD_ISSET(STDIN_FILENO, &rset)){
-			rl_callback_read_char();
+			linenoiseReadChar(&l);
 		}
 
 		int should_print = 0;
@@ -1102,7 +900,6 @@ int main(int ac, char **av)
 		 *************************************************/
 		uint64_t elapsed_time = 0;
 		if(or_have_input){
-			fputs("\r                \r", stdout);
 			elapsed_time = oserepl_run();
 			should_print = 1;
 		}
@@ -1110,44 +907,37 @@ int main(int ac, char **av)
 		/*************************************************
 		 * print
 		 *************************************************/
-		/* if(or_udp_port_output && should_print){ */
 		if(should_print){
 			oserepl_udp_send(vm_o);
 		}
 		ose_clear(vm_o);
 		
 		if(should_print){
-			printf(ANSI_COLOR_CYAN);
-			ose_pprintFullBundle(vm_s, vm_s, "Stack");
-			printf("%s\n", ose_peekString(vm_s));
-			ose_drop(vm_s);
+			linenoisePrintf(&l, "%s", ANSI_COLOR_CYAN);
+			int32_t n = ose_pprintFullBundle_impl(vm_s, NULL, 0, "Stack");
+			char buf[n + 1];
+			ose_pprintFullBundle_impl(vm_s, buf, n + 1, "Stack");
+			linenoisePrintf(&l, "\n%s", buf);
 			if(or_verbose){
 				int32_t s = ose_readInt32(vm_s, -4);
 				int32_t sa = ose_spaceAvailable(vm_s);
-				printf(ANSI_COLOR_YELLOW);
-				printf("\n");
-				printf("%d%% used, %d bytes free\n",
+				linenoisePrintf(&l, ANSI_COLOR_YELLOW);
+				linenoisePrintf(&l, "\n");
+				linenoisePrintf(&l, "%d%% used, %d bytes free\n",
 				       (int32_t)(s / (s + sa)), sa);
 #ifdef OSE_HAVE_HPTIMER
-				printf("Elapsed time: %"PRIo64"ns, %fms, %fs\n",
-				       elapsed_time,
-				       (double)elapsed_time / 1000000.,
-				       (double)elapsed_time / 1000000000.);
+				linenoisePrintf(&l,
+						"Elapsed time: %"PRIo64"ns, %fms, %fs\n",
+						elapsed_time,
+						(double)elapsed_time / 1000000.,
+						(double)elapsed_time / 1000000000.);
 #endif
 			}
-			printf(ANSI_COLOR_RESET);
+			linenoisePrintf(&l, "%s\n", ANSI_COLOR_RESET);
 			or_have_input = 0;
-			rl_on_new_line();
-			rl_forced_update_display();
 		}
 	}
  cleanup_and_quit:
-	r = write_history(histfile);
-	if(r){
-		fprintf(stderr,
-			"ose: couldn't write history file: "
-			"write_history(%s) returned %d\n",
-			histfile, r);
-	}
+	linenoiseHistorySave(histfile);
 	return 0;
 }
