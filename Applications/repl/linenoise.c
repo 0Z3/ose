@@ -576,12 +576,12 @@ void linenoiseCallCtrlGCallback(struct linenoiseState *l)
 void linenoiseChangePrompt(struct linenoiseState *l, const char *prompt)
 {
 	//int newplen = strlen(prompt);
-	l->buf[0] = 0;
-	l->len = 0;
-	l->pos = 0;
+	/* l->buf[0] = 0; */
+	/* l->len = 0; */
+	/* l->pos = 0; */
 	l->prompt = prompt;
 	l->plen = strlen(prompt);
-	refreshLine(l);
+	/* refreshLine(l); */
 }
 
 /* =========================== Line editing ================================= */
@@ -1386,11 +1386,9 @@ int linenoisePrintf(struct linenoiseState *l, const char * const fmt, ...)
 {
 	disableRawMode(l->ifd);
 	int i;
-	fprintf(stdout, "\b");
 	for(i = 0; i < l->plen; i++){
-		fprintf(stdout, "\b ");
+		fprintf(stdout, "\b \b");
 	}
-	fprintf(stdout, "\b");
 	va_list args;
 	va_start (args, fmt);
 	int n = vfprintf(stdout, fmt, args);
