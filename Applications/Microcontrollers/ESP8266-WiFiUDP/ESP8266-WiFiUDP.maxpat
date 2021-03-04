@@ -4,13 +4,13 @@
 		"appversion" : 		{
 			"major" : 8,
 			"minor" : 1,
-			"revision" : 1,
+			"revision" : 10,
 			"architecture" : "x64",
 			"modernui" : 1
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 34.0, 79.0, 1657.0, 1018.0 ],
+		"rect" : [ 34.0, 87.0, 1657.0, 1018.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -37,6 +37,7 @@
 		"tags" : "",
 		"style" : "",
 		"subpatcher_template" : "",
+		"assistshowspatchername" : 0,
 		"boxes" : [ 			{
 				"box" : 				{
 					"fontface" : 0,
@@ -47,7 +48,6 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 261.0, 760.5, 100.0, 24.0 ],
-					"presentation_linecount" : 2,
 					"saved_bundle_data" : [ 35, 98, 117, 110, 100, 108, 101, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 47, 33, 47, 108, 101, 100, 47, 98, 108, 117, 101, 0, 44, 0, 0, 0 ],
 					"saved_bundle_length" : 36,
 					"text" : "/!/led/blue"
@@ -73,7 +73,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "bang", "int" ],
-					"patching_rect" : [ 265.5, 629.5, 29.5, 20.0 ],
+					"patching_rect" : [ 265.5, 629.5, 29.5, 22.0 ],
 					"text" : "t b i"
 				}
 
@@ -97,7 +97,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "bang", "int" ],
-					"patching_rect" : [ 206.5, 406.0, 29.5, 20.0 ],
+					"patching_rect" : [ 206.5, 406.0, 29.5, 22.0 ],
 					"text" : "t b i"
 				}
 
@@ -121,7 +121,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "bang", "int" ],
-					"patching_rect" : [ 139.5, 155.0, 29.5, 20.0 ],
+					"patching_rect" : [ 139.5, 155.0, 29.5, 22.0 ],
 					"text" : "t b i"
 				}
 
@@ -133,7 +133,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 1087.5, 786.0, 489.0, 114.0 ],
+					"patching_rect" : [ 1087.5, 786.0, 489.0, 127.0 ],
 					"text" : "call our uniform function which puts a value between [0,1] on the stack\npush the value 1000. on the stack\nmultiply them together\npush the string /r on the stack\npush the string /r onto the end of the message that contains the results of the multiplication\nmove the string /r from the end of the message to the address\nduplicate the message on the stack\nmove the copy we just made to the output bundle\ncall our sleep function, which calls arduino's delay() function"
 				}
 
@@ -145,7 +145,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 1104.5, 376.0, 314.0, 162.0 ],
+					"patching_rect" : [ 1104.5, 376.0, 314.0, 181.0 ],
 					"text" : "\n\n--lookup the value of pin 16 and put it on the stack\n--assign the value on the stack to /r in the environment\n--lookup /r and put it on the stack\n--assign the value on the stack to pin 0 (red LED)\n--lookup /r again and put it on the stack\n--push 0 onto the stack\n--call the eql function which will consume both stack\n  values and replace them with a 1 if they are the same,\n  or a 0 if they are different.\n--lookup /r again and put it on the stack\n--move the value on the stack to the output bundle"
 				}
 
@@ -157,7 +157,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 1215.25, 629.5, 233.5, 42.0 ],
+					"patching_rect" : [ 1215.25, 629.5, 233.5, 47.0 ],
 					"text" : "This calls the /ping function we implemented which will respond on port 1000 with the local address on the device:"
 				}
 
@@ -169,7 +169,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 567.0, 724.0, 375.0, 54.0 ],
+					"patching_rect" : [ 567.0, 724.0, 375.0, 60.0 ],
 					"text" : "This example chooses a random number and multiplies it by 1000 to get a duration in miliseconds. It then puts a copy of that value in the output bundle, and sleeps for that duration, sending the output bundle back to use after the duration has elapsed."
 				}
 
@@ -181,7 +181,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 473.0, 298.0, 504.0, 30.0 ],
+					"patching_rect" : [ 473.0, 298.0, 504.0, 33.0 ],
 					"text" : "These two examples read a value from one pin, and assign it to another. For example, you might connect a button to pin 16, which will cause it to turn the LED on pin 0 or 2 on and off."
 				}
 
@@ -192,7 +192,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 423.0, 87.0, 207.0, 18.0 ],
+					"patching_rect" : [ 423.0, 87.0, 207.0, 20.0 ],
 					"text" : "Other examples of the \"default\" hook:"
 				}
 
@@ -205,7 +205,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 14.0, 760.5, 35.0, 22.0 ],
+					"patching_rect" : [ 14.0, 760.5, 35.0, 24.0 ],
 					"text" : "4"
 				}
 
@@ -218,7 +218,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 14.0, 597.5, 35.0, 22.0 ],
+					"patching_rect" : [ 14.0, 597.5, 35.0, 24.0 ],
 					"text" : "3"
 				}
 
@@ -231,7 +231,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 14.0, 373.0, 35.0, 22.0 ],
+					"patching_rect" : [ 14.0, 373.0, 35.0, 24.0 ],
 					"text" : "2"
 				}
 
@@ -244,7 +244,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 14.0, 124.0, 35.0, 22.0 ],
+					"patching_rect" : [ 14.0, 124.0, 35.0, 24.0 ],
 					"text" : "1"
 				}
 
@@ -256,7 +256,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 146.0, 724.5, 264.0, 30.0 ],
+					"patching_rect" : [ 146.0, 724.5, 264.0, 33.0 ],
 					"text" : "Without a value, our implementation of the /led function toggles the state of the LED."
 				}
 
@@ -284,7 +284,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 126.0, 561.5, 264.0, 30.0 ],
+					"patching_rect" : [ 126.0, 561.5, 266.0, 33.0 ],
 					"text" : "This calls the functions \"/led/red\" and \"/led/blue\" that we installed in the environment. "
 				}
 
@@ -296,7 +296,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 94.0, 336.0, 264.0, 30.0 ],
+					"patching_rect" : [ 94.0, 336.0, 264.0, 33.0 ],
 					"text" : "We overloaded Ose's assignment address (/@) to mean \"assign a value to a pin."
 				}
 
@@ -308,7 +308,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 58.0, 87.0, 331.0, 30.0 ],
+					"patching_rect" : [ 58.0, 87.0, 331.0, 33.0 ],
 					"text" : "This makes use of our implementation of the \"default\" hook, for processing address strings that Ose doesn't respond to."
 				}
 
@@ -321,7 +321,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 14.0, 42.0, 378.0, 18.0 ],
+					"patching_rect" : [ 14.0, 42.0, 378.0, 20.0 ],
 					"text" : "Four ways of toggling the onboard LED (pin 13 on Adafruit's Feather):"
 				}
 
@@ -348,7 +348,7 @@
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 1215.25, 713.0, 185.0, 20.0 ],
+					"patching_rect" : [ 1215.25, 713.0, 185.0, 22.0 ],
 					"text" : "udpsend 192.168.178.255 10000"
 				}
 
@@ -360,7 +360,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 582.0, 904.5, 351.0, 42.0 ],
+					"patching_rect" : [ 582.0, 904.5, 351.0, 47.0 ],
 					"text" : "Note: o.downcast is necessary here, because our sketch only supports 32-bit floats, and odot's default floating point type is 64-bits (double)."
 				}
 
@@ -372,7 +372,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 943.0, 786.0, 137.0, 114.0 ],
+					"patching_rect" : [ 943.0, 786.0, 137.0, 127.0 ],
 					"text" : "/!/uniform\n1000.\n/!/mul\n/r\n/!/push\n/!/string/toaddress/move\n/!/dup\n/-\n/!/sleep"
 				}
 
@@ -387,7 +387,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 567.0, 786.0, 366.0, 65.0 ],
+					"patching_rect" : [ 567.0, 786.0, 366.0, 66.0 ],
 					"saved_bundle_data" : [ 35, 98, 117, 110, 100, 108, 101, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 47, 33, 47, 109, 117, 108, 0, 0, 44, 115, 100, 0, 47, 33, 47, 117, 110, 105, 102, 111, 114, 109, 0, 0, 64, -113, 64, 0, 0, 0, 0, 0, 0, 0, 0, 44, 47, 33, 47, 115, 116, 114, 105, 110, 103, 47, 116, 111, 97, 100, 100, 114, 101, 115, 115, 47, 109, 111, 118, 101, 0, 0, 0, 0, 44, 115, 115, 0, 47, 114, 0, 0, 47, 33, 47, 112, 117, 115, 104, 0, 0, 0, 0, 16, 47, 45, 0, 0, 44, 115, 0, 0, 47, 33, 47, 100, 117, 112, 0, 0, 0, 0, 0, 16, 47, 33, 47, 115, 108, 101, 101, 112, 0, 0, 0, 0, 44, 0, 0, 0 ],
 					"saved_bundle_length" : 140,
 					"text" : "/!/mul : [\"/!/uniform\", 1000.],\n/!/string/toaddress/move : [\"/r\", \"/!/push\"],\n/- : \"/!/dup\",\n/!/sleep"
@@ -401,7 +401,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "FullPacket" ],
-					"patching_rect" : [ 567.0, 879.5, 69.0, 20.0 ],
+					"patching_rect" : [ 567.0, 879.5, 69.0, 22.0 ],
 					"text" : "o.downcast"
 				}
 
@@ -413,7 +413,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 691.0, 629.5, 468.0, 54.0 ],
+					"patching_rect" : [ 691.0, 629.5, 468.0, 60.0 ],
 					"text" : "This calls the function \"/uniform\" that we implemented that puts a uniform random value between [0,1], generated by the ESP32's true random number generator, on the stack. The address \"/-\" transfers the message from the stack to the output bundle, which is automatically sent back to us when the bundle has been fully processed."
 				}
 
@@ -437,7 +437,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "FullPacket" ],
-					"patching_rect" : [ 126.0, 663.5, 169.0, 20.0 ],
+					"patching_rect" : [ 126.0, 663.5, 169.0, 22.0 ],
 					"text" : "o.pack /!/led/red 0 /!/led/blue 0"
 				}
 
@@ -465,7 +465,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 563.0, 391.0, 202.0, 30.0 ],
+					"patching_rect" : [ 563.0, 391.0, 202.0, 33.0 ],
 					"text" : "Set the value of digital pin 16 (onboard LED) to the value of pin 0"
 				}
 
@@ -489,7 +489,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "bang" ],
-					"patching_rect" : [ 792.5, 367.0, 56.0, 20.0 ],
+					"patching_rect" : [ 792.5, 367.0, 56.0, 22.0 ],
 					"text" : "metro 20"
 				}
 
@@ -501,7 +501,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 1048.5, 342.0, 345.0, 30.0 ],
+					"patching_rect" : [ 1048.5, 342.0, 345.0, 33.0 ],
 					"text" : "This example reads the value of pin 16, and uses it to turn one LED on, and the other off."
 				}
 
@@ -516,7 +516,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 792.5, 391.0, 244.0, 65.0 ],
+					"patching_rect" : [ 792.5, 391.0, 244.0, 66.0 ],
 					"saved_bundle_data" : [ 35, 98, 117, 110, 100, 108, 101, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 47, 64, 47, 114, 0, 0, 0, 0, 44, 115, 0, 0, 47, 36, 47, 100, 47, 49, 54, 0, 0, 0, 0, 20, 47, 64, 47, 100, 47, 48, 0, 0, 44, 115, 0, 0, 47, 36, 47, 114, 0, 0, 0, 0, 0, 0, 0, 36, 47, 64, 47, 100, 47, 50, 0, 0, 44, 115, 105, 115, 0, 0, 0, 0, 47, 36, 47, 114, 0, 0, 0, 0, 0, 0, 0, 0, 47, 33, 47, 101, 113, 108, 0, 0, 0, 0, 0, 16, 47, 45, 0, 0, 44, 115, 0, 0, 47, 36, 47, 114, 0, 0, 0, 0 ],
 					"saved_bundle_length" : 124,
 					"text" : "/@/r : \"/$/d/16\",\n/@/d/0 : \"/$/r\",\n/@/d/2 : [\"/$/r\", 0, \"/!/eql\"],\n/- : \"/$/r\""
@@ -542,7 +542,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "FullPacket" ],
-					"patching_rect" : [ 94.0, 436.0, 142.0, 20.0 ],
+					"patching_rect" : [ 94.0, 436.0, 142.0, 22.0 ],
 					"text" : "o.pack /@/d/0 1 /@/d/2 1"
 				}
 
@@ -566,7 +566,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "bang" ],
-					"patching_rect" : [ 473.0, 367.0, 56.0, 20.0 ],
+					"patching_rect" : [ 473.0, 367.0, 56.0, 22.0 ],
 					"text" : "metro 20"
 				}
 
@@ -595,7 +595,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 688.0, 109.0, 191.0, 30.0 ],
+					"patching_rect" : [ 688.0, 109.0, 191.0, 33.0 ],
 					"text" : "Set the value of all the digital pins to 1 (HIGH), and get their values"
 				}
 
@@ -610,7 +610,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 688.0, 142.0, 85.0, 38.0 ],
+					"patching_rect" : [ 688.0, 142.0, 86.0, 38.0 ],
 					"saved_bundle_data" : [ 35, 98, 117, 110, 100, 108, 101, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 47, 100, 47, 42, 0, 0, 0, 0, 44, 105, 0, 0, 0, 0, 0, 1, 0, 0, 0, 12, 47, 100, 47, 42, 0, 0, 0, 0, 44, 0, 0, 0 ],
 					"saved_bundle_length" : 52,
 					"text" : "/d/* : 1,\n/d/*"
@@ -624,7 +624,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 544.0, 109.0, 125.0, 30.0 ],
+					"patching_rect" : [ 544.0, 109.0, 125.0, 33.0 ],
 					"text" : "Get the value of digital pins 13 and 21"
 				}
 
@@ -636,7 +636,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 423.0, 109.0, 105.0, 30.0 ],
+					"patching_rect" : [ 423.0, 109.0, 105.0, 33.0 ],
 					"text" : "Get the value of all the analog pins"
 				}
 
@@ -676,7 +676,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "FullPacket" ],
-					"patching_rect" : [ 58.0, 184.0, 111.0, 20.0 ],
+					"patching_rect" : [ 58.0, 184.0, 111.0, 22.0 ],
 					"text" : "o.pack /d/0 1 /d/2 1"
 				}
 
@@ -717,7 +717,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 1400.0, 32.0, 149.0, 20.0 ],
+					"patching_rect" : [ 1400.0, 32.0, 149.0, 22.0 ],
 					"text" : "udpreceive 10001 CNMAT"
 				}
 
@@ -728,7 +728,7 @@
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 58.0, 935.0, 178.0, 20.0 ],
+					"patching_rect" : [ 58.0, 935.0, 178.0, 22.0 ],
 					"text" : "udpsend 192.168.178.61 10000"
 				}
 
@@ -740,7 +740,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 1048.5, 376.0, 345.0, 162.0 ],
+					"patching_rect" : [ 1048.5, 376.0, 345.0, 181.0 ],
 					"text" : "Note, the address is the last part of a message to be evaluated.\n\n/$/d/16\n/@/r \n/$/r\n/@/d/0\n/$/r\n0\n/!/eql \n\n\n/$/r \n/- "
 				}
 
