@@ -86,7 +86,7 @@ ose: LDFLAGS=-lm -rdynamic
 ose: HOOKS=$(REPL_HOOKS)
 ose: CMD=$(CC) $(CFLAGS) $(LDFLAGS) -o ose \
 	$(HOOKS) \
-	$(REPL_CFILES) Applications/repl/ose_repl.c -ledit -ldl
+	$(REPL_CFILES) Applications/repl/ose_repl.c -ldl
 ose: $(REPL_CFILES) $(REPL_HFILES) Applications/repl/ose_repl.c
 	$(CMD)
 
@@ -95,7 +95,7 @@ debug: LDFLAGS=-lm -rdynamic
 debug: HOOKS=$(REPL_HOOKS)
 debug: CMD=$(CC) $(CFLAGS) $(LDFLAGS) -o ose \
 	$(HOOKS) \
-	$(REPL_CFILES) Applications/repl/ose_repl.c -ledit -ldl
+	$(REPL_CFILES) Applications/repl/ose_repl.c -ldl
 debug: $(REPL_CFILES) $(REPL_HFILES) Applications/repl/ose_repl.c
 	$(CMD)
 
