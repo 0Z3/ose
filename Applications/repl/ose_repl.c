@@ -61,7 +61,7 @@
 
 /* Data and pointers for the main bundle and vm */
 static char *bytes;
-static ose_bundle bundle, osevm, vm_i, vm_s, vm_e, vm_c, vm_d, vm_o;
+static ose_bundle bundle, osevm, vm_i, vm_s, vm_e, vm_c, vm_d, vm_o, vm_r;
 
 /* REPL options */
 static int or_verbose = 0;
@@ -90,9 +90,9 @@ struct linenoiseState *or_linenoise_state = NULL;
 static ose_hptimer or_hptimer;
 #endif
 
-static const char *or_prompt_normal = "# ";
-static const char *or_prompt_compile = "(compile)# ";
-static const char *or_prompt = "# ";
+const char * const or_prompt = "# ";
+/* static const char *or_prompt_normal = "# "; */
+/* static const char *or_prompt_compile = "#:: "; */
 
 /* UDP I/O */
 struct or_udp_input
@@ -288,44 +288,87 @@ int oserepl_isKnownAddress(const char * const address)
 
 /* Linenoise callbacks */
 
+void oserepl_line_cb(ose_bundle osevm)
+{
+	int32_t len = ose_peekInt32(vm_r);
+	ose_drop(vm_r);
+	char *line = ose_peekString(vm_r);
+	linenoiseHistoryAdd(line);
+	ose_pushMessage(vm_i, line, len, 0);
+	ose_pushInt32(vm_r, len);
+	ose_pushInt32(vm_r, 1);
+}
+
 void oserepl_linenoise_cb(struct linenoiseState *l, char *line, int len)
 {
 	if(!line){
 		or_input_text = NULL;
 		return;
 	}
-	linenoiseHistoryAdd(line);
-	ose_pushMessage(vm_i, line, strlen(line), 0);
+	
+	int32_t o = ose_getFirstOffsetForMatch(vm_r, "/callback/line");
+	o += 4 + 16 + 4;
+	ose_pushMessage(vm_r, "/linenoiseState", strlen("/linenoiseState"), 1,
+			OSETT_CFUNCTION, (ose_fn)l);
+	ose_pushMessage(vm_r, "/line", strlen("/line"), 1, OSETT_STRING, line);
+	ose_pushMessage(vm_r, "/len", strlen("/len"), 1, OSETT_INT32, len);
+	ose_callCFn(vm_r, o + 4, osevm);
+	or_have_input = ose_popInt32(vm_r);
+	ose_drop(vm_r);
+	ose_drop(vm_r);
+	ose_drop(vm_r);
 	free(line);
-	or_have_input = 1;
 }
 
-void oserepl_linenoise_completion_cb(const char *str, linenoiseCompletions *c)
+void oserepl_compgen_cb(ose_bundle osevm)
 {
-	size_t len = strlen(str);
-	char buf[128];
+	const char * const str = ose_peekString(vm_r);
+	const size_t len = strlen(str);
+	ose_pushBundle(vm_r);
+	char buf[256];
 	if(!strncmp(str, "/!", 2)){
-		int symtablen = ose_symtab_len();
-		for(int i = 0; i < symtablen; i++){
-			char *sym = ose_symtab_getNthSym(i);
+		const int symtablen = ose_symtab_len();
+		int i;
+		for(i = 0; i < symtablen; i++){
+			const char *sym = ose_symtab_getNthSym(i);
 			if(!strncmp(str + 2, sym, len - 2)){
 				snprintf(buf, 128, "/!%s", sym);
-				linenoiseAddCompletion(c, buf);
+				ose_pushString(vm_r, buf);
+				ose_push(vm_r);
 			}
 		}
 	}else if(!strncmp(str, "/$", 2)){
 		int32_t o = OSE_BUNDLE_HEADER_LEN;
 		int32_t s = ose_readInt32(vm_e, -4);
 		while(o < s){
-			int32_t ss = ose_readInt32(vm_e, o);
-			char *addy = ose_readString(vm_e, o + 4);
+			const int32_t ss = ose_readInt32(vm_e, o);
+			const char * const addy = ose_readString(vm_e, o + 4);
 			if(!strncmp(str + 2, addy, len - 2)){
 				snprintf(buf, 128, "/$%s", addy);
-				linenoiseAddCompletion(c, buf);
+				ose_pushString(vm_r, buf);
+				ose_push(vm_r);
 			}
 			o += ss + 4;
 		}
 	}
+}
+
+void oserepl_linenoise_compgen_cb(const char *str, linenoiseCompletions *c)
+{
+	int32_t o = ose_getFirstOffsetForMatch(vm_r, "/callback/compgen");
+	o += 4 + 20 + 4;
+	ose_pushString(vm_r, str);
+	ose_callCFn(vm_r, o + 4, osevm);
+	ose_countItems(vm_r);
+	const int32_t n = ose_popInt32(vm_r);
+	int i;
+	for(i = 0; i < n; i++){
+		ose_pop(vm_r);
+		linenoiseAddCompletion(c, ose_peekString(vm_r));
+		ose_drop(vm_r);
+	}
+	ose_drop(vm_r);
+	ose_drop(vm_r);
 }
 
 /* REPL builtin functions accessable with /ose messages */
@@ -582,6 +625,8 @@ static void oserepl_init(void)
 	vm_c = OSEVM_CONTROL(osevm);
         vm_d = OSEVM_DUMP(osevm);
 	vm_o = OSEVM_OUTPUT(osevm);
+	ose_pushContextMessage(osevm, 16384, "/_r");
+	vm_r = ose_enter(osevm, "/_r");
 }
 
 static uint64_t oserepl_run(void)
@@ -796,10 +841,18 @@ int main(int ac, char **av)
 
 	/* linenoise setup */
 	linenoiseSetWordBreakChars(" \t\n\"\\'`@=;|&{(/");
-	linenoiseSetCompletionCallback(oserepl_linenoise_completion_cb);
+	linenoiseSetCompletionCallback(oserepl_linenoise_compgen_cb);
 	struct linenoiseState l = linenoiseSetLineCallback(oserepl_linenoise_cb,
 							   or_prompt);
 	or_linenoise_state = &l;
+	/* ose_pushMessage(vm_r, "/prompt", strlen("/prompt"), 1, */
+	/* 		OSETT_BLOB, or_maxpromptlen, */
+	/* 		or_defprompt); */
+	ose_pushMessage(vm_r, "/callback/line", strlen("/callback/line"), 1,
+			OSETT_CFUNCTION, oserepl_line_cb);
+	ose_pushMessage(vm_r, "/callback/compgen", strlen("/callback/compgen"), 1,
+			OSETT_CFUNCTION, oserepl_compgen_cb);
+
 	{
 		linenoisePrintf(&l, "Ose %s\n", ose_version);
 #ifdef OSE_DEBUG
