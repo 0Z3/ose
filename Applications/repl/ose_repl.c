@@ -303,7 +303,9 @@ void oserepl_linenoise_cb(struct linenoiseState *l, char *line, int len)
 			OSETT_ALIGNEDPTR, (ose_fn)l);
 	ose_pushMessage(vm_r, "/line", strlen("/line"), 1, OSETT_STRING, line);
 	ose_pushMessage(vm_r, "/len", strlen("/len"), 1, OSETT_INT32, len);
-	ose_callCFn(vm_r, o + 4, osevm);
+	//ose_callCFn(vm_r, o + 4, osevm);
+	ose_fn f = (ose_fn)ose_readAlignedPtr(vm_r, o + 4);
+	f(osevm);
 	or_have_input = ose_popInt32(vm_r);
 	ose_drop(vm_r);
 	ose_drop(vm_r);
@@ -349,7 +351,9 @@ void oserepl_linenoise_compgen_cb(const char *str, linenoiseCompletions *c)
 	int32_t o = ose_getFirstOffsetForMatch(vm_r, "/callback/compgen");
 	o += 4 + 20 + 4;
 	ose_pushString(vm_r, str);
-	ose_callCFn(vm_r, o + 4, osevm);
+	/* ose_callCFn(vm_r, o + 4, osevm); */
+	ose_fn f = (ose_fn)ose_readAlignedPtr(vm_r, o + 4);
+	f(osevm);
 	ose_countItems(vm_r);
 	const int32_t n = ose_popInt32(vm_r);
 	int i;

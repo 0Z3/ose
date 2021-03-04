@@ -202,12 +202,11 @@ int32_t ose_writeTimetag(ose_bundle bundle,
 			 uint32_t sec,
 			 uint32_t fsec);
 #endif
-ose_fn ose_readCFn(ose_constbundle bundle, int32_t offset);
-int32_t ose_writeCFn(ose_bundle bundle,
-		     const int32_t offset,
-		     const ose_fn fn);
-void ose_alignCFn(ose_bundle bundle, const int32_t offset);
-void ose_callCFn(ose_bundle bundle, const int32_t offset, ose_bundle arg);
+void *ose_readAlignedPtr(ose_constbundle bundle, const int32_t offset);
+int32_t ose_writeAlignedPtr(ose_bundle bundle,
+			    const int32_t offset,
+			    const void *ptr);
+void ose_alignPtr(ose_bundle bundle, const int32_t offset);
 
 
 /**

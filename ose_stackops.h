@@ -302,7 +302,8 @@ void ose_pushInfinitum(ose_bundle bundle);
 
 
 
-void ose_pushCFn(ose_bundle bundle, const ose_fn fn);
+
+void ose_pushAlignedPtr(ose_bundle bundle, const void *ptr);
 
 
 

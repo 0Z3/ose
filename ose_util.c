@@ -574,7 +574,7 @@ int32_t ose_writeTimetag(ose_bundle bundle,
 }
 #endif
 
-ose_fn ose_readCFn(ose_constbundle bundle, const int32_t offset)
+void *ose_readAlignedPtr(ose_constbundle bundle, const int32_t offset)
 {
 	const char * b = ose_getBundlePtr(bundle);
 	ose_assert(b);
@@ -582,13 +582,12 @@ ose_fn ose_readCFn(ose_constbundle bundle, const int32_t offset)
 	int32_t a = ose_readInt32(bundle, offset);
 	intptr_t i = 0;
 	i = *((intptr_t *)(b + 4 + a));
-	ose_fn f = (ose_fn)i;
-	return f;
+	return (void *)i;
 }
 
-int32_t ose_writeCFn(ose_bundle bundle,
-		     const int32_t offset,
-		     const ose_fn fn)
+int32_t ose_writeAlignedPtr(ose_bundle bundle,
+			    const int32_t offset,
+			    const void *ptr)
 {
 	char *b = ose_getBundlePtr(bundle);
 	ose_assert(b);
@@ -599,11 +598,11 @@ int32_t ose_writeCFn(ose_bundle bundle,
 		a++;
 	}
 	*((int32_t *)b) = ose_htonl(a);
-	*((intptr_t *)(b + 4 + a)) = (intptr_t)fn;
+	*((intptr_t *)(b + 4 + a)) = (intptr_t)ptr;
 	return OSE_INTPTR2;
 }
 
-void ose_alignCFn(ose_bundle bundle, const int32_t offset)
+void ose_alignPtr(ose_bundle bundle, const int32_t offset)
 {
 	char *b = ose_getBundlePtr(bundle);
 	ose_assert(b);
@@ -617,13 +616,6 @@ void ose_alignCFn(ose_bundle bundle, const int32_t offset)
 		*((int32_t *)b) = ose_htonl(anew);
 		memmove(b + 4 + anew, b + 4 + aold, sizeof(intptr_t));
 	}
-}
-
-void ose_callCFn(ose_bundle bundle, const int32_t offset, ose_bundle arg)
-{
-	ose_alignCFn(bundle, offset);
-	ose_fn f = ose_readCFn(bundle, offset);
-	f(arg);
 }
 
 int32_t ose_getLastBundleElemOffset(ose_constbundle bundle)
@@ -1078,13 +1070,9 @@ int32_t ose_vwriteMessage(ose_bundle bundle,
 #endif
 		case OSETT_ALIGNEDPTR: {
 			const ose_fn fn = va_arg(ap, ose_fn);
-#ifdef OSE_PROVIDE_TYPE_CFUNCTION
-			ose_writeByte(bundle, tto++, OSETT_ALIGNEDPTR);
-#else
 			ose_writeByte(bundle, tto++, OSETT_BLOB);
-#endif
 			plo += ose_writeInt32(bundle, plo, OSE_INTPTR2);
-			plo += ose_writeCFn(bundle, plo, fn);
+			plo += ose_writeAlignedPtr(bundle, plo, (void *)fn);
 			break;
 		}
 		}

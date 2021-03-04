@@ -362,13 +362,13 @@ void ose_pushInfinitum(ose_bundle bundle)
 }
 #endif
 
-void ose_pushCFn(ose_bundle bundle, const ose_fn fn)
+void ose_pushAlignedPtr(ose_bundle bundle, const void *ptr)
 {
 	ose_pushBlob(bundle, OSE_INTPTR2, NULL);
 	int32_t o = ose_readInt32(bundle, -4);
 	o -= OSE_INTPTR2;
 	ose_assert(o > OSE_BUNDLE_HEADER_LEN);
-	ose_writeCFn(bundle, o, fn);
+	ose_writeAlignedPtr(bundle, o, ptr);
 }
 
 void ose_pushMessage(ose_bundle bundle,

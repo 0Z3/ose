@@ -507,8 +507,8 @@ void ose_builtin_apply(ose_bundle osevm)
 				}else{
 					/* blob is not a bundle */
 					int32_t o = p - ose_getBundlePtr(vm_s);
-					ose_alignCFn(vm_s, o + 4);
-					ose_fn f = ose_readCFn(vm_s, o + 4);
+					ose_alignPtr(vm_s, o + 4);
+					ose_fn f = (ose_fn)ose_readAlignedPtr(vm_s, o + 4);
 					if(f){
 						ose_drop(vm_s);
 						f(osevm);
