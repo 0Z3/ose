@@ -186,10 +186,10 @@ static void ovm_outputBundles(ovm *x)
 		int32_t s;
 		int32_t route_bundle_size = 0;
 		while(o < os){
-			s = ose_readInt32(op, o);
+			s = ose_readInt32(x->vm_o, o);
 			int32_t matched = s & 0x80000000;
 			s &= 0x7FFFFFFF;
-			ose_writeInt32(op, o, s);
+			ose_writeInt32(x->vm_o, o, s);
 			int32_t po = 0, ao = 0;
 		        int32_t r = ose_match_pattern(op + o + 4, addr,
 						      &po, &ao);
@@ -201,7 +201,7 @@ static void ovm_outputBundles(ovm *x)
 				route_bundle_size += ns + 4;
 				matched = 0x80000000;
 			}
-			ose_writeInt32(op, o, s | matched);
+			ose_writeInt32(x->vm_o, o, s | matched);
 			o += s + 4;
 		}
 		ose_writeInt32(x->vm_d, dbo,
@@ -211,16 +211,16 @@ static void ovm_outputBundles(ovm *x)
 	{
 		ose_pushBundle(x->vm_d);
 		int32_t dbo = ose_getLastBundleElemOffset(x->vm_d);
-		const char * const op = ose_getBundlePtr(x->vm_o);
+		/* const char * const op = ose_getBundlePtr(x->vm_o); */
 		int32_t os = ose_readInt32(x->vm_o, -4);
 		int32_t o = OSE_BUNDLE_HEADER_LEN;
 		int32_t s;
 		int32_t route_bundle_size = 0;
 		while(o < os){
-			s = ose_readInt32(op, o);
+			s = ose_readInt32(x->vm_o, o);
 			int32_t matched = s & 0x80000000;
 			s &= 0x7FFFFFFF;
-			ose_writeInt32(op, o, s);
+			ose_writeInt32(x->vm_o, o, s);
 			if(!matched){
 				ose_copyElemAtOffset(o, x->vm_o, x->vm_d);
 				route_bundle_size += s + 4;
@@ -256,7 +256,8 @@ void ovm_delegate(ovm *x, void *outlet)
 
 void ovm_popInputToControl(ose_bundle osevm)
 {
-	ovm *x = (ovm *)*((intptr_t *)(osevm + OSEVM_CACHE_OFFSET_8));
+	ovm *x = (ovm *)*((intptr_t *)(ose_getBundlePtr(osevm)
+				       + OSEVM_CACHE_OFFSET_8));
 	ose_bundle vm_i = OSEVM_INPUT(osevm);
 	ose_bundle vm_c = OSEVM_CONTROL(osevm);
 	ose_bundle vm_e = OSEVM_ENV(osevm);
@@ -297,7 +298,8 @@ void ovm_default(ose_bundle osevm, char *address)
 		osevm_default(osevm, address);
 		return;
 	}
-	ovm *x = (ovm *)*((intptr_t *)(osevm + OSEVM_CACHE_OFFSET_8));
+	ovm *x = (ovm *)*((intptr_t *)(ose_getBundlePtr(osevm)
+				       + OSEVM_CACHE_OFFSET_8));
 	ose_bundle vm_s = OSEVM_STACK(osevm);
 	ose_bundle vm_e = OSEVM_ENV(osevm);
 	ose_bundle vm_g = ose_enter(osevm, "/_g");
@@ -327,7 +329,8 @@ void ovm_default(ose_bundle osevm, char *address)
 
 void ovm_funcall(ose_bundle osevm, char *address)
 {
-	ovm *x = (ovm *)*((intptr_t *)(osevm + OSEVM_CACHE_OFFSET_8));
+	ovm *x = (ovm *)*((intptr_t *)(ose_getBundlePtr(osevm)
+				       + OSEVM_CACHE_OFFSET_8));
 	if(!strncmp(address, "/!/output", 9)){
 		ovm_outputBundles(x);
 	}else if(!strncmp(address, "/!/load", 7)){
@@ -351,8 +354,9 @@ void ovm_FullPacket(ovm *x, long _len, long _ptr)
 		osevm_inputMessages(x->osevm, len, ptr);
 		if(!x->delegating){
 			ovm_bindUserArgs(x);
-			*((intptr_t *)(x->osevm + OSEVM_CACHE_OFFSET_8)) =
-				(intptr_t)x;
+			*((intptr_t *)(ose_getBundlePtr(x->osevm)
+				       + OSEVM_CACHE_OFFSET_8))
+				= (intptr_t)x;
 			osevm_run(x->osevm);
 			/* ovm_outputBundles(x); */
 		}
