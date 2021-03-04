@@ -478,13 +478,13 @@ void setup()
 	// Push our functions into the environment. They're just messages,
 	// and we can give them whatever names (addresses) we want.
 	ose_pushMessage(vm_e, "/sleep", strlen("/sleep"), 1,
-			OSETT_CFUNCTION, mysleep);
+			OSETT_ALIGNEDPTR, mysleep);
 	ose_pushMessage(vm_e, "/uniform", strlen("/uniform"), 1,
-			OSETT_CFUNCTION, myuniform);
+			OSETT_ALIGNEDPTR, myuniform);
 	ose_pushMessage(vm_e, "/led", strlen("/led"), 1,
-			OSETT_CFUNCTION, myled);
+			OSETT_ALIGNEDPTR, myled);
 	ose_pushMessage(vm_e, "/ping", strlen("/ping"), 1,
-			OSETT_CFUNCTION, myping);
+			OSETT_ALIGNEDPTR, myping);
 
 	// Finally, connect to the WiFi network
 	connect_to_wifi(ssid, pass);

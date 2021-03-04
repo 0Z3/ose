@@ -179,7 +179,7 @@ void osec_startMain(ose_bundle osevm)
 	//osec_emit("ose_bundle vm_s = OSEVM_STACK(osevm);\n");
 	osec_writeVMBundles(osevm);
 	osec_emit("for(int i = 0; i < sizeof(ose_function_table) / sizeof(ose_fn); i++){\n");
-	osec_emit("ose_pushMessage(vm_e, ose_address_table[i], strlen(ose_address_table[i]), 1, OSETT_CFUNCTION, ose_function_table[i]);\n");
+	osec_emit("ose_pushMessage(vm_e, ose_address_table[i], strlen(ose_address_table[i]), 1, OSETT_ALIGNEDPTR, ose_function_table[i]);\n");
 	osec_emit("}\n"); // close for loop
 }
 
@@ -302,7 +302,7 @@ void osec_defun(ose_bundle osevm, char *address)
 		}
 			break;
 		case 3: {
-			osec_emit("ose_pushMessage(vm_s, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_LEN, 1, OSETT_CFUNCTION, ose_anonfn%d);\n", OSEC_GET_ANONFNCT(osevm));
+			osec_emit("ose_pushMessage(vm_s, OSE_ADDRESS_ANONVAL, OSE_ADDRESS_ANONVAL_LEN, 1, OSETT_ALIGNEDPTR, ose_anonfn%d);\n", OSEC_GET_ANONFNCT(osevm));
 			OSEC_INC_ANONFNCT(osevm);
 		}
 		}

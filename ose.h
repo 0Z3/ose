@@ -225,10 +225,6 @@ struct ose_timetag
 #define OSE_PROVIDE_TYPE_INFINITUM
 #define OSETT_INFINITUM 'I'
 #endif
-#ifdef OSE_CONF_PROVIDE_TYPE_CFUNCTION
-#define OSE_PROVIDE_TYPE_CFUNCTION
-#define OSETT_CFUNCTION 'l'
-#endif
 
 /* non-osc data types
    these are never written into a bundle
@@ -242,9 +238,7 @@ struct ose_timetag
 #define OSETT_NOTYPETAG 0
 #define OSETT_BUNDLE '|'
 #define OSETT_MESSAGE '-'
-#ifndef OSETT_CFUNCTION
-#define OSETT_CFUNCTION 'l'
-#endif
+#define OSETT_ALIGNEDPTR 'p'
 
 /**
  * Constants

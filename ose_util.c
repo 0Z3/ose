@@ -1076,10 +1076,10 @@ int32_t ose_vwriteMessage(ose_bundle bundle,
 			break;
 		}
 #endif
-		case OSETT_CFUNCTION: {
+		case OSETT_ALIGNEDPTR: {
 			const ose_fn fn = va_arg(ap, ose_fn);
 #ifdef OSE_PROVIDE_TYPE_CFUNCTION
-			ose_writeByte(bundle, tto++, OSETT_CFUNCTION);
+			ose_writeByte(bundle, tto++, OSETT_ALIGNEDPTR);
 #else
 			ose_writeByte(bundle, tto++, OSETT_BLOB);
 #endif

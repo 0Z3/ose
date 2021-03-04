@@ -69,15 +69,6 @@ static int or_step = 0;
 static char *or_prefix = NULL;
 static int32_t or_prefixlen = 0;
 
-/* Signaling and control */
-static jmp_buf or_jmp_buf;
-#if __STDC_VERSION__ < 199901L
-/* There seems to not be a portable way to get the behavior of sigsetjmpp
-   on C89 systems. We can check some of them and set the proper flags,
-   but for now, we just hope for the best */
-#define sigsetjmp(jb, i) setjmp(jb)
-#define siglongjmp(jb, i) longjmp(jb, 1)
-#endif
 static volatile sig_atomic_t or_assertion_failed = 0;
 static volatile sig_atomic_t or_quit = 0;
 static volatile int or_have_input = 0;
@@ -309,7 +300,7 @@ void oserepl_linenoise_cb(struct linenoiseState *l, char *line, int len)
 	int32_t o = ose_getFirstOffsetForMatch(vm_r, "/callback/line");
 	o += 4 + 16 + 4;
 	ose_pushMessage(vm_r, "/linenoiseState", strlen("/linenoiseState"), 1,
-			OSETT_CFUNCTION, (ose_fn)l);
+			OSETT_ALIGNEDPTR, (ose_fn)l);
 	ose_pushMessage(vm_r, "/line", strlen("/line"), 1, OSETT_STRING, line);
 	ose_pushMessage(vm_r, "/len", strlen("/len"), 1, OSETT_INT32, len);
 	ose_callCFn(vm_r, o + 4, osevm);
@@ -849,9 +840,9 @@ int main(int ac, char **av)
 	/* 		OSETT_BLOB, or_maxpromptlen, */
 	/* 		or_defprompt); */
 	ose_pushMessage(vm_r, "/callback/line", strlen("/callback/line"), 1,
-			OSETT_CFUNCTION, oserepl_line_cb);
+			OSETT_ALIGNEDPTR, oserepl_line_cb);
 	ose_pushMessage(vm_r, "/callback/compgen", strlen("/callback/compgen"), 1,
-			OSETT_CFUNCTION, oserepl_compgen_cb);
+			OSETT_ALIGNEDPTR, oserepl_compgen_cb);
 
 	{
 		linenoisePrintf(&l, "Ose %s\n", ose_version);
