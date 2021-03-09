@@ -869,6 +869,7 @@ int main(int ac, char **av)
 		if(or_assertion_failed){
 			or_assertion_failed = 0;
 			oserepl_init();
+			disableRawMode(l.ofd);
 		}
 		if(or_quit){
 			goto cleanup_and_quit;
@@ -891,6 +892,7 @@ int main(int ac, char **av)
 		if(or_assertion_failed){
 			or_assertion_failed = 0;
 			oserepl_init();
+			disableRawMode(l.ofd);
 		}
 		if(or_quit){
 			goto cleanup_and_quit;
@@ -986,6 +988,7 @@ int main(int ac, char **av)
 		}
 	}
  cleanup_and_quit:
+	disableRawMode(l.ofd);
 	linenoiseHistorySave(histfile);
 	return 0;
 }
