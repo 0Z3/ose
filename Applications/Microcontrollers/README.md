@@ -48,3 +48,15 @@ Adafruit's
 [ESP8266 Feather](https://learn.adafruit.com/adafruit-feather-huzzah-esp8266/pinouts).
 They should work on any ESP8266 board, as long as
 you make the appropriate changes to the pin numbers.
+
+## Teensy 4.0
+
+The Teensy 4.0 examples demonstrate functionality similar to that of
+the ESP* examples, only over serial (USB and UART) instead of WiFi.
+
+## Pico
+
+The pico examples use the pico SDK and CMake for building and
+uploading -- please see the documentation here
+[https://www.raspberrypi.org/documentation/rp2040/getting-started/]
+(https://www.raspberrypi.org/documentation/rp2040/getting-started/).
