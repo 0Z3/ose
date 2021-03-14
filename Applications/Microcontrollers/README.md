@@ -33,6 +33,16 @@ in the top level ose directory:
 you fill in the name of the network and the password in the conf.h file
 next to the sketch.
 
+## Requirements
+
+In order to run the Max and PD patches, you will need the odot
+objects:
+[https://github.com/CNMAT/CNMAT-odot](https://github.com/CNMAT/CNMAT-odot).
+
+For the examples that communicate over serial, the PD patches use
+`comport`, available by choosing "Find PD externals" in the application
+and searcing for "comport".
+
 ## ESP32
 
 The examples in this folder are configured for, and were tested on
